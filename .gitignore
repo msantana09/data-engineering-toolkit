@@ -1,2 +1,7 @@
-# python virtualenv
+# Environments
+.env
 .venv
+
+# 
+# ignore all files logs
+logs
