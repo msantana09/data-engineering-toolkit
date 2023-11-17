@@ -50,8 +50,8 @@ x-airflow-common:
   # In order to add custom dependencies or upgrade provider packages you can use your extended image.
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
-  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.7.3}
-  # build: .
+  #image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.7.3}
+  build: .
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -72,11 +72,13 @@ x-airflow-common:
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+  env_file:
+    - .env
   volumes:
-    - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
+    - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags:ro
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
-    - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
+    - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins:ro
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -84,7 +86,9 @@ x-airflow-common:
       condition: service_healthy
     postgres:
       condition: service_healthy
-
+  networks:
+    - platform
+    
 services:
   postgres:
     image: postgres:13
@@ -100,6 +104,8 @@ services:
       retries: 5
       start_period: 5s
     restart: always
+    networks:
+    - platform
 
   redis:
     image: redis:latest
@@ -112,7 +118,9 @@ services:
       retries: 50
       start_period: 30s
     restart: always
-
+    networks:
+    - platform
+    
   airflow-webserver:
     <<: *airflow-common
     command: webserver
@@ -298,3 +306,8 @@ services:
 
 volumes:
   postgres-db-volume:
+
+networks:
+  platform:
+    external: true
+    name: platform
