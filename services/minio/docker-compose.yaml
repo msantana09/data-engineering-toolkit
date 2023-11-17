@@ -1,0 +1,43 @@
+version: '3.8'
+
+
+services:
+  minio:
+    image: quay.io/minio/minio:RELEASE.2023-11-15T20-43-25Z
+    hostname: minio
+    command: server --console-address ":9001"  /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      -  minio-data:/data 
+    networks:
+      - platform
+  mc-datalake-init-job:
+    image: 'minio/mc'
+    entrypoint: |
+      /bin/bash -c "
+      sleep 10;
+      /usr/bin/mc config --quiet host add minio http://minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD;
+      /usr/bin/mc admin --quiet user add minio $MINIO_AIRFLOW_USER $MINIO_AIRFLOW_PASSWORD;
+      /usr/bin/mc admin --quiet policy attach minio readwrite --user $MINIO_AIRFLOW_USER;
+      /usr/bin/mc mb --quiet minio/datalake
+      "
+    depends_on:
+      - minio
+    networks:
+      - platform
+
+volumes:
+  minio-data:
+networks:
+  platform:
+    external: true
+    name: platform
