@@ -1,0 +1,2 @@
+# providers
+apache-airflow-providers-amazon==8.10.0

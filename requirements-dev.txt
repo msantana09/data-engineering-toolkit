@@ -1,0 +1,7 @@
+# packages for local development
+apache-airflow==2.7.3
+
+# Airflow providers
+apache-airflow-providers-amazon==8.10.0
+
+
