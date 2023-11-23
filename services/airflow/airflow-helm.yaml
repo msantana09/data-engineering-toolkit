@@ -8,8 +8,14 @@ airflow:
   ## configs for the airflow container image
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/configuration/airflow-version.md
   image:
-    repository: apache/airflow
-    tag: 2.7.3-python3.9
+    #repository: apache/airflow
+    #tag: 2.7.3-python3.9
+    repository: custom-airflow
+    tag: latest
+    pullPolicy: IfNotPresent
+    pullSecret: ""
+    uid: 50000
+    gid: 0
 
   ## the airflow executor type to use
   executor: KubernetesExecutor
@@ -17,24 +23,28 @@ airflow:
   ## the fernet encryption key (sets `AIRFLOW__CORE__FERNET_KEY`)
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/security/set-fernet-key.md
   ## [WARNING] change from default value to ensure security
-  fernetKey: "7T512UXSSmBOkpWimFHIVb8jK6lfmSAvx4mO6Arehnc="
+  # fernetKey: "7T512UXSSmBOkpWimFHIVb8jK6lfmSAvx4mO6Arehnc="
 
   ## the secret_key for flask (sets `AIRFLOW__WEBSERVER__SECRET_KEY`)
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/security/set-webserver-secret-key.md
   ## [WARNING] change from default value to ensure security
-  webserverSecretKey: "THIS IS UNSAFE!"
+  #webserverSecretKey: "THIS IS UNSAFE!"
 
   ## environment variables for airflow configs
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/configuration/airflow-configs.md
   config:
     AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "False"
     AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+    AIRFLOW__LOGGING__REMOTE_LOGGING: "True"
+    AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER: "s3://platform/airflow/logs"
+    AIRFLOW__LOGGING__REMOTE_LOG_CONN_ID: "minio_default"
+    AIRFLOW__WEBSERVER__BASE_URL: "http://localhost:8080/airflow"
 
   ## a list of users to create
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/security/airflow-users.md
   users:
-    - username: admin
-      password: admin
+    - username: airflow
+      password: airflow
       role: Admin
       email: admin@example.com
       firstName: admin
@@ -42,7 +52,43 @@ airflow:
 
   ## a list airflow connections to create
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/dags/airflow-connections.md
-  connections: []
+  connections: 
+    - id: minio_default
+      type: aws
+      login: $MINIO_USERNAME
+      password: $MINIO_PASSWORD
+      schema: http
+      extra: |
+       {
+       "endpoint_url": "$MINIO_ENDPOINT_URL"
+       }
+    - id: kaggle_default
+      type: generic
+      login: $KAGGLE_USERNAME
+      password: $KAGGLE_KEY
+
+  connectionsTemplates:
+    KAGGLE_USERNAME:
+      kind: secret
+      name: kaggle-connection
+      key: username
+    KAGGLE_KEY:
+      kind: secret
+      name: kaggle-connection
+      key: password
+    MINIO_USERNAME:
+      kind: secret
+      name: minio-connection
+      key: login
+    MINIO_PASSWORD:
+      kind: secret
+      name: minio-connection
+      key: password
+    MINIO_ENDPOINT_URL:
+      kind: secret
+      name: minio-connection
+      key: endpoint_url
+
 
   ## a list airflow variables to create
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/dags/airflow-variables.md
@@ -59,8 +105,17 @@ airflow:
 
   ## extra environment variables for the airflow Pods
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/kubernetes/mount-environment-variables.md
-  extraEnv: []
-
+  extraEnv: 
+    - name: AIRFLOW__WEBSERVER__SECRET_KEY
+      valueFrom:
+        secretKeyRef:
+          name: airflow-webserver-secret
+          key: key
+    - name: AIRFLOW__CORE__FERNET_KEY
+      valueFrom:
+        secretKeyRef:
+          name: airflow-fernet-secret
+          key:  key
   ## extra VolumeMounts for the airflow Pods
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/kubernetes/mount-persistent-volumes.md
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/kubernetes/mount-files.md
@@ -143,6 +198,7 @@ web:
   service:
     type: ClusterIP
     externalPort: 8080
+
 
   ## configs generating the `webserver_config.py` file
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/configuration/airflow-configs.md#webserver_configpy
