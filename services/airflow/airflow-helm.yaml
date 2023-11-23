@@ -75,7 +75,7 @@ airflow:
     KAGGLE_KEY:
       kind: secret
       name: kaggle-connection
-      key: password
+      key: key
     MINIO_USERNAME:
       kind: secret
       name: minio-connection
