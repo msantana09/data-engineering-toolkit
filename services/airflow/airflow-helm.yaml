@@ -329,7 +329,7 @@ postgresql:
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/database/embedded-database.md
   ## [WARNING] the embedded Postgres is NOT SUITABLE for production deployments of Airflow
   ## [WARNING] consider using an external database with `externalDatabase.*`
-  enabled: true
+  enabled: false
 
   ## configs for the PVC of postgresql
   persistence:
@@ -344,6 +344,43 @@ externalDatabase:
   ## the type of external database
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/database/external-database.md
   type: postgres
+
+  ## the host of the external database
+  ##
+  host: airflow-postgres
+
+  ## the port of the external database
+  ##
+  port: 5432
+
+  ## the database/scheme to use within the external database
+  ##
+  database: airflow
+
+  ## the username for the external database
+  ##
+  user: airflow
+
+  #userSecret: ""
+
+  ## the key within `externalDatabase.userSecret` containing the user string
+  ##
+  #userSecretKey: "postgresql-user"
+
+  ## the password for the external database
+  ## - [WARNING] to avoid storing the password in plain-text within your values,
+  ##   create a Kubernetes secret and use `externalDatabase.passwordSecret`
+  ##
+  password: "airflow"
+
+  ## the name of a pre-created secret containing the external database password
+  ## - if set, this overrides `externalDatabase.password`
+  ##
+  #passwordSecret: ""
+
+  ## the key within `externalDatabase.passwordSecret` containing the password string
+  ##
+  #passwordSecretKey: "postgresql-password"
 
 ###################################
 ## DATABASE | Embedded Redis
