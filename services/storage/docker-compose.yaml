@@ -3,8 +3,10 @@ version: '3.8'
 services:
   airflow-postgres:
     image: postgres:16
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_USER=${AIRFLOW_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${AIRFLOW_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${AIRFLOW_POSTGRES_DB}
     volumes:
       - platform-airflow-postgres-data:/var/lib/postgresql/data
     healthcheck:
