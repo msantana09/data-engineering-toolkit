@@ -359,28 +359,28 @@ externalDatabase:
 
   ## the username for the external database
   ##
-  user: airflow
+  #user: airflow
 
-  #userSecret: ""
+  userSecret: "postgres-metadata-db"
 
   ## the key within `externalDatabase.userSecret` containing the user string
   ##
-  #userSecretKey: "postgresql-user"
+  userSecretKey: "username"
 
   ## the password for the external database
   ## - [WARNING] to avoid storing the password in plain-text within your values,
   ##   create a Kubernetes secret and use `externalDatabase.passwordSecret`
   ##
-  password: "airflow"
+  #password: "airflow"
 
   ## the name of a pre-created secret containing the external database password
   ## - if set, this overrides `externalDatabase.password`
   ##
-  #passwordSecret: ""
+  passwordSecret: "postgres-metadata-db"
 
   ## the key within `externalDatabase.passwordSecret` containing the password string
   ##
-  #passwordSecretKey: "postgresql-password"
+  passwordSecretKey: "password"
 
 ###################################
 ## DATABASE | Embedded Redis

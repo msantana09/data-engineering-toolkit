@@ -97,12 +97,21 @@ create_secrets(){
         kubectl create secret generic kaggle-connection \
             --namespace "$namespace" \
             --from-literal="username=$kaggle_username" \
-            --from-literal="key=$kaggle_key"            
-    }
+            --from-literal="key=$kaggle_key" 
+
+    # Storing database credentials in a secret
+    POSTGRES_USER=$(get_key_value "$AIRFLOW_DIR/.env" POSTGRES_USER)
+    POSTGRES_PASSWORD=$(get_key_value "$AIRFLOW_DIR/.env" POSTGRES_PASSWORD)
+    kubectl create secret generic postgres-metadata-db \
+        --namespace "$namespace" \
+        --from-literal="username=$POSTGRES_USER" \
+        --from-literal="password=$POSTGRES_PASSWORD"            
+
+}
 
 
 start() {
-    create_env_file "$AIRFLOW_DIR/.env"  "$AIRFLOW_DIR/.env-template"
+    create_env_file "$AIRFLOW_DIR/.env"  "$AIRFLOW_DIR/.env.template"
 
     # Main execution
     create_namespace "$NAMESPACE"
