@@ -5,5 +5,7 @@ kaggle==1.5.16
 # Airflow providers
 apache-airflow-providers-amazon==8.10.0
 apache-airflow-providers-cncf-kubernetes==7.9.0
+apache-airflow-providers-apache-spark==4.3.0
+
 
 
