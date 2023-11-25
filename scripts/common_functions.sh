@@ -1,3 +1,18 @@
+
+# Function to delete a KinD cluster if it exists
+delete_kind_cluster() {
+    local cluster_name=$1
+
+    # Check if the specified cluster exists
+    if kind get clusters | grep -q "^$cluster_name$"; then
+        echo "Cluster $cluster_name exists. Deleting..."
+        kind delete cluster --name "$cluster_name"
+        echo "Cluster $cluster_name deleted."
+    else
+        echo "Cluster $cluster_name does not exist. No action taken."
+    fi
+}
+
 # Function to create a kind cluster
 create_kind_cluster() {
     local cluster_name=$1
@@ -18,9 +33,16 @@ create_kind_cluster() {
         fi
     else
         echo "Cluster $cluster_name already exists."
+        local nodes_status=$(docker ps -q -f name="${cluster_name}-control-plane")
+        if [[ -z $nodes_status ]]; then
+            echo "Cluster $cluster_name exists but is not active. Proceeding to delete and recreate..."
+            delete_kind_cluster "$cluster_name"
+            create_kind_cluster "$cluster_name" "$config_file"
+        else
+            echo "Cluster $cluster_name is active."
+        fi
     fi
 }
-
 
 # Function to check and create namespace
 create_namespace() {
@@ -58,7 +80,6 @@ build_and_load_image() {
 }
 
 
-
 # Function to wait for container startup
 wait_for_container_startup() {
     local namespace=$1
@@ -80,4 +101,80 @@ wait_for_container_startup() {
             sleep 10
         fi
     done
+}
+
+
+create_env_file(){
+    local env_file=$1
+    local template_file=$2
+
+    # Check if .env file exists
+    if [ ! -f  "$env_file" ]; then
+        # If .env does not exist, copy .env-template to .env
+        cp  "$template_file" "$env_file"
+        echo ".env file created from .env-template."
+    else
+        echo "Airflow .env file already exists, using it."
+    fi
+}
+
+# Function to update or add key
+update_or_add_key() {
+    local env_file=$1
+    local key=$2
+    local value=$3
+
+    if grep -q "^$key=" "$env_file"; then
+        # Key exists, check if the value is empty
+        if grep -q "^$key=$" "$env_file"; then
+            # Update the key with the new value
+            # Use sed -i '' for macOS compatibility
+            sed -i '' "s/^$key=$/$key=\"$value\"/" "$env_file" || sed -i "s/^$key=$/$key=\"$value\"/" "$env_file"
+            echo "Updated $key with the provided value."
+        else
+            # Key exists with a non-empty value, return the value
+            local existing_value=$(grep "^$key=" "$env_file" | cut -d'=' -f2)
+            echo "Key $key already exists"
+        fi
+    else
+        # Key does not exist, add it
+        echo "$key=$value" >> "$env_file"
+        echo "Added $key to $env_file."
+    fi
+}
+
+# Function to get the value of a key
+get_key_value() {
+    local env_file=$1
+    local key=$2
+    # Use grep to find the line and sed to extract the value
+    grep "^$key=" "$env_file" | sed -e "s/^$key=\"//" -e 's/"$//'
+}
+
+check_requirements() {
+    local requirements=("$@")
+    for tool in "${requirements[@]}"; do
+        if ! command -v "$tool" &> /dev/null; then
+            echo "Error: $tool is not installed."
+            exit 1
+        fi
+    done
+}
+
+# Function to make script executable if not already
+make_executable_and_run() {
+    local script_path=$1
+
+    if [[ ! -f "$script_path" ]]; then
+        echo "Error: Script $script_path not found."
+        exit 1
+    fi
+
+    if [[ ! -x "$script_path" ]]; then
+        echo "Making script $script_path executable."
+        chmod +x "$script_path"
+    fi
+
+    # Execute the script with the remaining arguments
+    "$script_path" "${@:2}"
 }

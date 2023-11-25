@@ -1,44 +1,75 @@
 #!/bin/bash
 
-# Check if realpath command exists
-if ! command -v realpath &> /dev/null; then
-    echo "Error: realpath command not found."
-    exit 1
-fi
+source scripts/common_functions.sh
+
+# Required CLI tools
+REQUIRED_TOOLS=("realpath" "helm" "kubectl" "docker") 
+check_requirements "${REQUIRED_TOOLS[@]}"
+
 
 # Determine the base directory of the script
 SCRIPT_PATH="$(realpath "$0")"
 BASE_DIR="$(dirname "$SCRIPT_PATH")"
 
 # Setting default values for arguments
-CLUSTER="${1:-platform}"
-AIRFLOW_NAMESPACE="${2:-airflow}"
-AIRFLOW_VERSION="${3:-2.7.3}"
-AIRFLOW_IMAGE_REPO="${4:-custom-airflow}"
-AIRFLOW_IMAGE_TAG="${5:-latest}"
+ACTION="${1:-start}"
+CLUSTER="platform"
+AIRFLOW_NAMESPACE="airflow"
+AIRFLOW_VERSION="2.7.3"
+AIRFLOW_IMAGE_REPO="custom-airflow"
+AIRFLOW_IMAGE_TAG="latest"
+DELETE_DATA=false
 
 # Define the paths for the scripts to be executed
-CREATE_CLUSTER_SCRIPT="$BASE_DIR/scripts/create_cluster.sh"
-DEPLOY_AIRFLOW_SCRIPT="$BASE_DIR/scripts/deploy_airflow.sh"
+CLUSTER_SCRIPT="$BASE_DIR/scripts/cluster.sh"
+AIRFLOW_SCRIPT="$BASE_DIR/scripts/airflow.sh"
 
-# Function to make script executable if not already
-make_executable_and_run() {
-    local script_path=$1
+# Start function
+start(){
+    echo "Starting $CLUSTER..."
 
-    if [[ ! -f "$script_path" ]]; then
-        echo "Error: Script $script_path not found."
-        exit 1
-    fi
+    create_kind_cluster "$CLUSTER" "$BASE_DIR/infra/kind/kind-config.yaml"
 
-    if [[ ! -x "$script_path" ]]; then
-        echo "Making script $script_path executable."
-        chmod +x "$script_path"
-    fi
+    # Apply ingress controller and wait for pods to be running
+    kubectl apply -f $BASE_DIR/infra/nginx/ingress-kind-nginx.yaml
+    wait_for_container_startup ingress-nginx ingress-nginx app.kubernetes.io/component=controller
+    create_env_file "$BASE_DIR/services/storage/.env"   "$BASE_DIR/services/storage/.env-template"
+    docker compose -f "$BASE_DIR/services/storage/docker-compose.yaml" up -d minio mc-datalake-init-job
 
-    # Execute the script with the remaining arguments
-    "$script_path" "${@:2}"
+
+    # install airflow
+    make_executable_and_run "$AIRFLOW_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" "$AIRFLOW_NAMESPACE" "$AIRFLOW_VERSION" "$AIRFLOW_IMAGE_REPO" "$AIRFLOW_IMAGE_TAG"
 }
 
-# Execute the scripts
-make_executable_and_run "$CREATE_CLUSTER_SCRIPT" "$BASE_DIR" "$CLUSTER"
-make_executable_and_run "$DEPLOY_AIRFLOW_SCRIPT" "$BASE_DIR" "$CLUSTER" "$AIRFLOW_NAMESPACE" "$AIRFLOW_VERSION" "$AIRFLOW_IMAGE_REPO" "$AIRFLOW_IMAGE_TAG"
+# Destroy function
+destroy(){
+    echo "Destroying $CLUSTER..."
+
+    #make_executable_and_run "$CLUSTER_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" "$DELETE_DATA"
+    delete_kind_cluster "$CLUSTER"
+
+    # if DELETE_DATA is true, include the -v flag to delete volumes
+    if [[ "$DELETE_DATA" = true ]]; then
+        echo "Deleting volumes..."
+        docker compose -f "$BASE_DIR/services/storage/docker-compose.yaml" down -v
+    else
+        echo "Not deleting volumes..."
+        docker compose -f "$BASE_DIR/services/storage/docker-compose.yaml" down
+    fi
+}
+
+# Recreate function
+recreate(){
+    destroy
+    start
+}
+
+case $ACTION in
+    start|destroy|recreate)
+        $ACTION
+        ;;
+    *)
+        echo "Error: Invalid action $ACTION"
+        exit 1
+        ;;
+esac
