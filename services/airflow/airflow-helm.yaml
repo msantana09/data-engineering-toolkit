@@ -270,7 +270,11 @@ dags:
   ## configs for the dags PVC
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/dags/load-dag-definitions.md
   persistence:
-    enabled: false
+    enabled: true
+    existingClaim: airflow-dag-pvc
+    accessMode: ReadOnlyMany
+
+
 
   ## configs for the git-sync sidecar
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/dags/load-dag-definitions.md
