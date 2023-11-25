@@ -12,7 +12,8 @@ SCRIPT_PATH="$(realpath "$0")"
 BASE_DIR="$(dirname "$SCRIPT_PATH")"
 
 # Setting default values for arguments
-ACTION="${1:-start}"
+
+ACTION="start"
 CLUSTER="platform"
 AIRFLOW_NAMESPACE="airflow"
 AIRFLOW_VERSION="2.7.3"
@@ -20,9 +21,28 @@ AIRFLOW_IMAGE_REPO="custom-airflow"
 AIRFLOW_IMAGE_TAG="latest"
 DELETE_DATA=false
 
-# Define the paths for the scripts to be executed
-CLUSTER_SCRIPT="$BASE_DIR/scripts/cluster.sh"
-AIRFLOW_SCRIPT="$BASE_DIR/scripts/airflow.sh"
+# Process command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -a|--action)
+            ACTION="$2"
+            shift 2
+            ;;
+        -c|--cluster)
+            CLUSTER="$2"
+            shift 2
+            ;;
+        -d|--delete-data)
+            DELETE_DATA=true
+            shift
+            ;;
+        *)
+            echo "Error: Invalid argument $1"
+            exit 1
+            ;;
+    esac
+done
+
 
 # Start function
 start(){
@@ -33,11 +53,11 @@ start(){
     # Apply ingress controller and wait for pods to be running
     kubectl apply -f $BASE_DIR/infra/nginx/ingress-kind-nginx.yaml
     wait_for_container_startup ingress-nginx ingress-nginx app.kubernetes.io/component=controller
-    create_env_file "$BASE_DIR/services/storage/.env"   "$BASE_DIR/services/storage/.env-template"
+    create_env_file "$BASE_DIR/services/storage/.env"   "$BASE_DIR/services/storage/.env.template"
     docker compose -f "$BASE_DIR/services/storage/docker-compose.yaml" up -d minio mc-datalake-init-job
 
-
     # install airflow
+    AIRFLOW_SCRIPT="$BASE_DIR/scripts/airflow.sh"
     make_executable_and_run "$AIRFLOW_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" "$AIRFLOW_NAMESPACE" "$AIRFLOW_VERSION" "$AIRFLOW_IMAGE_REPO" "$AIRFLOW_IMAGE_TAG"
 }
 
@@ -45,7 +65,6 @@ start(){
 destroy(){
     echo "Destroying $CLUSTER..."
 
-    #make_executable_and_run "$CLUSTER_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" "$DELETE_DATA"
     delete_kind_cluster "$CLUSTER"
 
     # if DELETE_DATA is true, include the -v flag to delete volumes
@@ -58,7 +77,7 @@ destroy(){
     fi
 }
 
-# Recreate function
+# Recreate the platform
 recreate(){
     destroy
     start

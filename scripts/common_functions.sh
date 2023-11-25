@@ -112,7 +112,7 @@ create_env_file(){
     if [ ! -f  "$env_file" ]; then
         # If .env does not exist, copy .env-template to .env
         cp  "$template_file" "$env_file"
-        echo ".env file created from .env-template."
+        echo "$env_file file created from $template_file."
     else
         echo "Airflow .env file already exists, using it."
     fi
@@ -148,7 +148,7 @@ get_key_value() {
     local env_file=$1
     local key=$2
     # Use grep to find the line and sed to extract the value
-    grep "^$key=" "$env_file" | sed -e "s/^$key=\"//" -e 's/"$//'
+    grep "^$key=" "$env_file" | sed -E "s/^$key=\"?([^\"']*)\"?$/\1/"
 }
 
 check_requirements() {
