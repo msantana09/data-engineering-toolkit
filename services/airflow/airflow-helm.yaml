@@ -119,13 +119,24 @@ airflow:
   ## extra VolumeMounts for the airflow Pods
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/kubernetes/mount-persistent-volumes.md
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/kubernetes/mount-files.md
-  extraVolumeMounts: []
+  extraVolumeMounts:
+    - name: airflow-lib
+      mountPath: /opt/airflow/lib
+      readOnly: true
+    - name: airflow-spark
+      mountPath: /opt/airflow/spark_scripts
+      readOnly: true
 
   ## extra Volumes for the airflow Pods
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/kubernetes/mount-persistent-volumes.md
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/kubernetes/mount-files.md
-  extraVolumes: []
-
+  extraVolumes:
+    - name: airflow-lib
+      persistentVolumeClaim:
+        claimName: airflow-lib-pvc
+    - name: airflow-spark
+      persistentVolumeClaim:
+        claimName: airflow-spark-pvc
   ## configs generating the `pod_template.yaml` file for `AIRFLOW__KUBERNETES__POD_TEMPLATE_FILE`
   ## [NOTE] the `dags.gitSync` values will create a git-sync init-container in the pod
   ## [NOTE] the `airflow.extraPipPackages` will NOT be installed
@@ -297,7 +308,7 @@ serviceAccount:
   create: true
 
   ## the name of the ServiceAccount
-  name: ""
+  name: "airflow-service-account"
 
   ## annotations for the ServiceAccount
   annotations: {}

@@ -120,8 +120,8 @@ start() {
 
     docker compose -f "$BASE_DIR/services/storage/docker-compose.yaml" up -d airflow-postgres 
 
-    kubectl apply -f "$AIRFLOW_DIR/local-dag-pv.yaml"
-    kubectl apply -f "$AIRFLOW_DIR/local-dag-pvc.yaml"
+    kubectl apply -f "$AIRFLOW_DIR/local-pv.yaml"
+    kubectl apply -f "$AIRFLOW_DIR/local-pvc.yaml"
 
     # Add and update helm repository
     helm repo add apache-airflow https://airflow.apache.org
