@@ -6,3 +6,9 @@
 # ignore all files logs
 logs
 test.sh
+
+
+# ignore all files .DS_Store
+````
+.DS_Store
+````
