@@ -8,8 +8,6 @@ airflow:
   ## configs for the airflow container image
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/configuration/airflow-version.md
   image:
-    #repository: apache/airflow
-    #tag: 2.7.3-python3.9
     repository: custom-airflow
     tag: latest
     pullPolicy: IfNotPresent
