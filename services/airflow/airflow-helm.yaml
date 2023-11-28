@@ -114,6 +114,36 @@ airflow:
         secretKeyRef:
           name: airflow-fernet-secret
           key:  key
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: lakehouse-secret 
+          key:  AWS_ACCESS_KEY_ID
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: lakehouse-secret 
+          key:  AWS_SECRET_ACCESS_KEY
+    - name: AWS_ENDPOINT_URL_S3
+      valueFrom:
+        secretKeyRef:
+          name: lakehouse-secret 
+          key:  AWS_ENDPOINT_URL_S3
+    - name: AWS_REGION
+      valueFrom:
+        secretKeyRef:
+          name: lakehouse-secret 
+          key:  AWS_REGION
+    - name: AWS_S3_LAKEHOUSE
+      valueFrom:
+        secretKeyRef:
+          name: lakehouse-secret 
+          key:  AWS_S3_LAKEHOUSE
+    - name: HIVE_ENDPOINT_URL
+      valueFrom:
+        secretKeyRef:
+          name: lakehouse-secret 
+          key:  HIVE_ENDPOINT_URL
   ## extra VolumeMounts for the airflow Pods
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/kubernetes/mount-persistent-volumes.md
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/kubernetes/mount-files.md
