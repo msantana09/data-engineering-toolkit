@@ -25,8 +25,6 @@ if __name__ == "__main__":
 
   df = spark.createDataFrame(data=data, schema=schema)
 
-  #pprint(spark.sparkContext.getConf().getAll())
-
   spark.sql('CREATE DATABASE IF NOT EXISTS hr;')
 
   df.writeTo("hr.employees").createOrReplace()
