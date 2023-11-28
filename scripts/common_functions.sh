@@ -185,3 +185,16 @@ extract_json_value() {
     local key=$2
     echo $json | grep -o "\"$key\": \"[^\"]*" | grep -o '[^"]*$'
 }
+
+create_kubernetes_secret() {
+    local secret_name=$1
+    local namespace=$2
+    local secret_data=$3
+
+    if ! kubectl get secret "$secret_name" --namespace "$namespace" &> /dev/null; then
+        echo "Creating secret '$secret_name' in namespace '$namespace'."
+        kubectl create secret generic "$secret_name" --namespace "$namespace" $secret_data
+    else
+        echo "Secret '$secret_name' already exists in namespace '$namespace'."
+    fi
+}
