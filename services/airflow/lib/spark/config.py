@@ -1,4 +1,14 @@
 import os
+
+SPARK_JAR_PATH = f"{os.environ['SPARK_HOME']}/jars/"
+
+SPARK_JARS = [
+    "iceberg-spark-runtime-3.5_2.12-1.4.2.jar",
+    "aws-java-sdk-bundle-1.12.587.jar",
+    "bundle-2.17.257.jar"
+]
+
+
 config = {
     "spark.sql.defaultCatalog": "lakehouse",
     "spark.sql.catalogImplementation": "hive",
@@ -18,13 +28,11 @@ config = {
     "spark.hadoop.fs.s3a.secret.key": os.environ['AWS_SECRET_ACCESS_KEY'],
     "spark.hadoop.fs.s3a.endpoint": os.environ['AWS_ENDPOINT_URL_S3'],
 
-    "spark.executor.instances": "2",
     "spark.kubernetes.namespace": "airflow",
     "spark.kubernetes.container.image":"custom-spark-python:latest",
     "spark.kubernetes.authenticate.driver.serviceAccountName": "airflow-service-account",
-    "spark.jars": f"{os.environ['SPARK_HOME']}/jars/iceberg-spark-runtime-3.5_2.12-1.4.2.jar,\
-        {os.environ['SPARK_HOME']}/jars/aws-java-sdk-bundle-1.12.587.jar,\
-        {os.environ['SPARK_HOME']}/jars/bundle-2.17.257.jar"
+    "spark.jars": ",".join([SPARK_JAR_PATH + jar for jar in SPARK_JARS]),
+    "spark.kubernetes.file.upload.path": "s3://platform/spark_k8_uploads/",
 }
  
 # when running through cluster
