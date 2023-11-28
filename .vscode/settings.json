@@ -1,8 +1,0 @@
-{
-    "python.autoComplete.extraPaths": [
-        "${workspaceFolder}/services/airflow"
-    ],
-    "python.analysis.extraPaths":[
-        "${workspaceFolder}/services/airflow"
-    ]
-}
