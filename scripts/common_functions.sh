@@ -75,7 +75,7 @@ build_and_load_image() {
         return 1
     fi
 
-    docker build --pull -t "$image_repo:$image_tag" "$build_path"
+    docker build  -t "$image_repo:$image_tag" "$build_path"
     kind load docker-image "$image_repo:$image_tag" --name "$cluster_name"
 }
 
@@ -177,4 +177,11 @@ make_executable_and_run() {
 
     # Execute the script with the remaining arguments
     "$script_path" "${@:2}"
+}
+
+# Function to extract value from JSON
+extract_json_value() {
+    local json=$1
+    local key=$2
+    echo $json | grep -o "\"$key\": \"[^\"]*" | grep -o '[^"]*$'
 }
