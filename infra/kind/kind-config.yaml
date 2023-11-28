@@ -15,6 +15,10 @@ nodes:
   - containerPort: 443
     hostPort: 8443
     protocol: TCP
-  extraMounts:
+  extraMounts: # host >> container(control plane). Then map to pods through airflow helm chart
   - hostPath: services/airflow/dags
     containerPath: /opt/airflow/dags
+  - hostPath: services/airflow/spark_scripts
+    containerPath: /opt/airflow/spark_scripts
+  - hostPath: services/airflow/lib
+    containerPath: /opt/airflow/lib

@@ -59,6 +59,10 @@ start(){
     # install airflow
     AIRFLOW_SCRIPT="$BASE_DIR/scripts/airflow.sh"
     make_executable_and_run "$AIRFLOW_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" "$AIRFLOW_NAMESPACE" "$AIRFLOW_VERSION" "$AIRFLOW_IMAGE_REPO" "$AIRFLOW_IMAGE_TAG"
+
+    # install spark
+    SPARK_SCRIPT="$BASE_DIR/scripts/spark.sh"
+    make_executable_and_run "$SPARK_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
 }
 
 # Destroy function
