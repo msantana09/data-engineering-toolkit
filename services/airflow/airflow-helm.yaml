@@ -65,6 +65,28 @@ airflow:
       login: $KAGGLE_USERNAME
       password: $KAGGLE_KEY
 
+    - id: kubernetes_default
+      type: kubernetes
+      extra: |
+       {
+       "in_cluster": "True"
+       }
+    - id: spark_k8
+      type: spark
+      host: k8s://kubernetes.default.svc:443
+      description: Spark driver started by K8 control plane.  Driver logs WILL NOT be visible in Airflow
+      extra: |
+       {
+       "deploy-mode": "cluster"
+       }
+    - id: spark_local
+      type: spark
+      host: local[*]
+      description: Spark driver started by Airflow pod. Driver logs will be visible in Airflow
+      extra: |
+       {
+       "deploy-mode": "client"
+       }
   connectionsTemplates:
     KAGGLE_USERNAME:
       kind: secret
