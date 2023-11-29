@@ -348,8 +348,12 @@ dags:
 ingress:
   ## if we should deploy Ingress resources
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/kubernetes/ingress.md
-  enabled: false
-
+  enabled: true
+  web:
+    annotations: {}
+    host: "localhost"
+    path: "/airflow"
+    ingressClassName: "nginx"
 ###################################
 ## CONFIG | Kubernetes ServiceAccount
 ###################################

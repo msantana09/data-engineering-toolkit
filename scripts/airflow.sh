@@ -94,11 +94,6 @@ start() {
     # Wait for container startup
     wait_for_container_startup airflow airflow-web component=web
 
-    # Apply custom ingress rules
-    if ! kubectl apply -f "$AIRFLOW_DIR/ingress.yaml"; then
-        echo "Failed to apply custom ingress rules"
-        exit 1
-    fi
 }
 
 # Destroy function
