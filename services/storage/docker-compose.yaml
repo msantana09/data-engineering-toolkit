@@ -58,12 +58,6 @@ services:
       - POSTGRES_DB=${HIVE_METASTORE_POSTGRES_DB}
     volumes:
       - platform-hive-metastore-postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "airflow"]
-      interval: 10s
-      retries: 5
-      start_period: 5s
-    restart: always
     networks:
       - kind
 

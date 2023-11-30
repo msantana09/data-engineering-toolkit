@@ -92,7 +92,7 @@ start() {
     install_airflow "$AIRFLOW_DIR"  "$NAMESPACE"
 
     # Wait for container startup
-    wait_for_container_startup airflow airflow-web component=web
+    wait_for_container_startup "$NAMESPACE" airflow-web component=web
 
 }
 

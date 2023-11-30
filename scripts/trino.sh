@@ -10,7 +10,7 @@ DIR="$BASE_DIR/services/trino"
 
 source "$BASE_DIR/scripts/common_functions.sh"
 
-# Function to install or upgrade airflow
+# Function to install or upgrade trino
 install_trino() {
     local dir=$1
     local namespace=$2
