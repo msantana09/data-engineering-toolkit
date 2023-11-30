@@ -49,8 +49,22 @@ start(){
     # Apply ingress controller and wait for pods to be running
     kubectl apply -f $BASE_DIR/infra/nginx/ingress-kind-nginx.yaml
     wait_for_container_startup ingress-nginx ingress-nginx app.kubernetes.io/component=controller
+
     create_env_file "$BASE_DIR/services/storage/.env"   "$BASE_DIR/services/storage/.env.template"
-    docker compose -f "$BASE_DIR/services/storage/docker-compose.yaml" up -d minio mc-datalake-init-job hive-metastore-postgres
+   
+
+    if ! docker compose -f "$BASE_DIR/services/storage/docker-compose.yaml" up -d minio mc-datalake-init-job  ; then
+        echo "Failed to start Minio with docker-compose"
+        exit 1
+    fi 
+
+    # install hive
+    HIVE_SCRIPT="$BASE_DIR/scripts/hive.sh"
+    make_executable_and_run "$HIVE_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
+
+    # install trino
+    TRINO_SCRIPT="$BASE_DIR/scripts/trino.sh"
+    make_executable_and_run "$TRINO_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
 
     # install airflow
     AIRFLOW_SCRIPT="$BASE_DIR/scripts/airflow.sh"
@@ -58,12 +72,7 @@ start(){
     # install spark
     SPARK_SCRIPT="$BASE_DIR/scripts/spark.sh"
     make_executable_and_run "$SPARK_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
-
-    # install trino
-    TRINO_SCRIPT="$BASE_DIR/scripts/trino.sh"
-    make_executable_and_run "$TRINO_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
-
-
+    
 }
 
 # Destroy function

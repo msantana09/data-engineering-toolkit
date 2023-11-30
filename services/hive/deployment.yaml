@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hive-metastore
+  namespace: hive
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hive-metastore
+  template:
+    metadata:
+      labels:
+        app: hive-metastore
+    spec:
+      containers:
+      - name: hive-metastore
+        image: apache/hive:4.0.0-alpha-2
+        ports:
+        - containerPort: 9083
+        env:
+        - name: SERVICE_NAME
+          value: metastore
+        - name: DB_DRIVER
+          value: postgres
+        - name: SERVICE_OPTS
+          valueFrom:
+            secretKeyRef:
+              name: hive-metastore-secret
+              key: SERVICE_OPTS
+        volumeMounts:
+        - name: warehouse-storage
+          mountPath: /opt/hive/data/warehouse
+        resources:
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+      volumes:
+      - name: warehouse-storage
+        persistentVolumeClaim:
+          claimName: warehouse-pvc
