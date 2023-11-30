@@ -28,14 +28,7 @@ spec:
             secretKeyRef:
               name: hive-metastore-secret
               key: SERVICE_OPTS
-        volumeMounts:
-        - name: warehouse-storage
-          mountPath: /opt/hive/data/warehouse
         resources:
           limits:
             cpu: "1"
             memory: "2Gi"
-      volumes:
-      - name: warehouse-storage
-        persistentVolumeClaim:
-          claimName: warehouse-pvc

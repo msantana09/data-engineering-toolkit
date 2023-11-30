@@ -22,5 +22,3 @@ nodes:
     containerPath: /opt/airflow/spark_scripts
   - hostPath: services/airflow/lib
     containerPath: /opt/airflow/lib
-  - hostPath: services/hive/warehouse
-    containerPath: /mnt/data/hive-warehouse

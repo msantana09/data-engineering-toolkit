@@ -33,12 +33,10 @@ start() {
         echo "Failed to start Hive's Postgres Database with docker-compose"
         exit 1
     fi 
-    
-    kubectl apply -f "$DIR/pv.yaml" \
-    -f "$DIR/pvc.yaml" \
-    -f "$DIR/service.yaml" \
-    -f "$DIR/deployment.yaml"
 
+    kubectl apply -f "$DIR/service.yaml" \
+    -f "$DIR/deployment.yaml"
+    
     wait_for_container_startup "$NAMESPACE"  hive-metastore app=hive-metastore
 }
 
