@@ -15,10 +15,6 @@ BASE_DIR="$(dirname "$SCRIPT_PATH")"
 
 ACTION="start"
 CLUSTER="platform"
-AIRFLOW_NAMESPACE="airflow"
-AIRFLOW_VERSION="2.7.3"
-AIRFLOW_IMAGE_REPO="custom-airflow"
-AIRFLOW_IMAGE_TAG="latest"
 DELETE_DATA=false
 
 # Process command line arguments
@@ -54,15 +50,20 @@ start(){
     kubectl apply -f $BASE_DIR/infra/nginx/ingress-kind-nginx.yaml
     wait_for_container_startup ingress-nginx ingress-nginx app.kubernetes.io/component=controller
     create_env_file "$BASE_DIR/services/storage/.env"   "$BASE_DIR/services/storage/.env.template"
-    docker compose -f "$BASE_DIR/services/storage/docker-compose.yaml" up -d minio mc-datalake-init-job
+    docker compose -f "$BASE_DIR/services/storage/docker-compose.yaml" up -d minio mc-datalake-init-job hive-metastore-postgres
 
     # install airflow
     AIRFLOW_SCRIPT="$BASE_DIR/scripts/airflow.sh"
-    make_executable_and_run "$AIRFLOW_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" "$AIRFLOW_NAMESPACE" "$AIRFLOW_VERSION" "$AIRFLOW_IMAGE_REPO" "$AIRFLOW_IMAGE_TAG"
-
+    make_executable_and_run "$AIRFLOW_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
     # install spark
     SPARK_SCRIPT="$BASE_DIR/scripts/spark.sh"
     make_executable_and_run "$SPARK_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
+
+    # install trino
+    TRINO_SCRIPT="$BASE_DIR/scripts/trino.sh"
+    make_executable_and_run "$TRINO_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
+
+
 }
 
 # Destroy function

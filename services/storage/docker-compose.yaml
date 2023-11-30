@@ -50,11 +50,27 @@ services:
       - minio
     networks:
       - kind
-
+  hive-metastore-postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=${HIVE_METASTORE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${HIVE_METASTORE_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${HIVE_METASTORE_POSTGRES_DB}
+    volumes:
+      - platform-hive-metastore-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+    networks:
+      - kind
 
 volumes:
   platform-minio-data:
   platform-airflow-postgres-data:
+  platform-hive-metastore-postgres-data:
 
 networks:
   kind:

@@ -1,0 +1,14 @@
+additionalCatalogs:
+  lakehouse: |-
+    
+port: 8080
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+  hosts: 
+    - host: localhost
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
