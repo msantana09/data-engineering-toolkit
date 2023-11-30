@@ -61,7 +61,7 @@ create_secrets(){
 
 
 start() {
-    create_env_file "$AIRFLOW_DIR/.env"  "$AIRFLOW_DIR/.env.template"
+    create_env_file "$AIRFLOW_DIR/.env"  "$AIRFLOW_DIR/.env-template"
     create_namespace "$NAMESPACE"
     create_secrets "$NAMESPACE"
 

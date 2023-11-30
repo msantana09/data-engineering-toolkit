@@ -24,7 +24,7 @@ create_hive_secret() {
 }
 
 start() {
-    create_env_file "$DIR/.env"  "$DIR/.env.template"
+    create_env_file "$DIR/.env"  "$DIR/.env-template"
     create_namespace "$NAMESPACE"
 
     create_hive_secret "$NAMESPACE" "$DIR/.env"
