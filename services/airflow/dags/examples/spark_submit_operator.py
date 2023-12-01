@@ -65,6 +65,6 @@ def example_spark_submit():
         conf=spark_config,
         num_executors=NUM_EXECUTORS
     ) 
-    spark_submit_k8_driver >> spark_submit_local_driver
+    spark_submit_local_driver >> spark_submit_k8_driver
 
 example_spark_submit()

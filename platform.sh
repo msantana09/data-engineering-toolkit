@@ -52,7 +52,7 @@ start(){
 
     create_env_file "$BASE_DIR/services/storage/.env"   "$BASE_DIR/services/storage/.env.template"
    
-
+    #starting minio and creating initial buckets
     if ! docker compose -f "$BASE_DIR/services/storage/docker-compose.yaml" up -d minio mc-datalake-init-job  ; then
         echo "Failed to start Minio with docker-compose"
         exit 1
