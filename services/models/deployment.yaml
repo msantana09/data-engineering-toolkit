@@ -1,3 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: model-api-init
+spec:
+  template:
+    metadata:
+      name: model-api-init
+    spec:
+      containers:
+        - name: model-init
+          image: model-api:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python3", "download_models.py"]
+          resources:
+            limits:
+              cpu: "1"
+              memory: "4Gi"
+          volumeMounts:
+          - name: llm-shared-volume
+            mountPath: /mnt/llm-shared-volume
+      restartPolicy: Never
+      volumes:
+      - name: llm-shared-volume        
+        hostPath:
+          path: /data/llm
+          type: DirectoryOrCreate
+
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,8 +48,19 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
+        command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
         resources:
           limits:
             cpu: "1"
             memory: "4Gi"
+        volumeMounts:
+        - name: llm-shared-volume
+          mountPath: /mnt/llm-shared-volume
+
+      volumes:
+      - name: llm-shared-volume        
+        hostPath:
+          path: /data/llm
+          type: DirectoryOrCreate
+
 

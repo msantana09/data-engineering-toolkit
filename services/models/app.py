@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 import torch
 
+VOL_MOUNT="/mnt/llm-shared-volume"
 app = FastAPI(root_path="/api/v1/models")
 
 class TextData(BaseModel):
@@ -22,8 +23,8 @@ def sentiment_score_to_summary(score):
 @app.post("/sentiment/")
 def analyze_sentiment(data: TextData):
     try:
-        tokenizer = AutoTokenizer.from_pretrained("nlptown/bert-base-multilingual-uncased-sentiment")
-        model = AutoModelForSequenceClassification.from_pretrained("nlptown/bert-base-multilingual-uncased-sentiment")
+        tokenizer = AutoTokenizer.from_pretrained(f"{VOL_MOUNT}/nlptown/bert-base-multilingual-uncased-sentiment")
+        model = AutoModelForSequenceClassification.from_pretrained(f"{VOL_MOUNT}/nlptown/bert-base-multilingual-uncased-sentiment")
         tokens = tokenizer.encode(data.text, return_tensors="pt", truncation=True, padding=True)
         result = model(tokens)
         sentiment_score = int(torch.argmax(result.logits)) + 1
@@ -36,11 +37,9 @@ def analyze_sentiment(data: TextData):
 @app.post("/language/")
 def language_detection(data: TextData):
     try:
-        tokenizer = AutoTokenizer.from_pretrained("papluca/xlm-roberta-base-language-detection")
-        model = AutoModelForSequenceClassification.from_pretrained("papluca/xlm-roberta-base-language-detection")
-        #tokens = tokenizer.encode(data.text, return_tensors="pt", truncation=True, padding=True)
+        tokenizer = AutoTokenizer.from_pretrained(f"{VOL_MOUNT}/papluca/xlm-roberta-base-language-detection")
+        model = AutoModelForSequenceClassification.from_pretrained(f"{VOL_MOUNT}/papluca/xlm-roberta-base-language-detection")
 
-        #preds = model(tokens)
         pipe = pipeline("text-classification", model=model, tokenizer=tokenizer)
         result = pipe(data.text)
         print(result)
