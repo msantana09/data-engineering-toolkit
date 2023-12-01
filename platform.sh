@@ -69,13 +69,19 @@ start(){
     # install airflow
     AIRFLOW_SCRIPT="$BASE_DIR/scripts/airflow.sh"
     make_executable_and_run "$AIRFLOW_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
+    
     # install spark
     SPARK_SCRIPT="$BASE_DIR/scripts/spark.sh"
     make_executable_and_run "$SPARK_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
 
     # install models-api
-    SPARK_SCRIPT="$BASE_DIR/scripts/models.sh"
-    make_executable_and_run "$SPARK_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
+    MODEL_SCRIPT="$BASE_DIR/scripts/models.sh"
+    make_executable_and_run "$MODEL_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
+
+    # install superset
+    SS_SCRIPT="$BASE_DIR/scripts/superset.sh"
+    make_executable_and_run "$SS_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
+    
     
 }
 
