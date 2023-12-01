@@ -12,10 +12,10 @@ from lib.spark.config import config as spark_config
 SOURCE = "kaggle_airbnb"
 S3_BUCKET = "datalake"
 
-AWS_CONN_ID = "local_minio"
+AWS_CONN_ID = "minio_default"
 KAGGLE_CONN_ID = "kaggle_default"
 
-SPARK_CONN_ID = "spark_default_local"
+SPARK_CONN_ID = "spark_local"
           
 
 @dag(

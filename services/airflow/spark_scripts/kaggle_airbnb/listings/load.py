@@ -5,7 +5,7 @@ from pyspark.sql.types import DoubleType
 
 
 
-def run(source,type,  s3_source_path: str):
+def run(source, type, s3_source_path: str):
     spark = SparkSession.builder.appName(f"{source}_{type}_load").getOrCreate()
 
     df = spark.read.parquet(s3_source_path)
