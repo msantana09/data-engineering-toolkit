@@ -72,6 +72,10 @@ start(){
     # install spark
     SPARK_SCRIPT="$BASE_DIR/scripts/spark.sh"
     make_executable_and_run "$SPARK_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
+
+    # install models-api
+    SPARK_SCRIPT="$BASE_DIR/scripts/models.sh"
+    make_executable_and_run "$SPARK_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
     
 }
 

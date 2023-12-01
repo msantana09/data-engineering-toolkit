@@ -1,6 +1,10 @@
 # packages for local development
 apache-airflow==2.7.3
 kaggle==1.5.16
+fastapi==0.104.1
+uvicorn==0.24.0.post1
+transformers==4.35.2
+torch==2.1.1
 
 # Airflow providers
 apache-airflow-providers-amazon==8.10.0
