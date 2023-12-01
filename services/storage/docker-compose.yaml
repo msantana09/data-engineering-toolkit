@@ -41,7 +41,9 @@ services:
       /bin/bash -c "
       sleep 10;
       /usr/bin/mc config --quiet host add minio http://minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD;
+      /usr/bin/mc admin --quiet user add minio $MINIO_HIVE_USER $MINIO_HIVE_PASSWORD;
       /usr/bin/mc admin --quiet user add minio $MINIO_AIRFLOW_USER $MINIO_AIRFLOW_PASSWORD;
+      /usr/bin/mc admin --quiet policy attach minio readwrite --user $MINIO_HIVE_USER;
       /usr/bin/mc admin --quiet policy attach minio readwrite --user $MINIO_AIRFLOW_USER;
       /usr/bin/mc mb --quiet minio/datalake
       /usr/bin/mc mb --quiet minio/platform

@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hive-config
+  namespace: hive
+data:
+  hive-site.xml: |
+    <configuration>
+        <property>
+            <name>hive.metastore.warehouse.dir</name>
+            <value>${AWS_S3_LAKEHOUSE}</value>
+        </property>
+
+        <property>
+            <name>fs.s3.impl</name>
+            <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+        </property>
+
+        <property>
+            <name>fs.s3n.impl</name>
+            <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+        </property>
+
+        <property>
+            <name>fs.s3a.endpoint</name>
+            <value>${AWS_ENDPOINT_URL_S3}</value>
+        </property>
+
+        <property>
+            <name>fs.s3a.access.key</name>
+            <value>${AWS_ACCESS_KEY_ID}</value>
+        </property>
+
+        <property>
+            <name>fs.s3a.secret.key</name>
+            <value>${AWS_SECRET_ACCESS_KEY}</value>
+        </property>
+
+        <property>
+            <name>fs.s3a.path.style.access</name>
+            <value>true</value>
+        </property>
+
+        <property>
+            <name>javax.jdo.option.ConnectionURL</name>
+            <value>${METASTORE_DB_CONNECTION_URL}</value>
+        </property>
+
+        <property>
+            <name>javax.jdo.option.ConnectionDriverName</name>
+            <value>org.postgresql.Driver</value>
+        </property>
+
+        <property>
+            <name>javax.jdo.option.ConnectionUserName</name>
+            <value>${METASTORE_DB_USER}</value>
+        </property>
+
+        <property>
+            <name>javax.jdo.option.ConnectionPassword</name>
+            <value>${METASTORE_DB_PASSWORD}</value>
+        </property>
+
+        <property>
+            <name>datanucleus.autoCreateSchema</name>
+            <value>false</value>
+        </property>
+
+
+        <property>
+            <name>hive.metastore.schema.verification</name>
+            <value>true</value>
+        </property>
+
+        <property>
+            <name>metastore.storage.schema.reader.impl</name>
+            <value>org.apache.hadoop.hive.metastore.SerDeStorageSchemaReader</value>
+        </property>
+
+        <property>
+            <name>hive.security.authorization.createtable.owner.grants</name>
+            <value>ALL</value>
+            <description>The set of privileges automatically granted to the owner whenever a table gets created.
+            </description>
+        </property>
+
+        <property>
+            <name>hive.security.metastore.authorization.auth.reads</name>
+            <value>true</value>
+        </property>
+
+        <property>
+            <name>hive.users.in.admin.role</name>
+            <value>admin</value>
+        </property>
+    </configuration>
+

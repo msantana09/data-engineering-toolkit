@@ -12,23 +12,27 @@ spec:
     metadata:
       labels:
         app: hive-metastore
-    spec:
+    spec:   
       containers:
       - name: hive-metastore
-        image: apache/hive:4.0.0-alpha-2
+        image: custom-apache-hive:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9083
         env:
         - name: SERVICE_NAME
           value: metastore
-        - name: DB_DRIVER
-          value: postgres
-        - name: SERVICE_OPTS
-          valueFrom:
-            secretKeyRef:
-              name: hive-metastore-secret
-              key: SERVICE_OPTS
+        envFrom:
+        - secretRef:
+            name: hive-secrets
         resources:
           limits:
             cpu: "1"
             memory: "2Gi"
+        volumeMounts:
+        - name: hive-config-volume
+          mountPath: /mnt/hive-config
+      volumes:
+      - name: hive-config-volume
+        configMap:
+          name: hive-config
