@@ -5,10 +5,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt --no-cache-dir
 
-COPY app.py .
+COPY app/app.py .
 
 # use this to download models by init job
-COPY download_models.py .
+COPY app/download_models.py .
 
 EXPOSE 8000
 
