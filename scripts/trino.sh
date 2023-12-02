@@ -25,6 +25,13 @@ install_trino() {
         echo "Failed to install/upgrade Trino"
         exit 1
     fi
+
+    # Create service to expose trino on port 8081 of host
+    if ! kubectl apply -f  "$dir/service.yaml"  ; then
+        echo "Failed to create Trino service"
+        exit 1
+    fi
+
 }
 
 start() {
