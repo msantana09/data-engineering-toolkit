@@ -27,6 +27,9 @@ source "$AIRFLOW_DIR/.env"
 install_airflow() {
     local dir=$1
     local namespace=$2
+
+    helm repo add apache-airflow https://airflow.apache.org
+    helm repo update
     if ! helm upgrade --install airflow airflow-stable/airflow \
         --namespace "$namespace" \
         --values "$dir/airflow-helm.yaml"; then
@@ -87,8 +90,6 @@ start() {
     
 
     # Add and update helm repository
-    helm repo add apache-airflow https://airflow.apache.org
-    helm repo update
     install_airflow "$AIRFLOW_DIR"  "$NAMESPACE"
 
     # Wait for container startup

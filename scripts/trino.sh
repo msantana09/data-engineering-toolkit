@@ -16,6 +16,9 @@ install_trino() {
     local namespace=$2
     local lakehouse=$(<"$dir/catalogs/.env.lakehouse.properties")
 
+    helm repo add trino https://trinodb.github.io/charts
+    helm repo update
+
     if ! helm upgrade --install -f "$dir/trino.yaml" trino trino/trino \
         --set additionalCatalogs.lakehouse="$lakehouse" \
         --namespace "$namespace"  ; then
@@ -27,9 +30,6 @@ install_trino() {
 start() {
     create_env_file "$DIR/catalogs/.env.lakehouse.properties"  "$DIR/catalogs/lakehouse.properties.template"
     create_namespace "$NAMESPACE"
-    helm repo add trino https://trinodb.github.io/charts
-    helm repo update
-
     install_trino "$DIR" "$NAMESPACE"
 }
 

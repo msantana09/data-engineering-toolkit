@@ -14,15 +14,19 @@ source "$BASE_DIR/scripts/common_functions.sh"
 install() {
     local dir=$1
     local namespace=$2
+
+    helm repo add superset https://apache.github.io/superset
+    helm repo update
     if ! helm upgrade --install superset superset/superset\
         --namespace "$namespace" \
-        --values "$dir/values.yaml"; then
+        --values "$dir/.env.values.yaml"; then
         echo "Failed to install/upgrade Superset"
         exit 1
     fi
 }
 
 start() {
+    create_env_file "$DIR/.env.values.yaml"  "$DIR/values-template.yaml"
     create_namespace "$NAMESPACE"
     # Build custom image and load it into the cluster
     #build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" "$CLUSTER" 
@@ -30,12 +34,6 @@ start() {
         echo "Failed to start Superset's Postgres Database with docker-compose"
         exit 1
     fi 
-
-    helm repo add superset https://apache.github.io/superset
-    helm repo update
-
-
-
     install "$DIR" "$NAMESPACE"
 }
 
