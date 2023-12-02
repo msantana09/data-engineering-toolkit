@@ -67,7 +67,7 @@ RUN pip install -r requirements.txt --no-cache-dir
 
 COPY dags/ /opt/airflow/dags
 COPY include/ /opt/airflow/include
-COPY plugins/ /opt/airflow/plugins
+COPY plugin[s]/ /opt/airflow/plugins
 COPY spark_scripts /opt/airflow/spark_scripts
 COPY lib /opt/airflow/lib
 
