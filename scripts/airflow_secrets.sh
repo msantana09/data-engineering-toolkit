@@ -21,12 +21,12 @@ create_or_update_fernet_key() {
     fernet_key=$(get_key_value "$env_file" $env_fernet_key)
 
     if [ -z "$fernet_key" ]; then
-        if ! command -v python &> /dev/null || ! python -c "import cryptography" &> /dev/null; then
+        if ! command -v python &> /dev/null || ! python3 -c "import cryptography" &> /dev/null; then
             echo "Python or cryptography is not installed. Installing cryptography..."  1>&2
             pip install cryptography || { echo "Failed to install cryptography"; exit 1; }
         fi
 
-        fernet_key=$(python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
+        fernet_key=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
         echo "Adding fernet key to Airflow's .env file."  1>&2
         update_or_add_key "$env_file" "$env_fernet_key" "$fernet_key"
     else
