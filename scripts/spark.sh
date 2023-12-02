@@ -11,7 +11,7 @@ IMAGE_TAG="${7:-latest}"
 
 
 
-SPARK_DIR="$BASE_DIR/services/spark"
+DIR="$BASE_DIR/services/spark"
 
 source "$BASE_DIR/scripts/common_functions.sh"
 
@@ -20,10 +20,10 @@ start() {
     create_namespace "$NAMESPACE"
 
     # Build custom image and load it into the cluster
-    build_and_load_image "$SPARK_DIR" "$IMAGE_REPO" "$IMAGE_TAG" "$CLUSTER" 
+    build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" "$CLUSTER" 
 
     # Apply roles
-    kubectl apply -f "$SPARK_DIR/roles.yaml" 
+    kubectl apply -f "$DIR/roles.yaml" 
 }
 
 # Destroy function
