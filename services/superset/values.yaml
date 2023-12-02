@@ -112,15 +112,19 @@ extraConfigs:
   #       tables: []
   import_datasources.yaml: |
       databases:
-      - allow_file_upload: true
-        allow_ctas: true
-        allow_cvas: true
-        database_name: lakehouse
-        extra: "{\r\n    \"metadata_params\": {},\r\n    \"engine_params\": {},\r\n    \"\
-          metadata_cache_timeout\": {},\r\n    \"schemas_allowed_for_file_upload\": []\r\n\
-          }"
-        sqlalchemy_uri: trino://trino@trino.trino.svc.cluster.local:8080/lakehouse
-        tables: []
+        - database_name: lakehouse
+          sqlalchemy_uri: trino://trino@trino.trino.svc.cluster.local:8080/lakehouse
+          cache_timeout: null
+          expose_in_sqllab: true
+          allow_run_async: false
+          allow_ctas: true
+          allow_cvas: true
+          allow_dml: false
+          allow_csv_upload: true
+          extra: "{\r\n    \"metadata_params\": {},\r\n    \"engine_params\": {},\r\n    \"\
+            metadata_cache_timeout\": {}, \"disable_data_preview\":true, \r\n    \"schemas_allowed_for_file_upload\": []\r\n\
+            }"
+          tables: []
   # -- Extra files to mount on `/app/pythonpath` as secrets
 extraSecrets: {}
 
@@ -214,7 +218,7 @@ service:
   # -- Additional service annotations (e.g. for cloud provider specific config)
 
 ingress:
-  enabled: true
+  enabled: false
   ingressClassName: ~
   annotations: {}
     # kubernetes.io/tls-acme: "true"
