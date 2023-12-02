@@ -9,26 +9,16 @@ AIRFLOW_VERSION="${5:-2.7.3}"
 IMAGE_REPO="${6:-custom-airflow}"
 IMAGE_TAG="${7:-latest}"
 
-AIRFLOW_DIR="$BASE_DIR/services/airflow"
-
-# Checking for required files
-for required_file in "$BASE_DIR/scripts/common_functions.sh" "$AIRFLOW_DIR/.env"; do
-    if [ ! -f "$required_file" ]; then
-        echo "Required file not found: $required_file"
-        exit 1
-    fi
-done
+DIR="$BASE_DIR/services/airflow"
 
 source "$BASE_DIR/scripts/common_functions.sh"
-source "$AIRFLOW_DIR/.env"
-
 
 # Function to install or upgrade airflow
 install_airflow() {
     local dir=$1
     local namespace=$2
 
-    helm repo add apache-airflow https://airflow.apache.org
+    helm repo add airflow-stable https://airflow-helm.github.io/charts
     helm repo update
     if ! helm upgrade --install airflow airflow-stable/airflow \
         --namespace "$namespace" \
@@ -54,21 +44,21 @@ create_secrets(){
     source "$BASE_DIR/scripts/airflow_secrets.sh"
 
     create_webserver_secret "$namespace"
-    fernet_key=$(create_or_update_fernet_key "$AIRFLOW_DIR/.env")
+    fernet_key=$(create_or_update_fernet_key "$DIR/.env")
     create_fernet_secret "$namespace" "$fernet_key" 
     create_minio_connection_secret "$namespace"
-    create_lakehouse_secret "$namespace" "$AIRFLOW_DIR/.env"
+    create_lakehouse_secret "$namespace" "$DIR/.env"
     create_kaggle_connection_secret "$namespace"
-    create_postgres_metadata_db_secret "$namespace" "$AIRFLOW_DIR/.env"
+    create_postgres_metadata_db_secret "$namespace" "$DIR/.env"
 }
 
 
 start() {
-    create_env_file "$AIRFLOW_DIR/.env"  "$AIRFLOW_DIR/.env-template"
+    create_env_file "$DIR/.env"  "$DIR/.env-template"
     create_namespace "$NAMESPACE"
     create_secrets "$NAMESPACE"
 
-    if ! docker build -t "$IMAGE_REPO:$IMAGE_TAG" "$AIRFLOW_DIR"; then
+    if ! docker build -t "$IMAGE_REPO:$IMAGE_TAG" "$DIR"; then
         echo "Docker build failed"
         exit 1
     fi
@@ -83,14 +73,14 @@ start() {
         exit 1
     fi 
 
-    if ! kubectl apply -f "$AIRFLOW_DIR/local-pv.yaml" || ! kubectl apply -f "$AIRFLOW_DIR/local-pvc.yaml"; then
+    if ! kubectl apply -f "$DIR/local-pv.yaml" || ! kubectl apply -f "$DIR/local-pvc.yaml"; then
         echo "Failed to apply Kubernetes PV/PVC configurations"
         exit 1
     fi   
     
 
     # Add and update helm repository
-    install_airflow "$AIRFLOW_DIR"  "$NAMESPACE"
+    install_airflow "$DIR"  "$NAMESPACE"
 
     # Wait for container startup
     wait_for_container_startup "$NAMESPACE" airflow-web component=web
