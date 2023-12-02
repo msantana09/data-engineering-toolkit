@@ -43,6 +43,7 @@ serviceAccount:
 # @default -- see `values.yaml`
 bootstrapScript: |
   #!/bin/bash
+  pip install trino==0.327.0 &&\
   if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
 
 # -- The name of the secret which we will use to generate a superset_config.py file
@@ -97,7 +98,7 @@ extraSecretEnv: {}
   #  SUPERSET_SECRET_KEY: 'CHANGE_ME_TO_A_COMPLEX_RANDOM_SECRET'
 
 # -- Extra files to mount on `/app/pythonpath`
-extraConfigs: {}
+extraConfigs: 
   # import_datasources.yaml: |
   #     databases:
   #     - allow_file_upload: true
@@ -109,8 +110,18 @@ extraConfigs: {}
   #         }"
   #       sqlalchemy_uri: example://example-db.local
   #       tables: []
-
-# -- Extra files to mount on `/app/pythonpath` as secrets
+  import_datasources.yaml: |
+      databases:
+      - allow_file_upload: true
+        allow_ctas: true
+        allow_cvas: true
+        database_name: lakehouse
+        extra: "{\r\n    \"metadata_params\": {},\r\n    \"engine_params\": {},\r\n    \"\
+          metadata_cache_timeout\": {},\r\n    \"schemas_allowed_for_file_upload\": []\r\n\
+          }"
+        sqlalchemy_uri: trino://trino@trino.trino.svc.cluster.local:8080/lakehouse
+        tables: []
+  # -- Extra files to mount on `/app/pythonpath` as secrets
 extraSecrets: {}
 
 extraVolumes: []
@@ -132,7 +143,7 @@ extraVolumeMounts: []
 # -- A dictionary of overrides to append at the end of superset_config.py - the name does not matter
 # WARNING: the order is not guaranteed
 # Files can be passed as helm --set-file configOverrides.my-override=my-file.py
-configOverrides: {}
+configOverrides: 
   # extend_timeout: |
   #    # Extend timeout to allow long running queries.
   #    SUPERSET_WEBSERVER_TIMEOUT = ...
@@ -164,9 +175,11 @@ configOverrides: {}
   #   AUTH_USER_REGISTRATION = True
   #   # The default user self registration role
   #   AUTH_USER_REGISTRATION_ROLE = "Admin"
-  # secret: |
-  #   # Generate your own secret key for encryption. Use openssl rand -base64 42 to generate a good key
-  #   SECRET_KEY = 'YOUR_OWN_RANDOM_GENERATED_SECRET_KEY'
+  #my_override: |
+  #  WEBDRIVER_BASEURL="http://localhost:8088/superset/"
+  #  WEBDRIVER_BASEURL_USER_FRIENDLY= "http://localhost:8088/superset/"
+  secret: |
+    SECRET_KEY = 'nRZbIa+7y4GMyNimzCHX01rVBcd10GOd+CR7KtpWOmr3TB5MTdA/jHzZ'
 
 # -- Same as above but the values are files
 configOverridesFiles: {}
@@ -190,17 +203,18 @@ initImage:
   pullPolicy: IfNotPresent
 
 service:
-  type: ClusterIP
+  type: NodePort
   port: 8088
   annotations: {}
     # cloud.google.com/load-balancer-type: "Internal"
   loadBalancerIP: ~
-  nodePort:
+  nodePort: 
     # -- (int)
-    http: nil
+    http: 30081
+  # -- Additional service annotations (e.g. for cloud provider specific config)
 
 ingress:
-  enabled: false
+  enabled: true
   ingressClassName: ~
   annotations: {}
     # kubernetes.io/tls-acme: "true"
@@ -211,7 +225,7 @@ ingress:
   path: /
   pathType: ImplementationSpecific
   hosts:
-    - chart-example.local
+    - localhost
   tls: []
   extraHostsRaw: []
   #  - secretName: chart-example-tls
@@ -261,10 +275,11 @@ supersetNode:
     # redis_password: superset
     redis_port: "6379"
     # You need to change below configuration incase bringing own PostgresSQL instance and also set postgresql.enabled:false
-    db_host: '{{ .Release.Name }}-postgresql'
+    #db_host: '{{ .Release.Name }}-postgresql'
+    db_host: 'superset-postgres'
     db_port: "5432"
     db_user: superset
-    db_pass: superset
+    db_pass: superset123
     db_name: superset
   env: {}
   # -- If true, forces deployment to reload on each upgrade
@@ -725,7 +740,7 @@ postgresql:
   ##
   ## Use the PostgreSQL chart dependency.
   ## Set to false if bringing your own PostgreSQL.
-  enabled: true
+  enabled: false
 
   ## Authentication parameters
   auth:
