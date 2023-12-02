@@ -8,7 +8,7 @@ source $SCRIPT_BASE_DIR/common_functions.sh
 
 create_webserver_secret() {
     local namespace=$1
-    local webserver_secret=$(date +%s | sha256sum | base64 | head -c 32)
+    local webserver_secret=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-zA-Z0-9' | fold -w 50 | head -n 1)
     create_kubernetes_secret "airflow-webserver-secret" "$namespace" "--from-literal=key=$webserver_secret"
 }
 
