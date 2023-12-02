@@ -22,7 +22,7 @@ install_airflow() {
     helm repo update
     if ! helm upgrade --install airflow airflow-stable/airflow \
         --namespace "$namespace" \
-        --values "$dir/airflow-helm.yaml"; then
+        --values "$dir/.env.values.yaml"; then
         echo "Failed to install/upgrade Airflow"
         exit 1
     fi
@@ -55,6 +55,8 @@ create_secrets(){
 
 start() {
     create_env_file "$DIR/.env"  "$DIR/.env-template"
+    create_env_file "$DIR/.env.values.yaml"  "$DIR/values-template.yaml"
+
     create_namespace "$NAMESPACE"
     create_secrets "$NAMESPACE"
 
