@@ -12,4 +12,8 @@ COPY download_models.py .
 
 EXPOSE 8000
 
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
 # docker run -p 8000:8000 --cpus=0.5 -m 2g -t sentiment_api 

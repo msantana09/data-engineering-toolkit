@@ -36,7 +36,7 @@ airflow:
     AIRFLOW__LOGGING__REMOTE_LOGGING: "True"
     AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER: "s3://platform/airflow/logs"
     AIRFLOW__LOGGING__REMOTE_LOG_CONN_ID: "minio_default"
-    AIRFLOW__WEBSERVER__BASE_URL: "http://localhost:8080/airflow"
+    AIRFLOW__WEBSERVER__BASE_URL: "http://localhost:8081"
 
   ## a list of users to create
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/security/airflow-users.md
@@ -257,8 +257,9 @@ web:
 
   ## configs for the Service of the web Pods
   service:
-    type: ClusterIP
-    externalPort: 8080
+    type: NodePort
+    nodePort: 
+      http: 30081
 
 
   ## configs generating the `webserver_config.py` file
@@ -348,7 +349,7 @@ dags:
 ingress:
   ## if we should deploy Ingress resources
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/kubernetes/ingress.md
-  enabled: true
+  enabled: false
   web:
     annotations: {}
     host: "localhost"

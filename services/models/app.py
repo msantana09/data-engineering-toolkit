@@ -20,7 +20,7 @@ def sentiment_score_to_summary(score):
     }
     return sentiments.get(score, "Unknown")
 
-@app.post("/sentiment/")
+@app.post("/sentiment")
 def analyze_sentiment(data: TextData):
     try:
         tokenizer = AutoTokenizer.from_pretrained(f"{VOL_MOUNT}/nlptown/bert-base-multilingual-uncased-sentiment")
@@ -34,7 +34,7 @@ def analyze_sentiment(data: TextData):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/language/")
+@app.post("/language")
 def language_detection(data: TextData):
     try:
         tokenizer = AutoTokenizer.from_pretrained(f"{VOL_MOUNT}/papluca/xlm-roberta-base-language-detection")
@@ -42,7 +42,6 @@ def language_detection(data: TextData):
 
         pipe = pipeline("text-classification", model=model, tokenizer=tokenizer)
         result = pipe(data.text)
-        print(result)
 
         return {"result": result}
     except Exception as e:
@@ -50,5 +49,5 @@ def language_detection(data: TextData):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000 )
 

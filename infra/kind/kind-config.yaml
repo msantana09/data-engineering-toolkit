@@ -18,6 +18,9 @@ nodes:
   - containerPort: 30082
     hostPort: 8082
     protocol: TCP
+  - containerPort: 30083
+    hostPort: 8083
+    protocol: TCP
   - containerPort: 443
     hostPort: 8443
     protocol: TCP

@@ -214,7 +214,7 @@ service:
   loadBalancerIP: ~
   nodePort: 
     # -- (int)
-    http: 30082
+    http: 30083
   # -- Additional service annotations (e.g. for cloud provider specific config)
 
 ingress:

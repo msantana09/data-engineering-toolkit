@@ -114,7 +114,7 @@ create_env_file(){
         cp  "$template_file" "$env_file"
         echo "$env_file file created from $template_file."
     else
-        echo "Airflow .env file already exists, using it."
+        echo "$env_file file already exists, using it."
     fi
 }
 
