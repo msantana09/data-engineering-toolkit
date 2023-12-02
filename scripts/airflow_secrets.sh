@@ -21,7 +21,7 @@ create_or_update_fernet_key() {
     fernet_key=$(get_key_value "$env_file" $env_fernet_key)
 
     if [ -z "$fernet_key" ]; then
-        if ! command -v python &> /dev/null || ! python3 -c "import cryptography" &> /dev/null; then
+        if ! command -v python3 &> /dev/null || ! python3 -c "import cryptography" &> /dev/null; then
             echo "Python or cryptography is not installed. Installing cryptography..."  1>&2
             pip install cryptography || { echo "Failed to install cryptography"; exit 1; }
         fi

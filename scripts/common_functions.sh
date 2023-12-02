@@ -130,7 +130,7 @@ update_or_add_key() {
             # Update the key with the new value
             # Use sed -i '' for macOS compatibility
             sed -i '' "s/^$key=$/$key=\"$value\"/" "$env_file" || sed -i "s/^$key=$/$key=\"$value\"/" "$env_file"
-            echo "Updated $key with the provided value."
+            echo "Updated $key with the provided value."  1>&2
         else
             # Key exists with a non-empty value, return the value
             local existing_value=$(grep "^$key=" "$env_file" | cut -d'=' -f2)
