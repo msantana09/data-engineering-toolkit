@@ -1,10 +1,39 @@
 #!/bin/bash
 
 # Setting default values 
-ACTION="${1:-start}"
-BASE_DIR="${2:-../}"
-CLUSTER="${3:-platform}"
-NAMESPACE="${4:-models}"
+ACTION="start"
+CLUSTER="platform"
+DELETE_DATA=false
+BASE_DIR=".."
+
+# Process command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -a|--action)
+            ACTION="$2"
+            shift 2
+            ;;
+        -b|--base_dir)
+            BASE_DIR="$2"
+            shift 2
+            ;;
+        -c|--cluster)
+            CLUSTER="$2"
+            shift 2
+            ;;
+        -d|--delete-data)
+            DELETE_DATA=true
+            shift
+            ;;
+        *)
+            echo "Error: Invalid argument $1"
+            exit 1
+            ;;
+    esac
+done
+
+
+NAMESPACE="models"
 IMAGE_REPO="model-api"
 IMAGE_TAG="latest"
 DIR="$BASE_DIR/services/models"
@@ -28,14 +57,14 @@ start() {
     install "$DIR" "$NAMESPACE"
 }
 
-# Destroy function
-destroy() {
+# Shutdown function
+shutdown() {
     kubectl delete namespace "$NAMESPACE"
 }
 
 # Main execution
 case $ACTION in
-    start|destroy)
+    start|shutdown)
         $ACTION
         ;;
     *)

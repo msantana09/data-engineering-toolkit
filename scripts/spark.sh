@@ -1,13 +1,41 @@
 #!/bin/bash
 
 # Setting default values 
-ACTION="${1:-start}"
-BASE_DIR="${2:-../}"
-CLUSTER="${3:-platform}"
-NAMESPACE="${4:-spark}"
-SPARK_VERSION="${5:-3.5.0}"
-IMAGE_REPO="${6:-custom-spark-python}"
-IMAGE_TAG="${7:-latest}"
+ACTION="start"
+CLUSTER="platform"
+DELETE_DATA=false
+BASE_DIR=".."
+
+# Process command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -a|--action)
+            ACTION="$2"
+            shift 2
+            ;;
+        -b|--base_dir)
+            BASE_DIR="$2"
+            shift 2
+            ;;
+        -c|--cluster)
+            CLUSTER="$2"
+            shift 2
+            ;;
+        -d|--delete-data)
+            DELETE_DATA=true
+            shift
+            ;;
+        *)
+            echo "Error: Invalid argument $1"
+            exit 1
+            ;;
+    esac
+done
+
+NAMESPACE="spark"
+SPARK_VERSION="3.5.0"
+IMAGE_REPO="custom-spark-python"
+IMAGE_TAG="latest"
 
 
 
@@ -26,14 +54,14 @@ start() {
     kubectl apply -f "$DIR/roles.yaml" 
 }
 
-# Destroy function
-destroy() {
+# shutdown function
+shutdown() {
     kubectl delete namespace "$NAMESPACE"
 }
 
 # Main execution
 case $ACTION in
-    start|destroy)
+    start|shutdown)
         $ACTION
         ;;
     *)

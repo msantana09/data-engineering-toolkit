@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  airflow-postgres:
+    image: postgres:16
+    env_file:
+      - .env.airflow
+    volumes:
+      - platform-airflow-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+    networks:
+      - kind
+
+volumes:
+  platform-airflow-postgres-data:
+networks:
+  kind:
+    external: true
+    name: kind

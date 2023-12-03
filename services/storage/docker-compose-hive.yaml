@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  hive-metastore-postgres:
+    image: postgres:16
+    env_file:
+      - .env.hive
+    volumes:
+      - platform-hive-metastore-postgres-data:/var/lib/postgresql/data
+    networks:
+      - kind
+volumes:
+  platform-hive-metastore-postgres-data:
+
+networks:
+  kind:
+    external: true
+    name: kind

@@ -1,15 +1,46 @@
 #!/bin/bash
 
 # Setting default values 
-ACTION="${1:-start}"
-BASE_DIR="${2:-../}"
-CLUSTER="${3:-platform}"
-NAMESPACE="${4:-airflow}"
-AIRFLOW_VERSION="${5:-2.7.3}"
-IMAGE_REPO="${6:-custom-airflow}"
-IMAGE_TAG="${7:-latest}"
+ACTION="start"
+CLUSTER="platform"
+DELETE_DATA=false
+BASE_DIR=".."
+
+# Process command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -a|--action)
+            ACTION="$2"
+            shift 2
+            ;;
+        -b|--base_dir)
+            BASE_DIR="$2"
+            shift 2
+            ;;
+        -c|--cluster)
+            CLUSTER="$2"
+            shift 2
+            ;;
+        -d|--delete-data)
+            DELETE_DATA=true
+            shift
+            ;;
+        *)
+            echo "Error: Invalid argument $1"
+            exit 1
+            ;;
+    esac
+done
+
+NAMESPACE="airflow"
+AIRFLOW_VERSION="2.7.3"
+IMAGE_REPO="custom-airflow"
+IMAGE_TAG="latest"
 
 DIR="$BASE_DIR/services/airflow"
+STORAGE_DIR="$BASE_DIR/services/storage"
+DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-airflow.yaml"
+
 
 source "$BASE_DIR/scripts/common_functions.sh"
 
@@ -56,6 +87,7 @@ create_secrets(){
 start() {
     create_env_file "$DIR/.env"  "$DIR/.env-template"
     create_env_file "$DIR/.env.values.yaml"  "$DIR/values-template.yaml"
+    create_env_file "$STORAGE_DIR/.env.airflow"  "$STORAGE_DIR/.env-airflow-template"
 
     create_namespace "$NAMESPACE"
     create_secrets "$NAMESPACE"
@@ -70,7 +102,7 @@ start() {
         exit 1
     fi
 
-    if ! docker-compose -f "$BASE_DIR/services/storage/docker-compose.yaml" up -d airflow-postgres; then
+    if ! docker-compose -f "$DOCKER_COMPOSE_FILE" up -d &> /dev/null ; then
         echo "Failed to start Airflow Postgres with docker-compose"
         exit 1
     fi 
@@ -79,7 +111,6 @@ start() {
         echo "Failed to apply Kubernetes PV/PVC configurations"
         exit 1
     fi   
-    
 
     # Add and update helm repository
     install_airflow "$DIR"  "$NAMESPACE"
@@ -89,16 +120,19 @@ start() {
 
 }
 
-# Destroy function
-destroy() {
-    if ! kubectl delete namespace "$NAMESPACE"; then
-        echo "Failed to delete namespace $NAMESPACE"
-        exit 1
-    fi
+# shutdown function
+shutdown() {
+    kubectl delete namespace "$NAMESPACE"
+
+    local app="airflow"
+    local env_file="$STORAGE_DIR/.env.$app"
+
+    # Check if .env file exists 
+    shutdown_storage "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
 }
 
 # Main execution
 case $ACTION in
-    start|destroy) $ACTION ;;
+    start|shutdown) $ACTION ;;
     *) echo "Error: Invalid action $ACTION"; exit 1 ;;
 esac

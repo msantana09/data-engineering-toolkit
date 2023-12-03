@@ -10,6 +10,7 @@ check_requirements "${REQUIRED_TOOLS[@]}"
 # Determine the base directory of the script
 SCRIPT_PATH="$(realpath "$0")"
 BASE_DIR="$(dirname "$SCRIPT_PATH")"
+STORAGE_DIR="$BASE_DIR/services/storage"
 
 # Setting default values for arguments
 
@@ -32,12 +33,22 @@ while [[ $# -gt 0 ]]; do
             DELETE_DATA=true
             shift
             ;;
+        --) 
+            shift
+            break
+            ;;
         *)
-            echo "Error: Invalid argument $1"
-            exit 1
+            # Assume any other argument is a sub-script
+            SUB_SCRIPTS+=("$1")
+            shift
             ;;
     esac
 done
+
+# if SUB_SCRIPTS is empty, default it to 'core'
+if [[ ${#SUB_SCRIPTS[@]} -eq 0 ]]; then
+    SUB_SCRIPTS=("core")
+fi
 
 
 # Start function
@@ -50,65 +61,68 @@ start(){
     kubectl apply -f $BASE_DIR/infra/nginx/ingress-kind-nginx.yaml
     wait_for_container_startup ingress-nginx ingress-nginx app.kubernetes.io/component=controller
 
-    create_env_file "$BASE_DIR/services/storage/.env"   "$BASE_DIR/services/storage/.env.template"
-   
-    #starting minio and creating initial buckets
-    if ! docker compose -f "$BASE_DIR/services/storage/docker-compose.yaml" up -d minio mc-datalake-init-job  ; then
-        echo "Failed to start Minio with docker-compose"
-        exit 1
-    fi 
-
-    # install hive
-    HIVE_SCRIPT="$BASE_DIR/scripts/hive.sh"
-    make_executable_and_run "$HIVE_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
-
-    # install trino
-    TRINO_SCRIPT="$BASE_DIR/scripts/trino.sh"
-    make_executable_and_run "$TRINO_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
-
-    # install airflow
-    AIRFLOW_SCRIPT="$BASE_DIR/scripts/airflow.sh"
-    make_executable_and_run "$AIRFLOW_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
-    
-    # install spark
-    SPARK_SCRIPT="$BASE_DIR/scripts/spark.sh"
-    make_executable_and_run "$SPARK_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
-
-    # install models-api
-    MODEL_SCRIPT="$BASE_DIR/scripts/models.sh"
-    make_executable_and_run "$MODEL_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
-
-    # install superset
-    SS_SCRIPT="$BASE_DIR/scripts/superset.sh"
-    make_executable_and_run "$SS_SCRIPT" "$ACTION" "$BASE_DIR" "$CLUSTER" 
-    
-    
+    for SUB_SCRIPT in "${SUB_SCRIPTS[@]}"
+    do
+        # Check if the sub-script name is valid
+        case "$SUB_SCRIPT" in
+        "hive"|"trino"|"airflow"|"spark"|"models"|"superset")
+            # Run the corresponding script
+            SCRIPT="$BASE_DIR/scripts/$SUB_SCRIPT.sh"
+            echo "Running $SCRIPT..."
+            make_executable_and_run "$SCRIPT" -a "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
+            ;;
+        "core")
+            # Run both hive and trino scripts
+            for CORE_SCRIPT in "minio" "hive" "trino" "airflow"
+            do
+                SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
+                echo "Running $SCRIPT..."
+                make_executable_and_run "$SCRIPT" -a "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
+            done
+            ;;
+        *)
+            # Print an error message
+            echo "Invalid sub-script name: $SUB_SCRIPT"
+            echo "Valid names are: hive, trino, airflow, spark, models, superset"
+            ;;
+        esac
+    done
 }
 
-# Destroy function
-destroy(){
-    echo "Destroying $CLUSTER..."
-
+# Shutdown function
+shutdown(){
+    echo "Shutting down $CLUSTER..."
+    
     delete_kind_cluster "$CLUSTER"
 
-    # if DELETE_DATA is true, include the -v flag to delete volumes
-    if [[ "$DELETE_DATA" = true ]]; then
-        echo "Deleting volumes..."
-        docker compose -f "$BASE_DIR/services/storage/docker-compose.yaml" down -v
-    else
-        echo "Not deleting volumes..."
-        docker compose -f "$BASE_DIR/services/storage/docker-compose.yaml" down
-    fi
+    for file_path in "$BASE_DIR"/services/storage/*.yaml
+    do
+        filename="${file_path##*/}"
+
+        # Check if the file name matches the pattern
+        if [[ $filename =~ docker-compose-(.*).yaml ]]; then
+
+            # Extract the app name from the file name
+            local app="${BASH_REMATCH[1]}"
+            local env_file="$STORAGE_DIR/.env.$app"
+            # Check if .env file exists 
+            if [ -f  "$env_file" ]; then
+                shutdown_storage "$app" "$env_file" "$DELETE_DATA" "$STORAGE_DIR/docker-compose-$app.yaml"
+            fi
+        else
+            echo "Pattern not found"
+        fi
+    done
 }
 
 # Recreate the platform
 recreate(){
-    destroy
+    shutdown
     start
 }
 
 case $ACTION in
-    start|destroy|recreate)
+    start|shutdown|recreate)
         $ACTION
         ;;
     *)

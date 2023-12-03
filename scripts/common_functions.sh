@@ -155,7 +155,7 @@ check_requirements() {
     local requirements=("$@")
     for tool in "${requirements[@]}"; do
         if ! command -v "$tool" &> /dev/null; then
-            echo "Error: $tool is not installed."
+            echo "Error: '$tool' is not installed."
             exit 1
         fi
     done
@@ -196,5 +196,32 @@ create_kubernetes_secret() {
         kubectl create secret generic "$secret_name" --namespace "$namespace" $secret_data
     else
         echo "Secret '$secret_name' already exists in namespace '$namespace'."
+    fi
+}
+
+shutdown_storage() {
+    local app=$1
+    local env_file=$2
+    local delete_data=$3
+    local docker_compose_file=$4
+    local service=""
+
+    if [[ $app == "minio" ]]; then
+        service="minio"
+    fi
+
+    # Check if .env file exists 
+    if [ -f  "$env_file" ]; then
+        # if DELETE_DATA is true, include the -v flag to delete volumes
+        
+        if [[ "$delete_data" = true ]]; then
+            echo "Deleting volumes for $app..." 
+            docker compose --env-file  "$env_file" -f "$docker_compose_file" down -v $service 
+        else
+            echo "Shutting down storage for ${app}..."
+            docker compose --env-file  "$env_file" -f "$docker_compose_file" down $service
+        fi
+    else
+        echo "Warning: file not found - $env_file"
     fi
 }
