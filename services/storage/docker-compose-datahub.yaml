@@ -9,9 +9,37 @@ services:
       - platform-datahub-postgres-data:/var/lib/postgresql/data
     networks:
       - kind
+  datahub-elasticsearch-01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+      - platform-datahub-elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    environment:
+      - node.name=datahub-elasticsearch-01
+      - cluster.name=${CLUSTER_NAME}
+      - cluster.initial_master_nodes=datahub-elasticsearch-01
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - xpack.license.self_generated.type=${LICENSE}
+    mem_limit: ${MEM_LIMIT}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - kind
 volumes:
   platform-datahub-postgres-data:
-
+  platform-datahub-elasticsearch-data:
+  certs:
+    driver: local
+  kibanadata:
+    driver: local
 networks:
   kind:
     external: true

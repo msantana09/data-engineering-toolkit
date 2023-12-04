@@ -198,7 +198,7 @@ mysqlSetupJob:
     #   imagePullPolicy: Always
 
 postgresqlSetupJob:
-  enabled: false
+  enabled: true
   image:
     repository: acryldata/datahub-postgres-setup
     # tag: "v0.11.0" # defaults to .global.datahub.version
@@ -337,11 +337,16 @@ global:
   datahub_standalone_consumers_enabled: false
 
   elasticsearch:
-    host: "elasticsearch-master"
+    host: "datahub-elasticsearch-01"
     port: "9200"
     skipcheck: "false"
-    insecure: "false"
+    insecure: "true"
     useSSL: "false"
+    auth:
+      enabled: true
+      username: "elastic"
+      password:
+        value: elastic
     # If you want to specify index prefixes use indexPrefix
     # indexPrefix: "dh"
 
@@ -525,15 +530,6 @@ global:
       #   region: us-east-1
       #   registry: datahub
 
-  neo4j:
-    host: "prerequisites-neo4j:7474"
-    uri: "bolt://prerequisites-neo4j"
-    username: "neo4j"
-    password:
-      secretRef: neo4j-secrets
-      secretKey: neo4j-password
-    # --------------OR----------------
-    # value: password
 
   sql:
     datasource:

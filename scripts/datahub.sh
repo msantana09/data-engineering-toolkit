@@ -39,15 +39,6 @@ DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-datahub.yaml"
 
 source "$BASE_DIR/scripts/common_functions.sh"
 
-create_neo4j_secrets() {
-    local namespace=$1
-    local env_file=$2
-    local password=$(get_key_value "$env_file" NEO4J_PASSWORD)
-    local auth=$(get_key_value "$env_file" NEO4J_AUTH)
-
-    create_kubernetes_secret "neo4j-secrets" "$namespace" "--from-literal=neo4j-password=$password --from-literal=NEO4J_AUTH=$auth"
-}
-
 create_postgresql_secrets() {
     local namespace=$1
     local env_file=$2
@@ -60,12 +51,11 @@ start() {
     create_env_file "$DIR/.env"  "$DIR/.env-template"
     create_env_file "$STORAGE_DIR/.env.datahub"  "$STORAGE_DIR/.env-datahub-template"
 
-
     create_namespace "$NAMESPACE"
-    create_neo4j_secrets "$NAMESPACE" "$DIR/.env"
     create_postgresql_secrets "$NAMESPACE" "$DIR/.env"
 
-    if ! docker-compose -f "$DOCKER_COMPOSE_FILE" up -d &> /dev/null ; then
+
+    if ! docker-compose --env-file "$STORAGE_DIR/.env.datahub"  -f "$DOCKER_COMPOSE_FILE" up -d datahub-postgres datahub-elasticsearch-01  &> /dev/null ; then
         echo "Failed to start Datahub's Postgres Database with docker-compose"
         exit 1
     fi 
