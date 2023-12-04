@@ -41,6 +41,10 @@ datahub-frontend:
     requests:
       cpu: 100m
       memory: 512Mi
+  service:
+    type: NodePort
+    nodePort: 30084
+    targetPort: 9002
   # Set up ingress to expose react front-end
   ingress:
     enabled: false
@@ -159,7 +163,7 @@ kafkaSetupJob:
     #   imagePullPolicy: Always
 
 mysqlSetupJob:
-  enabled: true
+  enabled: false
   image:
     repository: acryldata/datahub-mysql-setup
     # tag: "v0.11.0" # defaults to .global.datahub.version
@@ -194,7 +198,7 @@ mysqlSetupJob:
     #   imagePullPolicy: Always
 
 postgresqlSetupJob:
-  enabled: false
+  enabled: true
   image:
     repository: acryldata/datahub-postgres-setup
     # tag: "v0.11.0" # defaults to .global.datahub.version
@@ -533,28 +537,28 @@ global:
 
   sql:
     datasource:
-      host: "prerequisites-mysql:3306"
-      hostForMysqlClient: "prerequisites-mysql"
-      port: "3306"
-      url: "jdbc:mysql://prerequisites-mysql:3306/datahub?verifyServerCertificate=false&useSSL=true&useUnicode=yes&characterEncoding=UTF-8&enabledTLSProtocols=TLSv1.2"
-      driver: "com.mysql.cj.jdbc.Driver"
-      username: "root"
-      password:
-        secretRef: mysql-secrets
-        secretKey: mysql-root-password
+      #host: "prerequisites-mysql:3306"
+      #hostForMysqlClient: "prerequisites-mysql"
+      #port: "3306"
+      #url: "jdbc:mysql://prerequisites-mysql:3306/datahub?verifyServerCertificate=false&useSSL=true&useUnicode=yes&characterEncoding=UTF-8&enabledTLSProtocols=TLSv1.2"
+      #driver: "com.mysql.cj.jdbc.Driver"
+      #username: "root"
+      #password:
+      #  secretRef: mysql-secrets
+      #  secretKey: mysql-root-password
       # --------------OR----------------
       # value: password
 
       ## Use below for usage of PostgreSQL instead of MySQL
-      # host: "prerequisites-postgresql:5432"
-      # hostForpostgresqlClient: "prerequisites-postgresql"
-      # port: "5432"
-      # url: "jdbc:postgresql://prerequisites-postgresql:5432/datahub"
-      # driver: "org.postgresql.Driver"
-      # username: "postgres"
-      # password:
-      #   secretRef: postgresql-secrets
-      #   secretKey: postgres-password
+      host: "datahub-postgres:5432"
+      hostForpostgresqlClient: "datahub-postgres"
+      port: "5432"
+      url: "jdbc:postgresql://datahub-postgres:5432/datahub"
+      driver: "org.postgresql.Driver"
+      username: "datahub"
+      password:
+        secretRef: postgresql-secrets
+        secretKey: postgres-password
       # --------------OR----------------
       #   value: password
 

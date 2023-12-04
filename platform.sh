@@ -65,7 +65,7 @@ start(){
     do
         # Check if the sub-script name is valid
         case "$SUB_SCRIPT" in
-        "hive"|"trino"|"airflow"|"spark"|"models"|"superset")
+        "hive"|"trino"|"airflow"|"spark"|"models"|"superset"|"datahub")
             # Run the corresponding script
             SCRIPT="$BASE_DIR/scripts/$SUB_SCRIPT.sh"
             echo "Running $SCRIPT..."
