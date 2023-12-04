@@ -75,9 +75,7 @@ start() {
 
     helm upgrade --install datahub datahub/datahub \
         --values "$DIR/values.yaml" --namespace $NAMESPACE 
-    
 
-    kubectl apply -f "$DIR/service.yaml" 
 }
 
 # shutdown function
