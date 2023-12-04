@@ -20,8 +20,8 @@ datahub-gms:
     periodSeconds: 30
     failureThreshold: 8
   # Optionaly specify service type for datahub-gms: LoadBalancer, ClusterIP or NodePort, by default: LoadBalancer
-  # service:
-  #   type: ClusterIP
+  service:
+    type: ClusterIP
   # Optionally set a GMS specific SQL login (defaults to global login)
   # sql:
   #   datasource:
@@ -198,7 +198,7 @@ mysqlSetupJob:
     #   imagePullPolicy: Always
 
 postgresqlSetupJob:
-  enabled: true
+  enabled: false
   image:
     repository: acryldata/datahub-postgres-setup
     # tag: "v0.11.0" # defaults to .global.datahub.version
@@ -245,7 +245,7 @@ datahubUpgrade:
   batchSize: 1000
   batchDelayMs: 100
   noCodeDataMigration:
-    sqlDbType: "MYSQL"
+    sqlDbType: "POSTGRES"
     # sqlDbType: "POSTGRES"
   podSecurityContext: {}
     # fsGroup: 1000

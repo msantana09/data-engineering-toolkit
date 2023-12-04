@@ -73,7 +73,7 @@ start(){
             ;;
         "core")
             # Run both hive and trino scripts
-            for CORE_SCRIPT in "minio" "hive" "trino" "airflow"
+            for CORE_SCRIPT in "minio" "hive" "trino" "airflow" "spark"
             do
                 SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
                 echo "Running $SCRIPT..."
