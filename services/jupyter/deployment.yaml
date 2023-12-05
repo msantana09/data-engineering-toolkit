@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter
+  namespace: jupyter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter
+  template:
+    metadata:
+      labels:
+        app: jupyter
+    spec:
+      containers:
+      - name: jupyter
+        image: custom-spark-jupyter:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8888
+        resources:
+          limits:
+            cpu: "1"
+            memory: "4Gi"
+        volumeMounts:
+        - name: jupyter-shared-volume
+          mountPath: /home/spark/notebooks
+        envFrom:
+        - secretRef:
+            name: env-secrets
+
+      volumes:
+      - name: jupyter-shared-volume        
+        hostPath:
+          path: /opt/jupyter/notebooks
+          type: DirectoryOrCreate
+
+
