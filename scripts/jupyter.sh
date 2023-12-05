@@ -40,7 +40,7 @@ DIR="$BASE_DIR/services/jupyter"
 source "$BASE_DIR/scripts/common_functions.sh"
 
 start() {
-    # Main execution
+    create_env_file "$DIR/.env"  "$DIR/.env-template"
     create_namespace "$NAMESPACE"
     create_kubernetes_secret "env-secrets" "$NAMESPACE"  "--from-env-file=$DIR/.env"
 
