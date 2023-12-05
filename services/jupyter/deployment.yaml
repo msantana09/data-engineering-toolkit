@@ -24,16 +24,12 @@ spec:
             cpu: "1"
             memory: "4Gi"
         volumeMounts:
-        - name: jupyter-shared-volume
-          mountPath: /home/spark/notebooks
+        - name: jupyter-pvc-volume
+          mountPath: /opt/spark/notebooks
         envFrom:
         - secretRef:
             name: env-secrets
-
       volumes:
-      - name: jupyter-shared-volume        
-        hostPath:
-          path: /opt/jupyter/notebooks
-          type: DirectoryOrCreate
-
-
+      - name: jupyter-pvc-volume
+        persistentVolumeClaim:
+          claimName: jupyter-notebook-pvc

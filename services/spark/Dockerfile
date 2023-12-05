@@ -30,6 +30,7 @@ RUN curl https://awscli.amazonaws.com/awscli-exe-linux-aarch64-2.13.33.zip -o "a
 RUN mkdir -p /home/spark
 
 ARG spark_uid=185
+RUN chown -R "${spark_uid}:0" /home/spark
 USER ${spark_uid}
 # Copy jars needed for pipelines (e.g. Spark, Iceberg, etc.)
 # Download iceberg spark runtime

@@ -48,7 +48,10 @@ start() {
     build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" "$CLUSTER" 
 
     # Apply roles
-    kubectl apply -f "$DIR/deployment.yaml" -f "$DIR/service.yaml"   -f "$DIR/roles.yaml" 
+    kubectl apply -f "$DIR/volumes.yaml" \
+        -f "$DIR/deployment.yaml" \
+        -f "$DIR/service.yaml" \
+        -f "$DIR/roles.yaml" 
 }
 
 # shutdown function
