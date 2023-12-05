@@ -65,7 +65,7 @@ start(){
     do
         # Check if the sub-script name is valid
         case "$SUB_SCRIPT" in
-        "hive"|"trino"|"airflow"|"spark"|"models"|"superset"|"datahub")
+        "hive"|"trino"|"airflow"|"spark"|"models"|"superset"|"datahub"|"jupyter")
             # Run the corresponding script
             SCRIPT="$BASE_DIR/scripts/$SUB_SCRIPT.sh"
             echo "Running $SCRIPT..."
@@ -83,7 +83,7 @@ start(){
         *)
             # Print an error message
             echo "Invalid sub-script name: $SUB_SCRIPT"
-            echo "Valid names are: hive, trino, airflow, spark, models, superset"
+            echo "Valid names are: hive, trino, airflow, spark, models, superset, datahub, jupyter"
             ;;
         esac
     done

@@ -24,6 +24,9 @@ nodes:
   - containerPort: 30084
     hostPort: 8084
     protocol: TCP
+  - containerPort: 30888
+    hostPort: 8888
+    protocol: TCP
   - containerPort: 443
     hostPort: 8443
     protocol: TCP
@@ -34,3 +37,5 @@ nodes:
     containerPath: /opt/airflow/spark_scripts
   - hostPath: services/airflow/lib
     containerPath: /opt/airflow/lib
+  - hostPath: services/jupyter/notebooks
+    containerPath: /opt/jupyter/notebooks

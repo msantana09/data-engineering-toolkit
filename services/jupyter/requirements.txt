@@ -1,0 +1,4 @@
+jupyterlab==4.0.8
+pandas==2.0.2
+fsspec
+s3fs
