@@ -118,6 +118,10 @@ start() {
     # Wait for container startup
     wait_for_container_startup "$NAMESPACE" airflow-web component=web
 
+    if ! kubectl apply -f "$DIR/roles.yaml" || ! kubectl apply -f "$DIR/roles.yaml"; then
+        echo "Failed to apply role configurations"
+        exit 1
+    fi
 }
 
 # shutdown function
