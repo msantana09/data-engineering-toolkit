@@ -17,3 +17,6 @@ test.sh
 
 # jupyter notebook checkpoints
 services/jupyter/notebooks/.*
+services/jupyter/notebooks/**/.*
+services/jupyter/notebooks/**/_SUCCESS
+services/jupyter/notebooks/**/part*.*
