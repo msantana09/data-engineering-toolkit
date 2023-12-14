@@ -38,6 +38,8 @@ IMAGE_REPO="custom-airflow"
 IMAGE_TAG="latest"
 
 DIR="$BASE_DIR/services/airflow"
+CHARTS_DIR="$DIR/charts"
+
 STORAGE_DIR="$BASE_DIR/services/storage"
 DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-airflow.yaml"
 
@@ -85,8 +87,11 @@ create_secrets(){
 
 
 start() {
+
+    # copy .env file if it doesn't exist
+    # .env/.env.* are gitignored
     create_env_file "$DIR/.env"  "$DIR/.env-template"
-    create_env_file "$DIR/.env.values.yaml"  "$DIR/values-template.yaml"
+    create_env_file "$CHARTS_DIR/.env.values.yaml"  "$CHARTS_DIR/values-template.yaml"
     create_env_file "$STORAGE_DIR/.env.airflow"  "$STORAGE_DIR/.env-airflow-template"
 
     create_namespace "$NAMESPACE"
@@ -107,18 +112,18 @@ start() {
         exit 1
     fi 
 
-    if ! kubectl apply -f "$DIR/local-pv.yaml" || ! kubectl apply -f "$DIR/local-pvc.yaml"; then
+    if ! kubectl apply -f "$CHARTS_DIR/local-pv.yaml" || ! kubectl apply -f "$CHARTS_DIR/local-pvc.yaml"; then
         echo "Failed to apply Kubernetes PV/PVC configurations"
         exit 1
     fi   
 
     # Add and update helm repository
-    install_airflow "$DIR"  "$NAMESPACE"
+    install_airflow "$CHARTS_DIR"  "$NAMESPACE"
 
     # Wait for container startup
     wait_for_container_startup "$NAMESPACE" airflow-web component=web
 
-    if ! kubectl apply -f "$DIR/roles.yaml" || ! kubectl apply -f "$DIR/roles.yaml"; then
+    if ! kubectl apply -f "$CHARTS_DIR/roles.yaml" || ! kubectl apply -f "$CHARTS_DIR/roles.yaml"; then
         echo "Failed to apply role configurations"
         exit 1
     fi
