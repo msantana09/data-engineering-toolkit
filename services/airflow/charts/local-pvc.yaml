@@ -8,7 +8,7 @@ spec:
     - ReadOnlyMany
   resources:
     requests:
-      storage: 1Gi
+      storage: 128Mi
   volumeName: airflow-dag-pv
   storageClassName: standard
 ---
@@ -22,7 +22,7 @@ spec:
     - ReadOnlyMany
   resources:
     requests:
-      storage: 1Gi
+      storage: 128Mi
   volumeName: airflow-lib-pv
   storageClassName: standard
 ---
@@ -36,6 +36,20 @@ spec:
     - ReadOnlyMany
   resources:
     requests:
-      storage: 1Gi
+      storage: 128Mi
   volumeName: airflow-spark-pv
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: airflow-include-pvc
+  namespace: airflow
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 128Mi
+  volumeName: airflow-include-pv
   storageClassName: standard

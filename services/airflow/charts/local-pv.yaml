@@ -6,7 +6,7 @@ metadata:
     type: local
 spec:
   capacity:
-    storage: 1Gi
+    storage: 128Mi
   accessModes:
     - ReadOnlyMany
   hostPath:
@@ -21,7 +21,7 @@ metadata:
     type: local
 spec:
   capacity:
-    storage: 1Gi
+    storage: 128Mi
   accessModes:
     - ReadOnlyMany
   hostPath:
@@ -36,9 +36,24 @@ metadata:
     type: local
 spec:
   capacity:
-    storage: 1Gi
+    storage: 128Mi
   accessModes:
     - ReadOnlyMany
   hostPath:
     path: /opt/airflow/spark_scripts
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: airflow-include-pv
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 128Mi
+  accessModes:
+    - ReadOnlyMany
+  hostPath:
+    path: /opt/airflow/include
   storageClassName: standard

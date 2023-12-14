@@ -37,5 +37,7 @@ nodes:
     containerPath: /opt/airflow/spark_scripts
   - hostPath: services/airflow/lib
     containerPath: /opt/airflow/lib
+  - hostPath: services/airflow/include
+    containerPath: /opt/airflow/include
   - hostPath: services/jupyter/notebooks
     containerPath: /opt/jupyter/notebooks
