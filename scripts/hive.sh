@@ -36,6 +36,8 @@ NAMESPACE="hive"
 IMAGE_REPO="custom-apache-hive"
 IMAGE_TAG="latest"
 DIR="$BASE_DIR/services/hive"
+CHARTS_DIR="$DIR/charts"
+
 STORAGE_DIR="$BASE_DIR/services/storage"
 DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-hive.yaml"
 
@@ -68,9 +70,9 @@ start() {
         exit 1
     fi 
 
-    kubectl apply -f "$DIR/configMap.yaml" \
-    -f "$DIR/service.yaml" \
-    -f "$DIR/deployment.yaml"
+    kubectl apply -f "$CHARTS_DIR/configMap.yaml" \
+    -f "$CHARTS_DIR/service.yaml" \
+    -f "$CHARTS_DIR/deployment.yaml"
 
     wait_for_container_startup "$NAMESPACE"  hive-metastore app=hive-metastore
 }
