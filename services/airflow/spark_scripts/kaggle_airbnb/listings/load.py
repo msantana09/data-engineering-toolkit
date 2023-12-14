@@ -1,7 +1,6 @@
 
 import sys
-from pyspark.sql import SparkSession,  DataFrame, functions as F
-from pyspark.sql.types import DoubleType
+from pyspark.sql import SparkSession
 
 
 
