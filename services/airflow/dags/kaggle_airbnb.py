@@ -5,16 +5,15 @@ from pendulum import datetime
 from datetime import datetime
 import tempfile
 from include.hooks.kaggle_hook import KaggleHook
+from include.operators.kaggle import KaggleDatasetToS3
 from lib.utilities.s3 import upload_files_to_s3
 from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
 from lib.spark.config import config as spark_config
 
 SOURCE = "kaggle_airbnb"
 S3_BUCKET = "datalake"
-
 AWS_CONN_ID = "minio_default"
 KAGGLE_CONN_ID = "kaggle_default"
-
 SPARK_CONN_ID = "spark_local"
           
 
@@ -25,28 +24,22 @@ SPARK_CONN_ID = "spark_local"
     catchup=False
 )
 def kaggle_airbnb():
-    @task
-    def download_dataset(date):
-        # Initialize hook with preconfigured connection
-        kaggle_hook = KaggleHook(conn_id=KAGGLE_CONN_ID)
-
-        # Create temporary directory to store downloaded dataset
-        temp_dir = tempfile.TemporaryDirectory()
-        
-        # Download dataset
-        kaggle_hook.download_dataset(dataset="airbnb/seattle", path=temp_dir.name)
-
-        # Upload dataset to S3        
-        upload_files_to_s3(S3_BUCKET, temp_dir.name, f"raw/{SOURCE}/{date}", aws_conn_id=AWS_CONN_ID)
-
-        # Delete temporary directory
-        temp_dir.cleanup()
+    
+    download_dataset_task = KaggleDatasetToS3(
+        task_id='download_dataset',
+        conn_id=KAGGLE_CONN_ID,
+        dataset="airbnb/seattle",
+        bucket=S3_BUCKET,
+        path=f"raw/{SOURCE}",
+        aws_conn_id=AWS_CONN_ID 
+    )
+    
 
     @task_group()
-    def listings(date):
+    def listings():
         TYPE = "listings"
-        S3_RAW_PATH = f"s3://{S3_BUCKET}/raw/{SOURCE}/{date}"
-        S3_STAGING_PATH = f"s3://{S3_BUCKET}/staging/{SOURCE}/{TYPE}/{date}"
+        S3_RAW_PATH = f"s3://{S3_BUCKET}/raw/{SOURCE}"
+        S3_STAGING_PATH = f"s3://{S3_BUCKET}/staging/{SOURCE}/{TYPE}"
 
         clean = SparkSubmitOperator(
             application=f"{os.environ['AIRFLOW_HOME']}/spark_scripts/{SOURCE}/{TYPE}/clean.py",
@@ -91,9 +84,9 @@ def kaggle_airbnb():
         clean() >> load()
 
     chain(
-        download_dataset('{{ ds }}'),
+        download_dataset_task,
         [
-            listings('{{ ds }}'),
+            listings(),
             reviews()
         ]
     )
