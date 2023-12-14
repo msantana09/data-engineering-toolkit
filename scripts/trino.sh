@@ -31,19 +31,21 @@ done
 NAMESPACE="trino"
 
 DIR="$BASE_DIR/services/trino"
+CHARTS_DIR="$DIR/charts"
 
 source "$BASE_DIR/scripts/common_functions.sh"
 
 # Function to install or upgrade trino
 install_trino() {
     local dir=$1
-    local namespace=$2
+    local chartdir=$2
+    local namespace=$3
     local lakehouse=$(<"$dir/catalogs/.env.lakehouse.properties")
 
     helm repo add trino https://trinodb.github.io/charts
     helm repo update
 
-    if ! helm upgrade --install -f "$dir/trino.yaml" trino trino/trino \
+    if ! helm upgrade --install -f "$chartdir/trino.yaml" trino trino/trino \
         --set additionalCatalogs.lakehouse="$lakehouse" \
         --namespace "$namespace"  ; then
         echo "Failed to install/upgrade Trino"
@@ -51,7 +53,7 @@ install_trino() {
     fi
 
     # Create service to expose trino on port 8081 of host
-    if ! kubectl apply -f  "$dir/service.yaml"  ; then
+    if ! kubectl apply -f  "$chartdir/service.yaml"  ; then
         echo "Failed to create Trino service"
         exit 1
     fi
@@ -61,7 +63,7 @@ install_trino() {
 start() {
     create_env_file "$DIR/catalogs/.env.lakehouse.properties"  "$DIR/catalogs/lakehouse.properties.template"
     create_namespace "$NAMESPACE"
-    install_trino "$DIR" "$NAMESPACE"
+    install_trino "$DIR" "$CHARTS_DIR" "$NAMESPACE"
 }
 
 # shutdown function

@@ -37,9 +37,8 @@ SPARK_VERSION="3.5.0"
 IMAGE_REPO="custom-spark-python"
 IMAGE_TAG="latest"
 
-
-
 DIR="$BASE_DIR/services/spark"
+CHARTS_DIR="$DIR/charts"
 
 source "$BASE_DIR/scripts/common_functions.sh"
 
@@ -51,7 +50,7 @@ start() {
     build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" "$CLUSTER" 
 
     # Apply roles
-    kubectl apply -f "$DIR/roles.yaml" 
+    kubectl apply -f "$CHARTS_DIR/roles.yaml" 
 }
 
 # shutdown function

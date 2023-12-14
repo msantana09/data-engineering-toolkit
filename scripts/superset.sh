@@ -31,10 +31,13 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
 NAMESPACE="superset"
 IMAGE_REPO="superset"
 IMAGE_TAG="latest"
 DIR="$BASE_DIR/services/superset"
+CHARTS_DIR="$DIR/charts"
+
 STORAGE_DIR="$BASE_DIR/services/storage"
 DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-superset.yaml"
 
@@ -55,7 +58,7 @@ install() {
 }
 
 start() {
-    create_env_file "$DIR/.env.values.yaml"  "$DIR/values-template.yaml"
+    create_env_file "$CHARTS_DIR/.env.values.yaml"  "$CHARTS_DIR/values-template.yaml"
     create_env_file "$STORAGE_DIR/.env.superset"  "$STORAGE_DIR/.env-superset-template"
   
     create_namespace "$NAMESPACE"
@@ -64,7 +67,7 @@ start() {
         echo "Failed to start Superset's Postgres Database with docker-compose"
         exit 1
     fi 
-    install "$DIR" "$NAMESPACE"
+    install "$CHARTS_DIR" "$NAMESPACE"
 }
 
 # shutdown function
