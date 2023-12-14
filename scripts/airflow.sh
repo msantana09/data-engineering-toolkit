@@ -77,9 +77,9 @@ create_secrets(){
     create_webserver_secret "$namespace"
     fernet_key=$(create_or_update_fernet_key "$DIR/.env")
     create_fernet_secret "$namespace" "$fernet_key" 
-    create_minio_connection_secret "$namespace"
+    create_minio_connection_secret "$namespace" "$DIR/.env"
     create_lakehouse_secret "$namespace" "$DIR/.env"
-    create_kaggle_connection_secret "$namespace"
+    create_kaggle_connection_secret "$namespace" "$DIR/.env"
     create_postgres_metadata_db_secret "$namespace" "$DIR/.env"
 }
 

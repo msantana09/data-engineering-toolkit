@@ -44,7 +44,10 @@ create_fernet_secret() {
 
 create_minio_connection_secret() {
     local namespace=$1
-    local minio_conn_json="${AIRFLOW_CONN_MINIO_DEFAULT//\'/}"
+    local env_file=$2
+
+    local minio_conn_json=$(get_key_value "$env_file" AIRFLOW_CONN_MINIO_DEFAULT)
+    minio_conn_json="${minio_conn_json//\'/}"
     local minio_login=$(extract_json_value "$minio_conn_json" "login")
     local minio_password=$(extract_json_value "$minio_conn_json" "password")
     local minio_endpoint_url=$(extract_json_value "$minio_conn_json" "endpoint_url")
@@ -77,7 +80,10 @@ create_lakehouse_secret() {
 
 create_kaggle_connection_secret() {
     local namespace=$1
-    local kaggle_conn_json="${AIRFLOW_CONN_KAGGLE_DEFAULT//\'/}"
+    local env_file=$2
+
+    local kaggle_conn_json=$(get_key_value "$env_file" AIRFLOW_CONN_KAGGLE_DEFAULT) 
+    kaggle_conn_json="${kaggle_conn_json//\'/}"
     
     local kaggle_username=$(extract_json_value "$kaggle_conn_json" "username")
     local kaggle_key=$(extract_json_value "$kaggle_conn_json" "key")
