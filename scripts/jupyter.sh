@@ -36,6 +36,7 @@ NAMESPACE="jupyter"
 IMAGE_REPO="custom-spark-jupyter"
 IMAGE_TAG="latest"
 DIR="$BASE_DIR/services/jupyter"
+CHARTS_DIR="$DIR/charts"
 
 source "$BASE_DIR/scripts/common_functions.sh"
 
@@ -48,10 +49,10 @@ start() {
     build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" "$CLUSTER" 
 
     # Apply roles
-    kubectl apply -f "$DIR/volumes.yaml" \
-        -f "$DIR/deployment.yaml" \
-        -f "$DIR/service.yaml" \
-        -f "$DIR/roles.yaml" 
+    kubectl apply -f "$CHARTS_DIR/volumes.yaml" \
+        -f "$CHARTS_DIR/deployment.yaml" \
+        -f "$CHARTS_DIR/service.yaml" \
+        -f "$CHARTS_DIR/roles.yaml" 
 }
 
 # shutdown function
