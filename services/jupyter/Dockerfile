@@ -10,7 +10,6 @@ RUN pip3 install -r requirements.txt
 # Add the PySpark classes to the Python path:
 ENV PYSPARK_PYTHON python3
 ENV PYTHONPATH=$SPARK_HOME/python/:$SPARK_HOME/python/lib/py4j-0.10.9.7-src.zip:$PYTHONPATH
-#RUN export PYTHONPATH=$(ZIPS=("$SPARK_HOME"/python/lib/.zip); IFS=:; echo "${ZIPS[]}"):$PYTHONPATH
 
 # Setup Spark related environment variables
 ENV PATH="/opt/spark/sbin:/opt/spark/bin:${PATH}"
