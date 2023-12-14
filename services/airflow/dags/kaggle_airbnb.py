@@ -2,13 +2,10 @@ import os
 from airflow.models.baseoperator import chain
 from airflow.decorators import dag, task,task_group
 from pendulum import datetime
-from datetime import datetime
-import tempfile
-from include.hooks.kaggle_hook import KaggleHook
 from include.operators.kaggle import KaggleDatasetToS3
-from lib.utilities.s3 import upload_files_to_s3
 from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
 from lib.spark.config import config as spark_config
+
 
 SOURCE = "kaggle_airbnb"
 S3_BUCKET = "datalake"
