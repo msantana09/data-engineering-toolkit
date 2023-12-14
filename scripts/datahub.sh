@@ -34,6 +34,8 @@ done
 
 NAMESPACE="datahub"
 DIR="$BASE_DIR/services/datahub"
+CHARTS_DIR="$DIR/charts"
+
 STORAGE_DIR="$BASE_DIR/services/storage"
 DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-datahub.yaml"
 
@@ -61,10 +63,10 @@ start() {
     fi 
 
     helm upgrade --install prerequisites datahub/datahub-prerequisites \
-        --values "$DIR/prerequisites-values.yaml" --namespace $NAMESPACE
+        --values "$CHARTS_DIR/prerequisites-values.yaml" --namespace $NAMESPACE
 
     helm upgrade --install datahub datahub/datahub \
-        --values "$DIR/values.yaml" --namespace $NAMESPACE 
+        --values "$CHARTS_DIR/values.yaml" --namespace $NAMESPACE 
 
 }
 
