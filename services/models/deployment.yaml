@@ -51,7 +51,10 @@ spec:
         resources:
           limits:
             cpu: "1"
-            memory: "4Gi"
+            memory: "6Gi"
+        envFrom:
+        - secretRef:
+            name: env-secrets
         volumeMounts:
         - name: llm-shared-volume
           mountPath: /mnt/llm-shared-volume

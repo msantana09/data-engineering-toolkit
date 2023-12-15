@@ -1,13 +1,20 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 import torch
+from openai import OpenAI
+from fastapi import FastAPI, HTTPException
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
+from model import ColumnAnalysisRequest, TextData
+import prompts
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+openai_client = OpenAI()
 
 VOL_MOUNT="/mnt/llm-shared-volume"
 app = FastAPI(root_path="/api/v1/models")
-
-class TextData(BaseModel):
-    text: str
+ 
 
 def sentiment_score_to_summary(score):
     # Define your mapping of score to sentiment summary
@@ -46,7 +53,34 @@ def language_detection(data: TextData):
         return {"result": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
 
+@app.post("/column_analysis")
+def column_analysis(data: ColumnAnalysisRequest):
+
+    try:
+        messages = [
+            {
+                "content": prompts.column_analysis,
+                "role": "system"
+            },
+            {
+                "content" :data.model_dump_json(),
+                "role": "user"
+            }
+        ]
+        response = openai_client.chat.completions.create(
+            model="gpt-4-1106-preview",
+            response_format={ "type": "json_object" },
+            messages=messages,
+            temperature=1,
+            max_tokens=4096
+        )
+
+        return {"result": response.choices[0].message.content}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000 )

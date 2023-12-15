@@ -46,6 +46,7 @@ install() {
 
     kubectl apply  -f "$DIR/service.yaml" \
     -f "$DIR/deployment.yaml" \
+    -f "$DIR/ingress.yaml" \
     -n "$namespace"
 }
 
@@ -53,6 +54,8 @@ start() {
     create_namespace "$NAMESPACE"
     # Build custom image and load it into the cluster
     build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" "$CLUSTER" 
+
+    create_kubernetes_secret "env-secrets" "$NAMESPACE"  "--from-env-file=$DIR/.env"
 
     install "$DIR" "$NAMESPACE"
 }
