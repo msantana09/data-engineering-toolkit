@@ -1,5 +1,13 @@
+import os
+import sys
 import unittest
 from unittest import mock
+
+# Get the absolute path of the directory containing the modules
+module_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+# Append this directory to sys.path
+sys.path.append(module_dir)
+
 import include.utilities.s3 as s3
 
 class TestS3Functions(unittest.TestCase):

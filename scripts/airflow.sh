@@ -85,8 +85,22 @@ create_secrets(){
     create_postgres_metadata_db_secret "$namespace" "$DIR/.env"
 }
 
+# run unit tests
+run_unit_tests() {
+    echo "Running unit tests"
+    python3  -m unittest  discover -s "$DIR/tests"
+    # throw error if unit tests fail
+    if [ $? -ne 0 ]; then
+        echo "Unit tests failed"
+        exit 1
+    fi
+
+    echo "Unit tests passed"
+}
+
 
 start() {
+    run_unit_tests
 
     # copy .env file if it doesn't exist
     # .env/.env.* are gitignored

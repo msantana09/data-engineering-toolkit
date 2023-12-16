@@ -40,8 +40,6 @@ if __name__ == "__main__":
   pprint(dict(os.environ))
 
   df = spark.createDataFrame(data=data, schema=schema)
-  print("XXXX")
-  pprint(dict(os.environ))
 
   spark.sql('CREATE DATABASE IF NOT EXISTS hr;')
 
