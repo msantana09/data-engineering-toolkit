@@ -6,6 +6,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipe
 from model import ColumnAnalysisRequest, TextData
 import prompts
 import logging
+import json
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -77,7 +78,12 @@ def column_analysis(data: ColumnAnalysisRequest):
             max_tokens=4096
         )
 
-        return {"result": response.choices[0].message.content}
+        response
+
+        return {
+            "result": json.loads(response.choices[0].message.content),
+            "usage": response.usage
+            }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     

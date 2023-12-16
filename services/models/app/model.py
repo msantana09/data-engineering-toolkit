@@ -5,7 +5,7 @@ class TextData(BaseModel):
     text: str
     
 class Column(BaseModel):
-    datatype: str
+    type: str
     name: str
 
 class Table(BaseModel):

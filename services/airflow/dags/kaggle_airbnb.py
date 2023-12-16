@@ -1,27 +1,37 @@
 import os
 from airflow.models.baseoperator import chain
-from airflow.decorators import dag, task,task_group
+from airflow.decorators import  task,task_group
 from pendulum import datetime
 from include.operators.kaggle import KaggleDatasetToS3
 from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
 from lib.spark.config import config as spark_config
+from airflow.providers.trino.hooks.trino import TrinoHook
+from airflow.exceptions import AirflowSkipException
+from airflow import DAG
+import logging
+from include.utilities.requests import post_json_request
+from include.helper_functions import kaggle_airbnb as helper_functions
 
+logger = logging.getLogger(__name__)
 
 SOURCE = "kaggle_airbnb"
 S3_BUCKET = "datalake"
 AWS_CONN_ID = "minio_default"
 KAGGLE_CONN_ID = "kaggle_default"
 SPARK_CONN_ID = "spark_local"
-          
+CONN_ID = "trino_default"
+DATABASE_NAME = "kaggle_airbnb"
+TABLE_NAME = "listings"
+URL = "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local:80/api/v1/models/column_analysis"
 
-@dag(
+
+with DAG(
+    dag_id="kaggle_airbnb",
     start_date=datetime(2023, 1, 1), 
     max_active_runs=3, 
     schedule=None, 
     catchup=False
-)
-def kaggle_airbnb():
-    
+) as dag: 
     download_dataset_task = KaggleDatasetToS3(
         task_id='download_dataset',
         conn_id=KAGGLE_CONN_ID,
@@ -52,6 +62,7 @@ def kaggle_airbnb():
                 ";".join(['url', 'scrape', 'license' ])
                 ],
         )
+        
         load = SparkSubmitOperator(
             application=f"{os.environ['AIRFLOW_HOME']}/spark_scripts/{SOURCE}/{TYPE}/load.py",
             name = f"{SOURCE}_{TYPE}_load",
@@ -65,7 +76,49 @@ def kaggle_airbnb():
                 ],
         )
 
-        clean >> load
+        @task_group()
+        def generate_column_descriptions():
+            @task()
+            def get_columns_missing_descriptions(**kwargs):
+                hook = TrinoHook(trino_conn_id=CONN_ID) 
+                columns = helper_functions.identify_columns_missing_comments(hook=hook, database=DATABASE_NAME, table=TABLE_NAME)
+                return helper_functions.create_llm_request_batches(columns=columns, batch_size=5)
+            
+            @task
+            def query_llm(columns:list):
+                if not columns:
+                    AirflowSkipException("No columns to describe")
+
+                payload = helper_functions.build_model_api_payload(
+                    dataset_context="AirBnB", 
+                    table=TABLE_NAME, 
+                    columns=columns)
+
+                logger.info("Sending payload to API")
+                response = post_json_request(URL,  payload)
+
+                if response.status_code != 200:
+                    raise Exception(f"Error from Models service API: {response.text}")
+                
+                return response.json()["result"]["tables"][0]["columns"]
+            
+            @task 
+            def apply_column_descriptions(**kwargs):
+
+                column_batched_responses =  kwargs['ti'].xcom_pull(task_ids='listings.generate_column_descriptions.query_llm', key='return_value')
+                # flattening resulting list of lists into a single list
+                column_responses = [item for sublist in column_batched_responses for item in sublist]
+
+                TrinoHook(trino_conn_id=CONN_ID).run(
+                    sql=helper_functions.build_comment_sql(column_responses, database=DATABASE_NAME, table=TABLE_NAME),
+                    autocommit=True
+                )
+
+            query_llm.partial().expand(
+                columns=get_columns_missing_descriptions()
+                )>> apply_column_descriptions() 
+                
+        clean >> load >> generate_column_descriptions()
 
 
     @task_group()
@@ -87,6 +140,4 @@ def kaggle_airbnb():
             reviews()
         ]
     )
-
-
-kaggle_airbnb()
+ 
