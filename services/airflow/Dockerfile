@@ -1,4 +1,4 @@
-FROM apache/airflow:2.7.3
+FROM apache/airflow:2.7.3 as airflow_base
 USER root
 
 # Install OpenJDK-11
@@ -15,12 +15,11 @@ RUN apt-get update && \
         groff \
         mandoc &&\
     apt-get clean;
- 
 # Set JAVA_HOME (*arm64 or *amd64)
 ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-arm64 
 RUN export JAVA_HOME
 
-
+FROM airflow_base as airflow_spark
 ########################
 # Install Spark
 ########################
@@ -60,10 +59,13 @@ RUN curl https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.5
 RUN curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar\
  -Lo ${SPARK_HOME}/jars/hadoop-aws-3.3.4.jar
 
+FROM airflow_spark as airflow_requirements
 USER airflow
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt --no-cache-dir
+
+FROM airflow_requirements as airflow_dags
 
 COPY dags/ /opt/airflow/dags
 COPY include/ /opt/airflow/include
