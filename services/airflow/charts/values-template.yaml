@@ -89,8 +89,9 @@ airflow:
        }
     - id: trino_default
       type: trino
-      host: trino-svc.trino.svc.cluster.local
+      host: trino.trino.svc.cluster.local
       login: trino
+      port: 8080
       extra: |
        {
        "catalog": "lakehouse"
