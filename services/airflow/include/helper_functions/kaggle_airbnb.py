@@ -1,4 +1,6 @@
 from airflow.providers.trino.hooks.trino import TrinoHook
+import csv
+import io
 
 def identify_columns_missing_comments(hook:TrinoHook, database:str, table:str)->list:
     '''
@@ -26,7 +28,7 @@ def create_llm_request_batches(columns:list, batch_size:int=5):
     cols_without_comment_batched = [cols_without_comment[i:i + batch_size] for i in range(0, len(cols_without_comment), batch_size)]
     return cols_without_comment_batched
 
-def build_model_api_payload(dataset_context:str, table:str, columns:list) -> dict: 
+def build_model_api_payload_csv(dataset_context:str, table:str, columns:list) -> dict: 
     '''
     Returns a dictionary that can be used as the payload for the LLM API request
     '''
@@ -35,7 +37,7 @@ def build_model_api_payload(dataset_context:str, table:str, columns:list) -> dic
         "tables": [
             {
                 "name": table,
-                "columns": columns
+                "column_csv": list_of_dicts_to_csv(columns)
             } 
         ]
     }
@@ -56,3 +58,20 @@ def build_comment_sql(column_responses:list, database:str, table:str, prefix:str
         sql = f"COMMENT ON COLUMN {database}.{table}.{name} IS '{prefix} {description}'"
         statements.append(sql)
     return statements
+
+def list_of_dicts_to_csv(data):
+    output = io.StringIO()
+    keys = data[0].keys()
+    dict_writer = csv.DictWriter(output, keys)
+    dict_writer.writeheader()
+    dict_writer.writerows(data)
+    return output.getvalue()
+
+
+def csv_to_json_array(csv_string):
+    csv_reader = csv.reader(csv_string.splitlines())
+    field_names = next(csv_reader)
+    values = []
+    for row in csv_reader:
+        values.append(dict(zip(field_names, row)))
+    return values

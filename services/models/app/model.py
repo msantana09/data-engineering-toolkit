@@ -3,13 +3,9 @@ from pydantic import BaseModel
 
 class TextData(BaseModel):
     text: str
-    
-class Column(BaseModel):
-    type: str
-    name: str
 
 class Table(BaseModel):
-    columns: List[Column]
+    column_csv: str
     name: str
 
 class ColumnAnalysisRequest(BaseModel):

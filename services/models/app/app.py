@@ -59,29 +59,35 @@ def language_detection(data: TextData):
 @app.post("/column_analysis")
 def column_analysis(data: ColumnAnalysisRequest):
 
+    model = "gpt-3.5-turbo-16k"
+    
+    message = f"""
+    context: {data.context}
+    table: {data.tables[0].name}
+    column_csv: 
+    {data.tables[0].column_csv} 
+    """
+
     try:
         messages = [
             {
-                "content": prompts.column_analysis,
+                "content": prompts.column_analysis_csv,
                 "role": "system"
             },
             {
-                "content" :data.model_dump_json(),
+                "content" :message,
                 "role": "user"
             }
         ]
         response = openai_client.chat.completions.create(
-            model="gpt-4-1106-preview",
-            response_format={ "type": "json_object" },
+            model=model,
             messages=messages,
             temperature=1,
             max_tokens=4096
         )
 
-        response
-
         return {
-            "result": json.loads(response.choices[0].message.content),
+            "content": response.choices[0].message.content,
             "usage": response.usage
             }
     except Exception as e:

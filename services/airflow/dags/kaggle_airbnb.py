@@ -82,14 +82,15 @@ with DAG(
             def get_columns_missing_descriptions(**kwargs):
                 hook = TrinoHook(trino_conn_id=CONN_ID) 
                 columns = helper_functions.identify_columns_missing_comments(hook=hook, database=DATABASE_NAME, table=TABLE_NAME)
-                return helper_functions.create_llm_request_batches(columns=columns, batch_size=5)
+                return helper_functions.create_llm_request_batches(columns=columns, batch_size=100)
+
             
             @task
             def query_llm(columns:list):
                 if not columns:
                     AirflowSkipException("No columns to describe")
 
-                payload = helper_functions.build_model_api_payload(
+                payload = helper_functions.build_model_api_payload_csv(
                     dataset_context="AirBnB", 
                     table=TABLE_NAME, 
                     columns=columns)
@@ -100,12 +101,18 @@ with DAG(
                 if response.status_code != 200:
                     raise Exception(f"Error from Models service API: {response.text}")
                 
-                return response.json()["result"]["tables"][0]["columns"]
+                content = response.json()["content"]
+                usage =response.json()["usage"]
+                logger.info(f"Usage: {usage}")
+                logger.debug(f"Result: {content}")
+                
+                return helper_functions.csv_to_json_array(content)
             
             @task 
             def apply_column_descriptions(**kwargs):
 
                 column_batched_responses =  kwargs['ti'].xcom_pull(task_ids='listings.generate_column_descriptions.query_llm', key='return_value')
+                print(column_batched_responses)
                 # flattening resulting list of lists into a single list
                 column_responses = [item for sublist in column_batched_responses for item in sublist]
 
