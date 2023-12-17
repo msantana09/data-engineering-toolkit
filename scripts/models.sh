@@ -37,6 +37,7 @@ NAMESPACE="models"
 IMAGE_REPO="model-api"
 IMAGE_TAG="latest"
 DIR="$BASE_DIR/services/models"
+CHARTS_DIR="$DIR/charts"
 
 source "$BASE_DIR/scripts/common_functions.sh"
 
@@ -44,9 +45,9 @@ install() {
     local dir=$1
     local namespace=$2
 
-    kubectl apply  -f "$DIR/service.yaml" \
-    -f "$DIR/deployment.yaml" \
-    -f "$DIR/ingress.yaml" \
+    kubectl apply  -f "$CHARTS_DIR/service.yaml" \
+    -f "$CHARTS_DIR/deployment.yaml" \
+    -f "$CHARTS_DIR/ingress.yaml" \
     -n "$namespace"
 }
 
