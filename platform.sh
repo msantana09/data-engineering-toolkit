@@ -72,8 +72,16 @@ start(){
             make_executable_and_run "$SCRIPT" -a "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
             ;;
         "core")
-            # Run both hive and trino scripts
+            # basically airflow and dependencies
             for CORE_SCRIPT in "minio" "hive" "trino" "airflow" "spark"
+            do
+                SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
+                echo "Running $SCRIPT..."
+                make_executable_and_run "$SCRIPT" -a "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
+            done
+            ;;
+        "lakehouse")
+            for CORE_SCRIPT in "minio" "hive" "trino" 
             do
                 SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
                 echo "Running $SCRIPT..."

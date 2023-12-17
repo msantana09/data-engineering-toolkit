@@ -112,7 +112,6 @@ with DAG(
             def apply_column_descriptions(**kwargs):
 
                 column_batched_responses =  kwargs['ti'].xcom_pull(task_ids='listings.generate_column_descriptions.query_llm', key='return_value')
-                print(column_batched_responses)
                 # flattening resulting list of lists into a single list
                 column_responses = [item for sublist in column_batched_responses for item in sublist]
 
