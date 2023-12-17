@@ -1,4 +1,4 @@
-FROM custom-spark-python
+FROM custom-spark-python as jupyter_base
 
 USER root
 
@@ -14,6 +14,7 @@ ENV PYTHONPATH=$SPARK_HOME/python/:$SPARK_HOME/python/lib/py4j-0.10.9.7-src.zip:
 # Setup Spark related environment variables
 ENV PATH="/opt/spark/sbin:/opt/spark/bin:${PATH}"
 
+FROM jupyter_base as jupyter
 # Add a notebook command
 RUN echo '#! /bin/sh' >> /bin/notebook \
  && echo 'export PYSPARK_DRIVER_PYTHON=jupyter' >> /bin/notebook \
