@@ -1,7 +1,11 @@
 #!/bin/bash
 
 # Setting default values 
-ACTION="start"
+if [[ $# -gt 0 ]]; then
+    ACTION="$1"
+    shift
+fi
+
 CLUSTER="platform"
 DELETE_DATA=false
 BASE_DIR=".."
@@ -9,10 +13,6 @@ BASE_DIR=".."
 # Process command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -a|--action)
-            ACTION="$2"
-            shift 2
-            ;;
         -b|--base_dir)
             BASE_DIR="$2"
             shift 2
@@ -102,12 +102,6 @@ run_unit_tests() {
 start() {
     run_unit_tests
 
-    # copy .env file if it doesn't exist
-    # .env/.env.* are gitignored
-    create_env_file "$DIR/.env"  "$DIR/.env-template"
-    create_env_file "$CHARTS_DIR/.env.values.yaml"  "$CHARTS_DIR/values-template.yaml"
-    create_env_file "$STORAGE_DIR/.env.airflow"  "$STORAGE_DIR/.env-airflow-template"
-
     create_namespace "$NAMESPACE"
     create_secrets "$NAMESPACE"
 
@@ -132,7 +126,7 @@ start() {
     fi   
 
     # Add and update helm repository
-    install_airflow "$CHARTS_DIR"  "$NAMESPACE"
+    install_airflow "$CHARTS_DIR" "$NAMESPACE"
 
     # Wait for container startup
     wait_for_container_startup "$NAMESPACE" airflow-web component=web
@@ -154,8 +148,20 @@ shutdown() {
     shutdown_storage "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
 }
 
+init(){
+    # copy .env file if it doesn't exist
+    # .env/.env.* are gitignored
+    create_env_file "$DIR/.env"  "$DIR/.env-template"
+    create_env_file "$CHARTS_DIR/.env.values.yaml"  "$CHARTS_DIR/values-template.yaml"
+    create_env_file "$STORAGE_DIR/.env.airflow"  "$STORAGE_DIR/.env-airflow-template"
+}
+
 # Main execution
-case $ACTION in
-    start|shutdown) $ACTION ;;
-    *) echo "Error: Invalid action $ACTION"; exit 1 ;;
+case $ACTION in 
+    init|start|shutdown) 
+        $ACTION ;;
+    *) 
+        echo "Error: Invalid action $ACTION"; 
+        exit 1 
+        ;;
 esac

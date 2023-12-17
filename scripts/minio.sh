@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # Setting default values 
-ACTION="start"
+if [[ $# -gt 0 ]]; then
+    ACTION="$1"
+    shift
+fi
 CLUSTER="platform"
 DELETE_DATA=false
 BASE_DIR=".."
@@ -9,9 +12,6 @@ BASE_DIR=".."
 # Process command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -a|--action)
-            ACTION="$2"
-            shift 2
             ;;
         -b|--base_dir)
             BASE_DIR="$2"
@@ -40,7 +40,6 @@ source "$BASE_DIR/scripts/common_functions.sh"
 start() {
     local app="minio"
     local env_file="$STORAGE_DIR/.env.$app"
-    create_env_file "$env_file"   "$STORAGE_DIR/.env-minio-template"
 
     echo "Starting Minio..."
     #starting minio and creating initial buckets
@@ -68,10 +67,14 @@ shutdown() {
     shutdown_storage "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
 }
 
+init(){
+    creaQte_env_file " $STORAGE_DIR/.env.minio"   "$STORAGE_DIR/.env-minio-template"
+}
+
 
 # Main execution
 case $ACTION in
-    start|shutdown)
+    init|start|shutdow
         $ACTION
         ;;
     *)

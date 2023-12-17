@@ -1,5 +1,4 @@
 #!/bin/bash
-
 source scripts/common_functions.sh
 
 # Required CLI tools
@@ -12,18 +11,25 @@ SCRIPT_PATH="$(realpath "$0")"
 BASE_DIR="$(dirname "$SCRIPT_PATH")"
 STORAGE_DIR="$BASE_DIR/services/storage"
 
-# Setting default values for arguments
+ACTION=""
+SUB_SCRIPTS=()
 
-ACTION="start"
 CLUSTER="platform"
 DELETE_DATA=false
 
 # Process command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -a|--action)
-            ACTION="$2"
-            shift 2
+        -h|--help)
+            echo "Usage: $0 <action> [-c|--cluster <cluster_name>] [-d|--delete-data] [sub_scripts...]"
+            echo ""
+            echo "Options:"
+            echo "  <action>                      The action to perform"
+            echo "  -c, --cluster <cluster_name>  Set the cluster name (default: platform)"
+            echo "  -d, --delete-data             Delete data (default: false)"
+            echo "  -h, --help                    Display this help message"
+            echo "  [sub_scripts...]              Additional scripts to run (default: core). Valid names are: airflow, datahub, hive, jupyter, minio, models, trino, spark, superset, lakehouse (minio, hive, trino ), core(lakehouse + airflow + spark)"
+            exit 0
             ;;
         -c|--cluster)
             CLUSTER="$2"
@@ -38,8 +44,12 @@ while [[ $# -gt 0 ]]; do
             break
             ;;
         *)
-            # Assume any other argument is a sub-script
-            SUB_SCRIPTS+=("$1")
+            # If ACTION is not set, set it. Otherwise, assume any other argument is a sub-script
+            if [ -z "$ACTION" ]; then
+                ACTION="$1"
+            else
+                SUB_SCRIPTS+=("$1")
+            fi
             shift
             ;;
     esac
@@ -69,7 +79,7 @@ start(){
             # Run the corresponding script
             SCRIPT="$BASE_DIR/scripts/$SUB_SCRIPT.sh"
             echo "Running $SCRIPT..."
-            make_executable_and_run "$SCRIPT" -a "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
+            make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
             ;;
         "core")
             # basically airflow and dependencies
@@ -77,7 +87,7 @@ start(){
             do
                 SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
                 echo "Running $SCRIPT..."
-                make_executable_and_run "$SCRIPT" -a "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
+                make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
             done
             ;;
         "lakehouse")
@@ -85,7 +95,7 @@ start(){
             do
                 SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
                 echo "Running $SCRIPT..."
-                make_executable_and_run "$SCRIPT" -a "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
+                make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
             done
             ;;
         *)
@@ -129,8 +139,20 @@ recreate(){
     start
 }
 
+# create .env files if they doesn't exist
+init(){
+    # ACTION="init"
+    for app in "airflow" "datahub" "hive" "jupyter" "models" "trino" "superset" 
+    do
+        
+        printf "\n###### Initializing $app .env files\n"
+        SCRIPT="$BASE_DIR/scripts/$app.sh"
+        make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
+    done
+}
+
 case $ACTION in
-    start|shutdown|recreate)
+    init|start|shutdown|recreate)
         $ACTION
         ;;
     *)

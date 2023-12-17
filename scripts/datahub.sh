@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # Setting default values 
-ACTION="start"
+if [[ $# -gt 0 ]]; then
+    ACTION="$1"
+    shift
+fi
 CLUSTER="platform"
 DELETE_DATA=false
 BASE_DIR=".."
@@ -9,10 +12,6 @@ BASE_DIR=".."
 # Process command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -a|--action)
-            ACTION="$2"
-            shift 2
-            ;;
         -b|--base_dir)
             BASE_DIR="$2"
             shift 2
@@ -50,12 +49,8 @@ create_postgresql_secrets() {
 }
 
 start() {
-    create_env_file "$DIR/.env"  "$DIR/.env-template"
-    create_env_file "$STORAGE_DIR/.env.datahub"  "$STORAGE_DIR/.env-datahub-template"
-
     create_namespace "$NAMESPACE"
     create_postgresql_secrets "$NAMESPACE" "$DIR/.env"
-
 
     if ! docker-compose --env-file "$STORAGE_DIR/.env.datahub"  -f "$DOCKER_COMPOSE_FILE" up -d datahub-postgres datahub-elasticsearch-01  &> /dev/null ; then
         echo "Failed to start Datahub's Postgres Database with docker-compose"
@@ -75,12 +70,17 @@ shutdown() {
     kubectl delete namespace "$NAMESPACE"
 
     shutdown_storage "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
+}
 
+init(){
+    # create .env file if it doesn't exist
+    create_env_file "$DIR/.env"  "$DIR/.env-template"
+    create_env_file "$STORAGE_DIR/.env.datahub"  "$STORAGE_DIR/.env-datahub-template"
 }
 
 # Main execution
 case $ACTION in
-    start|shutdown)
+    init|start|shutdown)
         $ACTION
         ;;
     *)

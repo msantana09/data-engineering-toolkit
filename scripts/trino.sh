@@ -2,13 +2,14 @@
 
 # Setting default values 
 
+if [[ $# -gt 0 ]]; then
+    ACTION="$1"
+    shift
+fi
+
 # Process command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -a|--action)
-            ACTION="$2"
-            shift 2
-            ;;
         -b|--base_dir)
             BASE_DIR="$2"
             shift 2
@@ -61,7 +62,6 @@ install_trino() {
 }
 
 start() {
-    create_env_file "$DIR/catalogs/.env.lakehouse.properties"  "$DIR/catalogs/lakehouse.properties.template"
     create_namespace "$NAMESPACE"
     install_trino "$DIR" "$CHARTS_DIR" "$NAMESPACE"
 }
@@ -71,9 +71,15 @@ shutdown() {
     kubectl delete namespace "$NAMESPACE"
 }
 
+init(){
+    create_env_file "$DIR/catalogs/.env.lakehouse.properties"  "$DIR/catalogs/lakehouse.properties.template"
+
+}
+
+
 # Main execution
 case $ACTION in
-    start|shutdown)
+    init|start|shutdown)
         $ACTION
         ;;
     *)

@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # Setting default values 
-ACTION="start"
+if [[ $# -gt 0 ]]; then
+    ACTION="$1"
+    shift
+fi
 CLUSTER="platform"
 DELETE_DATA=false
 BASE_DIR=".."
@@ -9,10 +12,6 @@ BASE_DIR=".."
 # Process command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -a|--action)
-            ACTION="$2"
-            shift 2
-            ;;
         -b|--base_dir)
             BASE_DIR="$2"
             shift 2
@@ -57,10 +56,7 @@ install() {
     fi
 }
 
-start() {
-    create_env_file "$CHARTS_DIR/.env.values.yaml"  "$CHARTS_DIR/values-template.yaml"
-    create_env_file "$STORAGE_DIR/.env.superset"  "$STORAGE_DIR/.env-superset-template"
-  
+start() {  
     create_namespace "$NAMESPACE"
     # Start Postgres Database
     if ! docker-compose -f "$DOCKER_COMPOSE_FILE" up -d &> /dev/null ; then
@@ -81,9 +77,15 @@ shutdown() {
 
 }
 
+init(){
+    create_env_file "$CHARTS_DIR/.env.values.yaml"  "$CHARTS_DIR/values-template.yaml"
+    create_env_file "$STORAGE_DIR/.env.superset"  "$STORAGE_DIR/.env-superset-template"
+}
+
+
 # Main execution
 case $ACTION in
-    start|shutdown)
+    init|start|shutdown)
         $ACTION
         ;;
     *)

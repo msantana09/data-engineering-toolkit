@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # Setting default values 
-ACTION="start"
+if [[ $# -gt 0 ]]; then
+    ACTION="$1"
+    shift
+fi
 CLUSTER="platform"
 DELETE_DATA=false
 BASE_DIR=".."
@@ -9,10 +12,6 @@ BASE_DIR=".."
 # Process command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -a|--action)
-            ACTION="$2"
-            shift 2
-            ;;
         -b|--base_dir)
             BASE_DIR="$2"
             shift 2
@@ -41,7 +40,7 @@ CHARTS_DIR="$DIR/charts"
 source "$BASE_DIR/scripts/common_functions.sh"
 
 start() {
-    create_env_file "$DIR/.env"  "$DIR/.env-template"
+   
     create_namespace "$NAMESPACE"
     create_kubernetes_secret "env-secrets" "$NAMESPACE"  "--from-env-file=$DIR/.env"
 
@@ -60,9 +59,13 @@ shutdown() {
     kubectl delete namespace "$NAMESPACE"
 }
 
+init(){
+    create_env_file "$DIR/.env"  "$DIR/.env-template"
+}
+
 # Main execution
 case $ACTION in
-    start|shutdown)
+    init|start|shutdown)
         $ACTION
         ;;
     *)

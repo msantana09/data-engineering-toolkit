@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # Setting default values 
-ACTION="start"
+if [[ $# -gt 0 ]]; then
+    ACTION="$1"
+    shift
+fi
 CLUSTER="platform"
 DELETE_DATA=false
 BASE_DIR=".."
@@ -9,10 +12,6 @@ BASE_DIR=".."
 # Process command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -a|--action)
-            ACTION="$2"
-            shift 2
-            ;;
         -b|--base_dir)
             BASE_DIR="$2"
             shift 2
@@ -55,9 +54,6 @@ create_hive_secret() {
 }
 
 start() {
-    create_env_file "$DIR/.env"  "$DIR/.env-template"
-    create_env_file "$STORAGE_DIR/.env.hive"  "$STORAGE_DIR/.env-hive-template"
-
     create_namespace "$NAMESPACE"
 
     create_hive_secret "$NAMESPACE" "$DIR/.env"
@@ -88,9 +84,14 @@ shutdown() {
 
 }
 
+init(){
+    create_env_file "$DIR/.env"  "$DIR/.env-template"
+    create_env_file "$STORAGE_DIR/.env.hive"  "$STORAGE_DIR/.env-hive-template"
+}
+
 # Main execution
 case $ACTION in
-    start|shutdown)
+    init|start|shutdown)
         $ACTION
         ;;
     *)
