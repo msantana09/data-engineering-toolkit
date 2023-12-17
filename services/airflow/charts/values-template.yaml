@@ -87,6 +87,14 @@ airflow:
        {
        "deploy-mode": "client"
        }
+    - id: trino_default
+      type: trino
+      host: trino-svc.trino.svc.cluster.local
+      login: trino
+      extra: |
+       {
+       "catalog": "lakehouse"
+       }
   connectionsTemplates:
     KAGGLE_USERNAME:
       kind: secret
