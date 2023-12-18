@@ -175,8 +175,11 @@ make_executable_and_run() {
         chmod +x "$script_path"
     fi
 
-    # Execute the script with the remaining arguments
-    "$script_path" "${@:2}"
+    # Execute the script with the remaining arguments. If it fails, exit with the same status code
+    if ! "$script_path" "${@:2}" ; then
+        echo "$script_path failed to execute."
+        exit 1
+    fi
 }
 
 # Function to extract value from JSON

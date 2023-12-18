@@ -100,7 +100,11 @@ run_unit_tests() {
 
 
 start() {
-    run_unit_tests
+    
+    if ! run_unit_tests ; then
+        echo "Unit tests failed"
+        exit 1
+    fi
 
     create_namespace "$NAMESPACE"
     create_secrets "$NAMESPACE"

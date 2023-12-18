@@ -4,7 +4,11 @@ source scripts/common_functions.sh
 # Required CLI tools
 REQUIRED_TOOLS=("realpath" "helm" "kubectl" "docker") 
 check_requirements "${REQUIRED_TOOLS[@]}"
-
+# check if docker is running, else start it
+if ! docker info >/dev/null 2>&1; then
+    echo "ERROR::: Docker is not running.  Please start docker and try again."
+    exit 1
+fi
 
 # Determine the base directory of the script
 SCRIPT_PATH="$(realpath "$0")"
@@ -96,6 +100,7 @@ call_app_script(){
     esac
 
 }
+
 # Start function
 start(){
     echo "Starting $CLUSTER..."
@@ -108,6 +113,7 @@ start(){
 
     for SUB_SCRIPT in "${SUB_SCRIPTS[@]}"
     do
+        # Run the corresponding script. if it fails, exit
         call_app_script "$SUB_SCRIPT"
     done
 }
