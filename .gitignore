@@ -23,3 +23,6 @@ services/jupyter/notebooks/**/part*.*
 
 # python cache
 __pycache__/
+
+# downloaded models
+services/models/data/downloads

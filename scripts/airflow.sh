@@ -108,16 +108,12 @@ start() {
 
     create_namespace "$NAMESPACE"
     create_secrets "$NAMESPACE"
-
-    if ! docker build -t "$IMAGE_REPO:$IMAGE_TAG" "$DIR"; then
-        echo "Docker build failed"
+\
+    if ! build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" ; then
+        echo "Failed to load image to local registry"
         exit 1
     fi
-
-    if ! kind load docker-image "$IMAGE_REPO:$IMAGE_TAG" --name "$CLUSTER"; then
-        echo "Failed to load Docker image into Kind cluster"
-        exit 1
-    fi
+    
 
     if ! docker-compose -f "$DOCKER_COMPOSE_FILE" up -d &> /dev/null ; then
         echo "Failed to start Airflow Postgres with docker-compose"

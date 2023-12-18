@@ -59,7 +59,10 @@ start() {
     create_hive_secret "$NAMESPACE" "$DIR/.env"
 
     # Build custom image and load it into the cluster
-    build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" "$CLUSTER" 
+    if ! build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" ; then
+        echo "Failed to load image to local registry"
+        exit 1
+    fi
 
     if ! docker-compose -f "$DOCKER_COMPOSE_FILE" up -d &> /dev/null ; then
         echo "Failed to start Hive's Postgres Database with docker-compose"

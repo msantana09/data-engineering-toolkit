@@ -67,7 +67,6 @@ build_and_load_image() {
     local build_path=$1
     local image_repo=$2
     local image_tag=$3
-    local cluster_name=$4
 
     # Check if docker command exists
     if ! command -v docker &> /dev/null; then
@@ -75,8 +74,11 @@ build_and_load_image() {
         return 1
     fi
 
-    docker build  -t "$image_repo:$image_tag" "$build_path"
-    kind load docker-image "$image_repo:$image_tag" --name "$cluster_name"
+    local_registry='localhost:5001'
+    docker build  -t "$local_registry/$image_repo:$image_tag" "$build_path"
+
+    # pushing to local registry
+    docker push "$local_registry/$image_repo:$image_tag" 
 }
 
 

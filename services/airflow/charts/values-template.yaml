@@ -8,7 +8,7 @@ airflow:
   ## configs for the airflow container image
   ## [FAQ] https://github.com/airflow-helm/charts/blob/main/charts/airflow/docs/faq/configuration/airflow-version.md
   image:
-    repository: custom-airflow
+    repository: kind-registry:5000/custom-airflow
     tag: latest
     pullPolicy: IfNotPresent
     pullSecret: ""

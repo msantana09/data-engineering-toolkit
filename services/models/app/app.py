@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 openai_client = OpenAI()
 
-VOL_MOUNT="/mnt/llm-shared-volume"
+VOL_MOUNT="/mnt/llm-shared-volume/downloads"
 app = FastAPI(root_path="/api/v1/models")
  
 

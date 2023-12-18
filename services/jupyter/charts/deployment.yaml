@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: jupyter
-        image: custom-spark-jupyter:latest
+        image: kind-registry:5000/custom-spark-jupyter:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8888

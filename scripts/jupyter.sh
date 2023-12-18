@@ -45,13 +45,19 @@ start() {
     create_kubernetes_secret "env-secrets" "$NAMESPACE"  "--from-env-file=$DIR/.env"
 
     # Build custom image and load it into the cluster
-    build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" "$CLUSTER" 
+    if ! build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" ; then
+        echo "Failed to load image to local registry"
+        exit 1
+    fi
 
-    # Apply roles
+    # Apply charts
     kubectl apply -f "$CHARTS_DIR/volumes.yaml" \
         -f "$CHARTS_DIR/deployment.yaml" \
         -f "$CHARTS_DIR/service.yaml" \
         -f "$CHARTS_DIR/roles.yaml" 
+
+    # Wait for container startup
+    wait_for_container_startup "$NAMESPACE" jupyter app=jupyter
 }
 
 # shutdown function
