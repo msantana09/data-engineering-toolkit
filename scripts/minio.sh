@@ -12,7 +12,6 @@ BASE_DIR=".."
 # Process command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-            ;;
         -b|--base_dir)
             BASE_DIR="$2"
             shift 2
@@ -68,13 +67,13 @@ shutdown() {
 }
 
 init(){
-    creaQte_env_file " $STORAGE_DIR/.env.minio"   "$STORAGE_DIR/.env-minio-template"
+    create_env_file " $STORAGE_DIR/.env.minio"   "$STORAGE_DIR/.env-minio-template"
 }
 
 
 # Main execution
 case $ACTION in
-    init|start|shutdow
+    init|start|shutdown)
         $ACTION
         ;;
     *)

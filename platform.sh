@@ -55,12 +55,47 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# if SUB_SCRIPTS is empty, default it to 'core'
-if [[ ${#SUB_SCRIPTS[@]} -eq 0 ]]; then
+# if SUB_SCRIPTS is empty and ACTION==start, default SUB_SCRIPTS to 'core'
+if [[ ${#SUB_SCRIPTS[@]} -eq 0 ]] && [[ "$ACTION" == "start" ]]; then
     SUB_SCRIPTS=("core")
 fi
 
 
+call_app_script(){
+    app="$1"
+    # Check if the sub-script name is valid
+    case "$app" in
+    "minio"|"hive"|"trino"|"airflow"|"spark"|"models"|"superset"|"datahub"|"jupyter")
+        # Run the corresponding script
+        SCRIPT="$BASE_DIR/scripts/$app.sh"
+        echo "Running $SCRIPT..."
+        make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
+        ;;
+    "core")
+        # basically airflow and dependencies
+        for CORE_SCRIPT in "minio" "hive" "trino" "airflow" "spark"
+        do
+            SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
+            echo "Running $SCRIPT..."
+            make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
+        done
+        ;;
+    "lakehouse")
+        for CORE_SCRIPT in "minio" "hive" "trino" 
+        do
+            SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
+            echo "Running $SCRIPT..."
+            make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
+        done
+        ;;
+    *)
+        # Print an error message
+        echo "Invalid sub-script name: $app"
+        echo " Valid names are: airflow, datahub, hive, jupyter, minio, models, trino, spark, superset, lakehouse (minio, hive, trino), core (lakehouse + airflow + spark)"
+        ;;
+    esac
+
+}
 # Start function
 start(){
     echo "Starting $CLUSTER..."
@@ -73,64 +108,46 @@ start(){
 
     for SUB_SCRIPT in "${SUB_SCRIPTS[@]}"
     do
-        # Check if the sub-script name is valid
-        case "$SUB_SCRIPT" in
-        "hive"|"trino"|"airflow"|"spark"|"models"|"superset"|"datahub"|"jupyter")
-            # Run the corresponding script
-            SCRIPT="$BASE_DIR/scripts/$SUB_SCRIPT.sh"
-            echo "Running $SCRIPT..."
-            make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
-            ;;
-        "core")
-            # basically airflow and dependencies
-            for CORE_SCRIPT in "minio" "hive" "trino" "airflow" "spark"
-            do
-                SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
-                echo "Running $SCRIPT..."
-                make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
-            done
-            ;;
-        "lakehouse")
-            for CORE_SCRIPT in "minio" "hive" "trino" 
-            do
-                SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
-                echo "Running $SCRIPT..."
-                make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
-            done
-            ;;
-        *)
-            # Print an error message
-            echo "Invalid sub-script name: $SUB_SCRIPT"
-            echo "Valid names are: hive, trino, airflow, spark, models, superset, datahub, jupyter"
-            ;;
-        esac
+        call_app_script "$SUB_SCRIPT"
     done
 }
 
 # Shutdown function
 shutdown(){
-    echo "Shutting down $CLUSTER..."
-    
-    delete_kind_cluster "$CLUSTER"
 
-    for file_path in "$BASE_DIR"/services/storage/*.yaml
-    do
-        filename="${file_path##*/}"
+    if [[ ${#SUB_SCRIPTS[@]} -eq 0 ]]; then
+        echo "Shutting down $CLUSTER..."
 
-        # Check if the file name matches the pattern
-        if [[ $filename =~ docker-compose-(.*).yaml ]]; then
+        # Shutdown all services        
+        delete_kind_cluster "$CLUSTER"
 
-            # Extract the app name from the file name
-            local app="${BASH_REMATCH[1]}"
-            local env_file="$STORAGE_DIR/.env.$app"
-            # Check if .env file exists 
-            if [ -f  "$env_file" ]; then
-                shutdown_storage "$app" "$env_file" "$DELETE_DATA" "$STORAGE_DIR/docker-compose-$app.yaml"
+        for file_path in "$BASE_DIR"/services/storage/*.yaml
+        do
+            filename="${file_path##*/}"
+
+            # Check if the file name matches the pattern
+            if [[ $filename =~ docker-compose-(.*).yaml ]]; then
+
+                # Extract the app name from the file name
+                local app="${BASH_REMATCH[1]}"
+                local env_file="$STORAGE_DIR/.env.$app"
+                # Check if .env file exists 
+                if [ -f  "$env_file" ]; then
+                    shutdown_storage "$app" "$env_file" "$DELETE_DATA" "$STORAGE_DIR/docker-compose-$app.yaml"
+                fi
+            else
+                echo "Pattern not found"
             fi
-        else
-            echo "Pattern not found"
-        fi
-    done
+        done
+    else
+        echo "Shutting down  ${SUB_SCRIPTS[@]}..."
+
+        # Shutdown only the specified services
+        for SUB_SCRIPT in "${SUB_SCRIPTS[@]}"
+        do
+            call_app_script "$SUB_SCRIPT"
+        done
+    fi
 }
 
 # Recreate the platform
