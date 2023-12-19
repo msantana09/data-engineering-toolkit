@@ -1,12 +1,12 @@
 from fastapi import FastAPI, HTTPException
 import torch
 from openai import OpenAI
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 from model import ColumnAnalysisRequest, TextData
 import prompts
 import logging
-import json
+from utilities.openai import num_tokens_from_string
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -60,7 +60,6 @@ def language_detection(data: TextData):
 def column_analysis(data: ColumnAnalysisRequest):
 
     model = "gpt-3.5-turbo-16k"
-    
     message = f"""
     context: {data.context}
     table: {data.tables[0].name}
@@ -92,7 +91,56 @@ def column_analysis(data: ColumnAnalysisRequest):
             }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/column_analysis/tokens")
+def column_analysis_tokens(data: ColumnAnalysisRequest): 
+
+    message = f"""
+    context: {data.context}
+    table: {data.tables[0].name}
+    column_csv: 
+    {data.tables[0].column_csv} 
+    """
+
+    return {"num_tokens":num_tokens_from_string(message, "cl100k_base")}
     
+@app.post("/dq_check")
+async def dq_check(request: Request): 
+
+
+    model = "gpt-3.5-turbo-16k"
+    import json
+ 
+
+    data =  await request.json() 
+
+    try:
+        messages = [
+            {
+                "content": prompts.dq_check,
+                "role": "system"
+            },
+            {
+                "content" : json.dumps(data),
+                "role": "user"
+            }
+        ]
+        response = openai_client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=1,
+            max_tokens=4096
+        )
+
+        return {
+            "content": response.choices[0].message.content,
+            "usage": response.usage
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000 )
