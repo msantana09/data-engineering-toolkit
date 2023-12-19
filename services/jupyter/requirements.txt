@@ -2,3 +2,4 @@ jupyterlab==4.0.8
 pandas==2.0.2
 fsspec
 s3fs
+tiktoken==0.5.2
