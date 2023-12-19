@@ -7,11 +7,17 @@ services:
     container_name: zoo1
     ports:
       - "2181:2181"
+    volumes:
+      -  zoo1_logs:/var/lib/zookeeper/log 
+      -  zoo1_secrets:/etc/zookeeper/secrets
+      -  zoo1_data:/var/lib/zookeeper/data
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_SERVER_ID: 1
       ZOOKEEPER_SERVERS: zoo1:2888:3888
-
+    networks:
+      - kind
+      
   kafka1:
     image: confluentinc/cp-kafka:7.3.2
     hostname: kafka1
@@ -20,6 +26,9 @@ services:
       - "9092:9092"
       - "29092:29092"
       - "9999:9999"
+    volumes:
+      -  kafka1_secrets:/etc/kafka/secrets
+      -  kafka1_data:/var/lib/kafka/data
     environment:
       KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka1:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,DOCKER://host.docker.internal:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
@@ -36,11 +45,15 @@ services:
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
     depends_on:
       - zoo1
+    networks:
+      - kind
 
   kafka-schema-registry:
     image: confluentinc/cp-schema-registry:7.3.2
     hostname: kafka-schema-registry
     container_name: kafka-schema-registry
+    volumes:
+      -  kafka_schema_registry_secrets:/etc/schema-registry/secrets
     ports:
       - "8091:8081"
     environment:
@@ -50,7 +63,8 @@ services:
     depends_on:
       - zoo1
       - kafka1
-
+    networks:
+      - kind
   
   kafka-rest-proxy:
     image: confluentinc/cp-kafka-rest:7.3.2
@@ -68,7 +82,8 @@ services:
       - zoo1
       - kafka1
       - kafka-schema-registry
-
+    networks:
+      - kind
   
   kafka-connect:
     image: confluentinc/cp-kafka-connect:7.3.2
@@ -98,6 +113,9 @@ services:
       CONNECT_PLUGIN_PATH: '/usr/share/java,/etc/kafka-connect/jars,/usr/share/confluent-hub-components'
     volumes:
       - ./connectors:/etc/kafka-connect/jars/
+      -  kafka_connect_secrets:/etc/kafka-connect/secrets
+      -  kafka_connect_kafka_secrets:/etc/kafka/secrets
+      -  kafka_connect_data:/var/lib/kafka/data
     depends_on:
       - zoo1
       - kafka1
@@ -110,7 +128,8 @@ services:
         confluent-hub install --no-prompt debezium/debezium-connector-mysql:latest
         confluent-hub install --no-prompt confluentinc/kafka-connect-datagen:0.4.0
         /etc/confluent/docker/run
-
+    networks:
+      - kind
   
   ksqldb-server:
     image: confluentinc/cp-ksqldb-server:7.3.2
@@ -125,6 +144,8 @@ services:
     depends_on:
       - zoo1
       - kafka1
+    networks:
+      - kind
 
   postgresql:
     extends:
@@ -139,3 +160,17 @@ services:
 volumes:
   pg_data: {}
   conduktor_data: {}
+  zoo1_logs: 
+  zoo1_secrets: 
+  zoo1_data:
+  kafka1_secrets: 
+  kafka1_data:
+  kafka_schema_registry_secrets: 
+  kafka_connect_secrets:
+  kafka_connect_kafka_secrets:
+  kafka_connect_data:
+
+networks:
+  kind:
+    external: true
+    name: kind

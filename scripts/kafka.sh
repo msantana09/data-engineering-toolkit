@@ -31,43 +31,34 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-STORAGE_DIR="$BASE_DIR/services/storage"
-DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-minio.yaml"
+DIR="$BASE_DIR/services/kafka"
+DOCKER_COMPOSE_FILE="$DIR/kafka-full-stack.yaml"
 
 source "$BASE_DIR/scripts/common_functions.sh"
 
 start() {
-    local app="minio"
-    local env_file="$STORAGE_DIR/.env.$app"
-
-    echo "Starting Minio..."
+    local app="kafka" 
+    echo "Starting $app..."
     #starting minio and creating initial buckets
-    if docker compose --env-file "$env_file" -f "$DOCKER_COMPOSE_FILE" up -d &> /dev/null ; then
-        echo "Minio started"
-        echo "Waiting for Minio initialization job to complete..."
-        if ! docker wait storage-mc-datalake-init-job-1  &> /dev/null ; then
-            echo "WARNING: Minio initialization job failed"
-        else
-            echo "Minio initialization job completed"
-
-            # remove the completed job container
-            docker rm storage-mc-datalake-init-job-1   &> /dev/null
-        fi
+    if docker compose  -f "$DOCKER_COMPOSE_FILE" up -d &> /dev/null ; then
+        echo "$app started" 
     else
-        echo "Failed to start Minio"
+        echo "Failed to start $app"
         exit 1
     fi 
 }
 
 shutdown() {
-    local app="minio"
-    local env_file="$STORAGE_DIR/.env.$app"
+    local app="kafka" 
+    local env_file=""
+
+    echo  "$DOCKER_COMPOSE_FILE"
 
     shutdown_docker_compose_stack "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
 }
 
 init(){
-    create_env_file "$STORAGE_DIR/.env.minio"   "$STORAGE_DIR/.env-minio-template"
+    create_env_file "$DIR/.env.conduktor"  "$DIR/.env-conduktor-template"
 }
 
 

@@ -69,7 +69,7 @@ call_app_script(){
     app="$1"
     # Check if the sub-script name is valid
     case "$app" in
-    "minio"|"hive"|"trino"|"airflow"|"spark"|"models"|"superset"|"datahub"|"jupyter")
+    "minio"|"hive"|"trino"|"airflow"|"spark"|"models"|"superset"|"datahub"|"jupyter"|"kafka")
         # Run the corresponding script
         SCRIPT="$BASE_DIR/scripts/$app.sh"
         echo "Running $SCRIPT..."
@@ -95,7 +95,7 @@ call_app_script(){
     *)
         # Print an error message
         echo "Invalid sub-script name: $app"
-        echo " Valid names are: airflow, datahub, hive, jupyter, minio, models, trino, spark, superset, lakehouse (minio, hive, trino), core (lakehouse + airflow + spark)"
+        echo " Valid names are: airflow, datahub, hive, jupyter, kafka, minio, models, trino, spark, superset, lakehouse (minio, hive, trino), core (lakehouse + airflow + spark)"
         ;;
     esac
 
@@ -185,7 +185,7 @@ shutdown(){
                 local env_file="$STORAGE_DIR/.env.$app"
                 # Check if .env file exists 
                 if [ -f  "$env_file" ]; then
-                    shutdown_storage "$app" "$env_file" "$DELETE_DATA" "$STORAGE_DIR/docker-compose-$app.yaml"
+                    shutdown_docker_compose_stack "$app" "$env_file" "$DELETE_DATA" "$STORAGE_DIR/docker-compose-$app.yaml"
                 fi
             else
                 echo "Pattern not found"
@@ -211,7 +211,7 @@ recreate(){
 # create .env files if they doesn't exist
 init(){
     # ACTION="init"
-    for app in "airflow" "datahub" "hive" "jupyter" "models" "trino" "superset" 
+    for app in "airflow" "datahub" "hive" "jupyter" "models" "trino" "superset" "kafka" "minio"
     do
         
         printf "\n###### Initializing $app .env files\n"

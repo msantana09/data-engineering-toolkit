@@ -204,7 +204,7 @@ create_kubernetes_secret() {
     fi
 }
 
-shutdown_storage() {
+shutdown_docker_compose_stack() {
     local app=$1
     local env_file=$2
     local delete_data=$3
@@ -215,18 +215,23 @@ shutdown_storage() {
         service="minio"
     fi
 
-    # Check if .env file exists 
-    if [ -f  "$env_file" ]; then
-        # if DELETE_DATA is true, include the -v flag to delete volumes
-        
-        if [[ "$delete_data" = true ]]; then
-            echo "Deleting volumes for $app..." 
-            docker compose --env-file  "$env_file" -f "$docker_compose_file" down -v $service 
-        else
-            echo "Shutting down storage for ${app}..."
-            docker compose --env-file  "$env_file" -f "$docker_compose_file" down $service
+    local env_option=""
+    if [[ -n $env_file ]]; then 
+        if [[ ! -f $env_file ]]; then
+            echo "Error: file not found - $env_file"
+            exit 1
         fi
-    else
-        echo "Warning: file not found - $env_file"
+        env_option="--env-file $env_file"
     fi
+    
+    local action="Shutting down storage for"
+    local volume_option=""
+    if [[ $delete_data == true ]]; then
+        action="Deleting volumes for"
+        volume_option="-v"
+    fi
+
+    echo "$action $app..."
+    docker compose $env_option -f "$docker_compose_file" down $volume_option $service
+
 }

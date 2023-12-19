@@ -83,7 +83,7 @@ shutdown() {
     local app="hive"
     local env_file="$STORAGE_DIR/.env.$app"
 
-    shutdown_storage "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
+    shutdown_docker_compose_stack "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
 
 }
 

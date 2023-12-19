@@ -70,7 +70,7 @@ start() {
 shutdown() {
     kubectl delete namespace "$NAMESPACE"
 
-    shutdown_storage "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
+    shutdown_docker_compose_stack "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
 }
 
 init(){
