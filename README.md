@@ -1,6 +1,18 @@
 # Data Platform Project
+![Platform Overview](images/data_platform_overview.png)
 
-This repository contains the source code and configuration for a data platform built using open-source components. It's designed to be  robust and flexible, catering to a wide range of data processing and analysis needs.
+## Introduction
+
+Goal is to create a dev data platform running on your local machine.  Something that:
+
+- runs on kubernetes in docker, and has persistent volumes so your data is not loss
+- has tools for ingesting, transforming, storing, querying, exploring, cataloging, and visualizing data.  All fully configured to work with each other
+- and includes a sample data ingestion use case utilizing LLMs 
+
+
+Cool, I got you! This project is meant to be a local playground for Data Engineers. It's designed to be fairly modular to allow users to configured based on their needs.
+
+
 
 ## Prerequisites
 
@@ -38,11 +50,7 @@ Before you start, ensure your host system (MacOS) has the following software ins
    brew install python@3.8
    ```
 
-   Ensure Python 3.8 is the default version if multiple Python versions are installed:
-
-   ```bash
-   brew link --overwrite python@3.8
-   ```
+   Or setup a virtual environment for this project
 
 5. **Install Pip:**
 
@@ -57,21 +65,33 @@ Before you start, ensure your host system (MacOS) has the following software ins
 1. **Clone the Repository**
    
    ```bash
-   git clone [repository-url]
-   cd data-platform-project
+   git clone https://github.com/msantana09/data_platform.git
+   cd data-platform
    ```
 
-2. **Set Up the Environment**
+2. **Initialize .env files**
 
-   Follow the instructions in the [Environment Setup](#environment-setup) section.
+   The project comes with several template files (e.g. .env-template) containing the default credentials and configurations for for the various services.  The command below copies the default template files to .env files, which are ignored by git. You can then modify the .env files as needed.
 
-3. **Launch the Platform**
+   ````bash
+   ./platform.sh init
+   ````
 
-   Follow the steps in the [Launching the Platform](#launching-the-platform) section.
+3. **Configure use case credentials (Optional)**
 
-## Environment Setup
+   If you're planning on running the sample use case you'll need to configure your Kaggle and OpenAI credentials
 
-Provide detailed steps for setting up the local environment, including configuring Docker, Kind clusters, and Helm.
+   - **Kaggle**: Update `AIRFLOW_CONN_KAGGLE_DEFAULT` in file `services/airflow/.env` with your [Kaggle](https://www.kaggle.com/) username and key
+   - **OpenAI**: Update `OPENAI_API_KEY` in file `services/models/.env` with your [OpenAI](https://openai.com/)  key
+
+
+4. **Launch the Platform**
+
+   This command will start MinIO, Hive, Trino, and Airflow
+   ````bash
+   ./platform.sh start core
+   ````
+
 
 ## Launching the Platform
 
