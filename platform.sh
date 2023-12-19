@@ -67,13 +67,19 @@ fi
 
 call_app_script(){
     app="$1"
-    # Check if the sub-script name is valid
+    delete_data_option=""
+    
+    if [[ "$ACTION" == "shutdown" ]] && [[ "$DELETE_DATA" == true ]]; then
+        delete_data_option="--delete-data"
+    fi
+
+
     case "$app" in
     "minio"|"hive"|"trino"|"airflow"|"spark"|"models"|"superset"|"datahub"|"jupyter"|"kafka")
         # Run the corresponding script
         SCRIPT="$BASE_DIR/scripts/$app.sh"
         echo "Running $SCRIPT..."
-        make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
+        make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
         ;;
     "core")
         # basically airflow and dependencies
@@ -81,7 +87,7 @@ call_app_script(){
         do
             SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
             echo "Running $SCRIPT..."
-            make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
+            make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
         done
         ;;
     "lakehouse")
@@ -89,7 +95,7 @@ call_app_script(){
         do
             SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
             echo "Running $SCRIPT..."
-            make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
+            make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
         done
         ;;
     *)
@@ -192,7 +198,7 @@ shutdown(){
             fi
         done
     else
-        echo "Shutting down  ${SUB_SCRIPTS[@]}..."
+        echo "Shutting down ${SUB_SCRIPTS[@]}..."
 
         # Shutdown only the specified services
         for SUB_SCRIPT in "${SUB_SCRIPTS[@]}"

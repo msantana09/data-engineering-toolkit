@@ -9,6 +9,11 @@ fi
 
 # Process command line arguments
 while [[ $# -gt 0 ]]; do
+    if [[ -z $1 ]]; then
+    # Skip empty arguments
+        shift
+        continue
+    fi
     case $1 in
         -b|--base_dir)
             BASE_DIR="$2"
