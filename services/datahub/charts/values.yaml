@@ -492,9 +492,11 @@ global:
 
   kafka:
     bootstrap:
-      server: "prerequisites-kafka:9092"
+      #server: "prerequisites-kafka:9092"
+      server: "kafka1:19092"
     zookeeper:
-      server: "prerequisites-zookeeper:2181"
+      #server: "prerequisites-zookeeper:2181"
+      server: "zoo1:2181"
     # This section defines the names for the kafka topics that DataHub depends on, at a global level. Do not override this config
     # at a sub-chart level.
     topics:
@@ -519,10 +521,10 @@ global:
     # replicationFactor: 3
     schemaregistry:
       # GMS Implementation - `url` configured based on component context
-      type: INTERNAL
+      #type: INTERNAL
       # Confluent Kafka Implementation
-      # type: KAFKA
-      # url: "http://prerequisites-cp-schema-registry:8081"
+      type: KAFKA
+      url: "http://kafka-schema-registry:8081"
 
       # Glue Implementation - `url` not applicable
       # type: AWS_GLUE

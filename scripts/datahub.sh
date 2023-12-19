@@ -64,11 +64,10 @@ start() {
 
     helm upgrade --install prerequisites datahub/datahub-prerequisites \
         --values "$CHARTS_DIR/prerequisites-values.yaml" --namespace $NAMESPACE
-        
-    wait_for_container_startup "$NAMESPACE" prerequisites-kafka-0 app.kubernetes.io/component=kafka
 
+    # setting a 10 minute timeout for the datahub chart since it does a bunch of checks and upgrades at startup
     helm upgrade --install datahub datahub/datahub \
-        --values "$CHARTS_DIR/values.yaml" --namespace $NAMESPACE 
+        --values "$CHARTS_DIR/values.yaml" --namespace $NAMESPACE --timeout 10m
 
 }
 
