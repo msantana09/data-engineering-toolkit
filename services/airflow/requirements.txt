@@ -8,3 +8,5 @@ apache-airflow-providers-trino==5.5.0
 
 # additional packages for example DAGs
 kaggle==1.5.16
+acryl-datahub[datahub-kafka]==0.12.1.1
+acryl-datahub[trino]

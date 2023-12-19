@@ -83,7 +83,7 @@ call_app_script(){
         ;;
     "core")
         # basically airflow and dependencies
-        for CORE_SCRIPT in "minio" "hive" "trino" "airflow" "spark"
+        for CORE_SCRIPT in "minio" "hive" "trino" "airflow" "spark" "kafka"
         do
             SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
             echo "Running $SCRIPT..."
@@ -116,6 +116,14 @@ create_local_registry(){
         -d --restart=always -p "127.0.0.1:${reg_port}:5000" --network bridge --name "${reg_name}" \
         registry:2
     fi
+}
+
+# stop local registry
+stop_local_registry(){
+    reg_name='kind-registry'
+    reg_port='5001'
+    docker stop "${reg_name}"
+    #docker rm "${reg_name}"
 }
 
 finish_local_registry_setup(){
@@ -178,6 +186,10 @@ shutdown(){
 
         # Shutdown all services        
         delete_kind_cluster "$CLUSTER"
+        # shut down kafka
+        call_app_script "kafka"
+        # shut down local registry
+        stop_local_registry
 
         for file_path in "$BASE_DIR"/services/storage/*.yaml
         do
@@ -197,6 +209,8 @@ shutdown(){
                 echo "Pattern not found"
             fi
         done
+
+
     else
         echo "Shutting down ${SUB_SCRIPTS[@]}..."
 

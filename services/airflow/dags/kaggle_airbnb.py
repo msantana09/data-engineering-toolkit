@@ -11,6 +11,7 @@ from airflow import DAG
 import logging
 from include.utilities.requests import post_json_request
 from include.helper_functions import kaggle_airbnb as helper_functions
+from airflow.operators.python import PythonOperator
 
 logger = logging.getLogger(__name__)
 
@@ -123,12 +124,17 @@ with DAG(
             query_llm.partial().expand(
                 columns=get_columns_missing_descriptions()
                 )>> apply_column_descriptions() 
-                
-        clean >> load >> generate_column_descriptions()
+
+        @task
+        def run_datahub_pipeline(recipe_path):
+            helper_functions.run_datahub_pipeline(recipe_path)
+
+        clean >> load >> generate_column_descriptions() >> run_datahub_pipeline("/opt/airflow/lib/datahub/recipes/airbnb.yaml")
 
 
     @task_group()
     def reviews():
+        # TODO
         @task
         def clean():
             pass

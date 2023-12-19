@@ -75,3 +75,13 @@ def csv_to_json_array(csv_string):
     for row in csv_reader:
         values.append(dict(zip(field_names, row)))
     return values
+
+def run_datahub_pipeline(recipe_path:str):
+    from datahub.configuration.config_loader import load_config_file
+    from datahub.ingestion.run.pipeline import Pipeline
+    # Note that this will also resolve environment variables in the recipe.
+    config = load_config_file(recipe_path)
+
+    pipeline = Pipeline.create(config)
+    pipeline.run()
+    pipeline.raise_from_status()

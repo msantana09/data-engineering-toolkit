@@ -10,7 +10,7 @@ airflow:
   image:
     repository: kind-registry:5000/custom-airflow
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     pullSecret: ""
     uid: 50000
     gid: 0

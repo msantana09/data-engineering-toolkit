@@ -60,6 +60,10 @@ RUN curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoo
  -Lo ${SPARK_HOME}/jars/hadoop-aws-3.3.4.jar
 
 FROM airflow_spark as airflow_requirements
+
+# dependencies needed for kafka integration https://stackoverflow.com/questions/72163907/unable-to-install-confluent-kafka-fatal-error-librdkafka-rdkafka-h-no-such-f
+# must be executed as root
+RUN apt-get install -y gcc libssl-dev librdkafka-dev
 USER airflow
 
 COPY requirements.txt .
@@ -67,9 +71,9 @@ RUN pip install -r requirements.txt --no-cache-dir
 
 FROM airflow_requirements as airflow_dags
 
-COPY dags/ /opt/airflow/dags
-COPY include/ /opt/airflow/include
-COPY plugin[s]/ /opt/airflow/plugins
+COPY dags /opt/airflow/dags
+COPY include /opt/airflow/include
+COPY plugin[s] /opt/airflow/plugins
 COPY spark_scripts /opt/airflow/spark_scripts
 COPY lib /opt/airflow/lib
 

@@ -1,0 +1,22 @@
+source:
+    type: trino
+    config:
+        host_port: 'trino.trino.svc.cluster.local:8080'
+        database: lakehouse
+        username: trino
+        include_views: true
+        include_tables: true
+        profiling:
+            enabled: true
+            profile_table_level_only: true
+
+        schema_pattern:
+            allow:
+                - kaggle_airbnb
+
+sink:
+  type: "datahub-kafka"
+  config:
+    connection:
+      bootstrap: "kafka1:19092"
+      schema_registry_url: "http://kafka-schema-registry:8081"
