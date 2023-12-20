@@ -176,8 +176,6 @@ start(){
     done
 }
 
-
-
 # Shutdown function
 shutdown(){
 

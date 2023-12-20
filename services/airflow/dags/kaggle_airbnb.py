@@ -1,6 +1,6 @@
 import os
 from airflow.models.baseoperator import chain
-from airflow.decorators import  task,task_group
+from airflow.decorators import task, task_group
 from pendulum import datetime
 from include.operators.kaggle import KaggleDatasetToS3
 from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
@@ -11,7 +11,6 @@ from airflow import DAG
 import logging
 from include.utilities.requests import post_json_request
 from include.helper_functions import kaggle_airbnb as helper_functions
-from airflow.operators.python import PythonOperator
 
 logger = logging.getLogger(__name__)
 
@@ -23,25 +22,24 @@ SPARK_CONN_ID = "spark_local"
 CONN_ID = "trino_default"
 DATABASE_NAME = "kaggle_airbnb"
 TABLE_NAME = "listings"
-URL = "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local:80/api/v1/models/column_analysis"
+MODEL_SERVICE_URL = "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local:80/api/v1/models/column_analysis"
 
 
 with DAG(
     dag_id="kaggle_airbnb",
-    start_date=datetime(2023, 1, 1), 
-    max_active_runs=3, 
-    schedule=None, 
-    catchup=False
-) as dag: 
+    start_date=datetime(2023, 1, 1),
+    max_active_runs=3,
+    schedule=None,
+    catchup=False,
+) as dag:
     download_dataset_task = KaggleDatasetToS3(
-        task_id='download_dataset',
+        task_id="download_dataset",
         conn_id=KAGGLE_CONN_ID,
         dataset="airbnb/seattle",
         bucket=S3_BUCKET,
         path=f"raw/{SOURCE}",
-        aws_conn_id=AWS_CONN_ID 
+        aws_conn_id=AWS_CONN_ID,
     )
-    
 
     @task_group()
     def listings():
@@ -51,86 +49,95 @@ with DAG(
 
         clean = SparkSubmitOperator(
             application=f"{os.environ['AIRFLOW_HOME']}/spark_scripts/{SOURCE}/{TYPE}/clean.py",
-            name = f"{SOURCE}_{TYPE}_clean",
+            name=f"{SOURCE}_{TYPE}_clean",
             task_id="clean",
             conn_id=SPARK_CONN_ID,
-            conf = spark_config,
+            conf=spark_config,
             application_args=[
                 SOURCE,
                 TYPE,
                 S3_RAW_PATH,
                 S3_STAGING_PATH,
-                ";".join(['url', 'scrape', 'license' ])
-                ],
+                ";".join(["url", "scrape", "license"]),
+            ],
         )
-        
+
         load = SparkSubmitOperator(
             application=f"{os.environ['AIRFLOW_HOME']}/spark_scripts/{SOURCE}/{TYPE}/load.py",
-            name = f"{SOURCE}_{TYPE}_load",
+            name=f"{SOURCE}_{TYPE}_load",
             task_id="load",
             conn_id=SPARK_CONN_ID,
-            conf = spark_config,
-            application_args=[
-                SOURCE,
-                TYPE,
-                S3_STAGING_PATH
-                ],
+            conf=spark_config,
+            application_args=[SOURCE, TYPE, S3_STAGING_PATH],
         )
 
         @task_group()
         def generate_column_descriptions():
             @task()
             def get_columns_missing_descriptions(**kwargs):
-                hook = TrinoHook(trino_conn_id=CONN_ID) 
-                columns = helper_functions.identify_columns_missing_comments(hook=hook, database=DATABASE_NAME, table=TABLE_NAME)
-                return helper_functions.create_llm_request_batches(columns=columns, batch_size=100)
+                hook = TrinoHook(trino_conn_id=CONN_ID)
+                columns = helper_functions.identify_columns_missing_comments(
+                    hook=hook, database=DATABASE_NAME, table=TABLE_NAME
+                )
+                return helper_functions.create_llm_request_batches(
+                    columns=columns, batch_size=100
+                )
 
-            
             @task
-            def query_llm(columns:list):
+            def query_llm(columns: list):
                 if not columns:
                     AirflowSkipException("No columns to describe")
 
                 payload = helper_functions.build_model_api_payload_csv(
-                    dataset_context="AirBnB", 
-                    table=TABLE_NAME, 
-                    columns=columns)
+                    dataset_context="AirBnB", table=TABLE_NAME, columns=columns
+                )
 
                 logger.info("Sending payload to API")
-                response = post_json_request(URL,  payload)
+                response = post_json_request(MODEL_SERVICE_URL, payload)
 
                 if response.status_code != 200:
                     raise Exception(f"Error from Models service API: {response.text}")
-                
+
                 content = response.json()["content"]
-                usage =response.json()["usage"]
+                usage = response.json()["usage"]
                 logger.info(f"Usage: {usage}")
                 logger.debug(f"Result: {content}")
-                
-                return helper_functions.csv_to_json_array(content)
-            
-            @task 
-            def apply_column_descriptions(**kwargs):
 
-                column_batched_responses =  kwargs['ti'].xcom_pull(task_ids='listings.generate_column_descriptions.query_llm', key='return_value')
+                return helper_functions.csv_to_json_array(content)
+
+            @task
+            def apply_column_descriptions(**kwargs):
+                column_batched_responses = kwargs["ti"].xcom_pull(
+                    task_ids="listings.generate_column_descriptions.query_llm",
+                    key="return_value",
+                )
                 # flattening resulting list of lists into a single list
-                column_responses = [item for sublist in column_batched_responses for item in sublist]
+                column_responses = [
+                    item for sublist in column_batched_responses for item in sublist
+                ]
 
                 TrinoHook(trino_conn_id=CONN_ID).run(
-                    sql=helper_functions.build_comment_sql(column_responses, database=DATABASE_NAME, table=TABLE_NAME),
-                    autocommit=True
+                    sql=helper_functions.build_comment_sql(
+                        column_responses, database=DATABASE_NAME, table=TABLE_NAME
+                    ),
+                    autocommit=True,
                 )
 
-            query_llm.partial().expand(
-                columns=get_columns_missing_descriptions()
-                )>> apply_column_descriptions() 
+            (
+                query_llm.partial().expand(columns=get_columns_missing_descriptions())
+                >> apply_column_descriptions()
+            )
 
         @task
         def run_datahub_pipeline(recipe_path):
             helper_functions.run_datahub_pipeline(recipe_path)
 
-        clean >> load >> generate_column_descriptions() >> run_datahub_pipeline("/opt/airflow/lib/datahub/recipes/airbnb.yaml")
-
+        (
+            clean
+            >> load
+            >> generate_column_descriptions()
+            >> run_datahub_pipeline("/opt/airflow/lib/datahub/recipes/airbnb.yaml")
+        )
 
     @task_group()
     def reviews():
@@ -138,18 +145,11 @@ with DAG(
         @task
         def clean():
             pass
-        
+
         @task
         def load():
             pass
 
         clean() >> load()
 
-    chain(
-        download_dataset_task,
-        [
-            listings(),
-            reviews()
-        ]
-    )
- 
+    chain(download_dataset_task, [listings(), reviews()])

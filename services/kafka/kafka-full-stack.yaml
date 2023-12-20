@@ -147,19 +147,26 @@ services:
     networks:
       - kind
 
-  postgresql:
-    extends:
-      service: postgresql
-      file: conduktor.yaml 
-            
-  conduktor-platform:
-    extends:
-      service: conduktor-platform
-      file: conduktor.yaml
+  kafka-ui:
+    container_name: kafka-ui-1
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 9888:8080 
+    depends_on:
+      - kafka1
+      - kafka-schema-registry
+      - kafka-connect
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: PLAINTEXT://kafka1:19092,PLAINTEXT_HOST://kafka1:19092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://kafka-schema-registry:8081
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: connect
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    networks:
+      - kind
 
-volumes:
-  pg_data: {}
-  conduktor_data: {}
+volumes: 
   zoo1_logs: 
   zoo1_secrets: 
   zoo1_data:

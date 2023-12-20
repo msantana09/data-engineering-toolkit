@@ -3,14 +3,29 @@
 
 ## Introduction
 
-Goal is to create a dev data platform running on your local machine.  Something that:
+The goal of this project is to provide a local development environment for Data Engineers & Scientists to easily experiement with new tools and use cases. This is made possible because the tools in the project are pre-configured to work with each other, minimizing the effort needed to get started. 
 
-- runs on kubernetes in docker, and has persistent volumes so your data is not loss
-- has tools for ingesting, transforming, storing, querying, exploring, cataloging, and visualizing data.  All fully configured to work with each other
-- and includes a sample data ingestion use case utilizing LLMs 
+### The use case
+We'll ingest a small dataset from Kaggle and process it with our platform:
+- Use custom Airflow operators and hooks to ingest CSVs to a raw bucket in Minio
+- Run Spark jobs to clean some of the columns, and write the output using the Apache Iceberg table format
+- Since the Kaggle data set did not come with column descriptions, we'll share some details about the data set with GPT 3.5 and ask it to generate initial column descriptions for us 
+- Run a Datahub CLI pipeline task which utilizes Trino to profile our tables, and publish results to a Kafka topic where it's consumed by the Datahub metadata service
+- #TODO Languag detection and sentiment analysis
 
 
-Cool, I got you! This project is meant to be a local playground for Data Engineers. It's designed to be fairly modular to allow users to configured based on their needs.
+This version makes uses a *mostly* open stack comprised of:
+
+Tool  | Description 
+--- | --- 
+[MinIO](https://min.io/) | An object storage solution that provides an S3-like experience, but with your data staying local.
+[Apache Airflow ](https://airflow.apache.org/) | An orchestrator for our data pipelines
+[Python](https://www.python.org/)| Primary lanaguage used in data pipelines
+[Apache Spark](https://spark.apache.org/) | Used to process ingested data (e.g. clean/transform tasks), and to analyze with SparkSQL
+[Apache Hive Metastore](https://cwiki.apache.org/confluence/display/hive/design)| Hive acts as a central repository for metadata about our data lake. Our Spark jobs and Trino rely on Hive when querying or modifying tables.
+[Apache Iceberg](https://iceberg.apache.org/)| A table format utilized by our Spark jobs to enable data stored in S3 (Minio) to be querable through engines like Trino or SparkSQL.
+[OpenAI GPT 3.5](https://openai.com/) | 
+ 
 
 
 
