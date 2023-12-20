@@ -14,6 +14,12 @@ logger = logging.getLogger(__name__)
 openai_client = OpenAI()
 
 VOL_MOUNT="/mnt/llm-shared-volume/downloads"
+sentiment_tokenizer = AutoTokenizer.from_pretrained(f"{VOL_MOUNT}/nlptown/bert-base-multilingual-uncased-sentiment")
+sentiment_model = AutoModelForSequenceClassification.from_pretrained(f"{VOL_MOUNT}/nlptown/bert-base-multilingual-uncased-sentiment")
+
+language_tokenizer = AutoTokenizer.from_pretrained(f"{VOL_MOUNT}/papluca/xlm-roberta-base-language-detection")
+language_model = AutoModelForSequenceClassification.from_pretrained(f"{VOL_MOUNT}/papluca/xlm-roberta-base-language-detection")
+
 app = FastAPI(root_path="/api/v1/models")
  
 
@@ -31,10 +37,8 @@ def sentiment_score_to_summary(score):
 @app.post("/sentiment")
 def analyze_sentiment(data: TextData):
     try:
-        tokenizer = AutoTokenizer.from_pretrained(f"{VOL_MOUNT}/nlptown/bert-base-multilingual-uncased-sentiment")
-        model = AutoModelForSequenceClassification.from_pretrained(f"{VOL_MOUNT}/nlptown/bert-base-multilingual-uncased-sentiment")
-        tokens = tokenizer.encode(data.text, return_tensors="pt", truncation=True, padding=True)
-        result = model(tokens)
+        tokens = sentiment_tokenizer.encode(data.text, return_tensors="pt", truncation=True, padding=True)
+        result = sentiment_model(tokens)
         sentiment_score = int(torch.argmax(result.logits)) + 1
         outcome = sentiment_score_to_summary(sentiment_score)
         return {"result": outcome}
@@ -45,10 +49,7 @@ def analyze_sentiment(data: TextData):
 @app.post("/language")
 def language_detection(data: TextData):
     try:
-        tokenizer = AutoTokenizer.from_pretrained(f"{VOL_MOUNT}/papluca/xlm-roberta-base-language-detection")
-        model = AutoModelForSequenceClassification.from_pretrained(f"{VOL_MOUNT}/papluca/xlm-roberta-base-language-detection")
-
-        pipe = pipeline("text-classification", model=model, tokenizer=tokenizer)
+        pipe = pipeline("text-classification", model=language_model, tokenizer=language_tokenizer)
         result = pipe(data.text)
 
         return {"result": result}
