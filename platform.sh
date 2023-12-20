@@ -1,5 +1,6 @@
 #!/bin/bash
 source scripts/common_functions.sh
+source scripts/registry.sh
 
 # Required CLI tools
 REQUIRED_TOOLS=("realpath" "helm" "kubectl" "docker") 
@@ -17,7 +18,6 @@ STORAGE_DIR="$BASE_DIR/services/storage"
 
 ACTION=""
 SUB_SCRIPTS=()
-
 CLUSTER="platform"
 DELETE_DATA=false
 
@@ -28,11 +28,15 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: $0 <action> [-c|--cluster <cluster_name>] [-d|--delete-data] [sub_scripts...]"
             echo ""
             echo "Options:"
-            echo "  <action>                      The action to perform"
+            echo "  <action>                      The action to perform (init|start|shutdown|recreate)"
             echo "  -c, --cluster <cluster_name>  Set the cluster name (default: platform)"
-            echo "  -d, --delete-data             Delete data (default: false)"
+            echo "  -d, --delete-data             Delete data flag (default: false)"
             echo "  -h, --help                    Display this help message"
-            echo "  [sub_scripts...]              Additional scripts to run (default: core). Valid names are: airflow, datahub, hive, jupyter, minio, models, trino, spark, superset, lakehouse (minio, hive, trino ), core(lakehouse + airflow + spark)"
+            echo "  [sub_scripts...]              Additional scripts to run (default: core). "
+            echo "                                Valid names include: "
+            echo "                                  airflow, datahub, hive, jupyter, minio, models, trino, spark, superset,"
+            echo "                                  lakehouse (minio, hive, trino),"
+            echo "                                  core (lakehouse + airflow + spark + kafka)"
             exit 0
             ;;
         -c|--cluster)
@@ -107,25 +111,7 @@ call_app_script(){
 
 }
 
-create_local_registry(){
-    # 1. Create registry container unless it already exists
-    reg_name='kind-registry'
-    reg_port='5001'
-    if [ "$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)" != 'true' ]; then
-    docker run \
-        -d --restart=always -p "127.0.0.1:${reg_port}:5000" --network bridge --name "${reg_name}" \
-        registry:2
-    fi
-}
-
-# stop local registry
-stop_local_registry(){
-    reg_name='kind-registry'
-    reg_port='5001'
-    docker stop "${reg_name}"
-    #docker rm "${reg_name}"
-}
-
+ 
 finish_local_registry_setup(){
     reg_port='5001'
     # 3. Add the registry config to the nodes
@@ -157,7 +143,7 @@ EOF
 
 # Start function
 start(){
-    create_local_registry
+    start_local_registry
 
     echo "Starting $CLUSTER..."
 

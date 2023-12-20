@@ -11,7 +11,7 @@ We'll ingest a small dataset from Kaggle and process it with our platform:
 - Run Spark jobs to clean some of the columns, and write the output using the Apache Iceberg table format
 - Since the Kaggle data set did not come with column descriptions, we'll share some details about the data set with GPT 3.5 and ask it to generate initial column descriptions for us 
 - Run a Datahub CLI pipeline task which utilizes Trino to profile our tables, and publish results to a Kafka topic where it's consumed by the Datahub metadata service
-- #TODO Languag detection and sentiment analysis
+- #TODO Language detection and sentiment analysis
 
 
 This version makes uses a *mostly* open stack comprised of:
@@ -24,9 +24,10 @@ Tool  | Description
 [Apache Spark](https://spark.apache.org/) | Used to process ingested data (e.g. clean/transform tasks), and to analyze with SparkSQL
 [Apache Hive Metastore](https://cwiki.apache.org/confluence/display/hive/design)| Hive acts as a central repository for metadata about our data lake. Our Spark jobs and Trino rely on Hive when querying or modifying tables.
 [Apache Iceberg](https://iceberg.apache.org/)| A table format utilized by our Spark jobs to enable data stored in S3 (Minio) to be querable through engines like Trino or SparkSQL.
-[OpenAI GPT 3.5](https://openai.com/) | 
- 
-
+[OpenAI GPT 3.5](https://openai.com/) | Used to generate descriptions for ingested columns. Selected for ease of use, but an OSS model like Mistral works just as well (you'll just need the hardware)
+[Datahub](https://datahubproject.io/)| Serves as our metadata repository. GPT generated column descriptions, along wither technical metadata, would be visible in Datahub users interested in understanding their data and how it relates to other parts of their organization.
+[JupyterHub](https://jupyter.org/hub) | Easy to use notebooks to test out ideas
+[Superset](https://superset.apache.org/) | A visualization tool to create dashboards, graphics.  Not really used in this use case, but I included it since I already had it's yaml file downloaded.  Be aware those, it uses a lot of memory
 
 
 ## Prerequisites
@@ -46,7 +47,10 @@ Before you start, ensure your host system (MacOS) has the following software ins
    ```bash
    brew cask install docker
    ```
-
+2. **Install kubectl**
+   ```bash
+   brew install kubectl
+   ```
 2. **Install Kind:**
 
    ```bash
@@ -91,8 +95,14 @@ Before you start, ensure your host system (MacOS) has the following software ins
    ````bash
    ./platform.sh init
    ````
+3. **Install project dependencies (Optional)**
 
-3. **Configure use case credentials (Optional)**
+   If you plan on doing any development you'll want to install these project dependencies.
+   ```
+   pip install -r requirements-dev.txt
+   ```
+
+4. **Configure use case credentials (Optional)**
 
    If you're planning on running the sample use case you'll need to configure your Kaggle and OpenAI credentials
 
@@ -104,7 +114,19 @@ Before you start, ensure your host system (MacOS) has the following software ins
 
    This command will start MinIO, Hive, Trino, and Airflow
    ````bash
-   ./platform.sh start core
+   (.venv) ➜  data_platform git:(main) ✗ ./platform.sh -h
+   Usage: ./platform.sh <action> [-c|--cluster <cluster_name>] [-d|--delete-data] [sub_scripts...]
+
+   Options:
+   <action>                      The action to perform (init|start|shutdown|recreate)
+   -c, --cluster <cluster_name>  Set the cluster name (default: platform)
+   -d, --delete-data             Delete data flag (default: false)
+   -h, --help                    Display this help message
+   [sub_scripts...]              Additional scripts to run (default: core). 
+                                 Valid names include: 
+                                    airflow, datahub, hive, jupyter, minio, models, trino, spark, superset,
+                                    lakehouse (minio, hive, trino ),
+                                    core (lakehouse + airflow + spark + kafka)
    ````
 
 
