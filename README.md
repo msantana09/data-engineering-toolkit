@@ -1,33 +1,12 @@
-# Data Platform Project
-![Platform Overview](images/data_platform_overview.png)
+# Data Platform 
 
 ## Introduction
 
-The goal of this project is to provide a local development environment for Data Engineers & Scientists to easily experiement with new tools and use cases. This is made possible because the tools in the project are pre-configured to work with each other, minimizing the effort needed to get started. 
+The goal of this project is to provide a local development environment for Data Engineers & Scientists to easily experiement with new tools and use cases. Many of the tools in the project are pre-configured to work with each other, minimizing the effort needed to get started. 
 
 ### The use case
-We'll ingest a small dataset from Kaggle and process it with our platform:
-- Use custom Airflow operators and hooks to ingest CSVs to a raw bucket in Minio
-- Run Spark jobs to clean some of the columns, and write the output using the Apache Iceberg table format
-- Since the Kaggle data set did not come with column descriptions, we'll share some details about the data set with GPT 3.5 and ask it to generate initial column descriptions for us 
-- Run a Datahub CLI pipeline task which utilizes Trino to profile our tables, and publish results to a Kafka topic where it's consumed by the Datahub metadata service
-- #TODO Language detection and sentiment analysis
+We'll ingest a small dataset from Kaggle and process it with our platform. See more details [here](/UseCase.md)
 
-
-This version makes uses a *mostly* open stack comprised of:
-
-Tool  | Description 
---- | --- 
-[MinIO](https://min.io/) | An object storage solution that provides an S3-like experience, but with your data staying local.
-[Apache Airflow ](https://airflow.apache.org/) | An orchestrator for our data pipelines
-[Python](https://www.python.org/)| Primary lanaguage used in data pipelines
-[Apache Spark](https://spark.apache.org/) | Used to process ingested data (e.g. clean/transform tasks), and to analyze with SparkSQL
-[Apache Hive Metastore](https://cwiki.apache.org/confluence/display/hive/design)| Hive acts as a central repository for metadata about our data lake. Our Spark jobs and Trino rely on Hive when querying or modifying tables.
-[Apache Iceberg](https://iceberg.apache.org/)| A table format utilized by our Spark jobs to enable data stored in S3 (Minio) to be querable through engines like Trino or SparkSQL.
-[OpenAI GPT 3.5](https://openai.com/) | Used to generate descriptions for ingested columns. Selected for ease of use, but an OSS model like Mistral works just as well (you'll just need the hardware)
-[Datahub](https://datahubproject.io/)| Serves as our metadata repository. GPT generated column descriptions, along wither technical metadata, would be visible in Datahub users interested in understanding their data and how it relates to other parts of their organization.
-[JupyterHub](https://jupyter.org/hub) | Easy to use notebooks to test out ideas
-[Superset](https://superset.apache.org/) | A visualization tool to create dashboards, graphics.  Not really used in this use case, but I included it since I already had it's yaml file downloaded.  Be aware those, it uses a lot of memory
 
 
 ## Prerequisites
@@ -85,7 +64,7 @@ Before you start, ensure your host system (MacOS) has the following software ins
    
    ```bash
    git clone https://github.com/msantana09/data_platform.git
-   cd data-platform
+   cd data_platform
    ```
 
 2. **Initialize .env files**
@@ -110,9 +89,9 @@ Before you start, ensure your host system (MacOS) has the following software ins
    - **OpenAI**: Update `OPENAI_API_KEY` in file `services/models/.env` with your [OpenAI](https://openai.com/)  key
 
 
-4. **Launch the Platform**
+5. **Launch the Platform**
 
-   This command will start MinIO, Hive, Trino, and Airflow
+   Use the `-h` flag to see all options:
    ````bash
    (.venv) ➜  data_platform git:(main) ✗ ./platform.sh -h
    Usage: ./platform.sh <action> [-c|--cluster <cluster_name>] [-d|--delete-data] [sub_scripts...]
@@ -125,18 +104,87 @@ Before you start, ensure your host system (MacOS) has the following software ins
    [sub_scripts...]              Additional scripts to run (default: core). 
                                  Valid names include: 
                                     airflow, datahub, hive, jupyter, minio, models, trino, spark, superset,
-                                    lakehouse (minio, hive, trino ),
-                                    core (lakehouse + airflow + spark + kafka)
+                                    lakehouse ( minio, hive, trino ),
+                                    core ( lakehouse + airflow + spark + kafka )
    ````
+   Here are a few examples:
+   ```bash
+   # start airflow and MinIO
+   ./platform.sh start airflow minio
 
-
-## Launching the Platform
-
-Provide a step-by-step guide to launch the platform, including starting Docker containers, deploying services with Kind and Helm, and verifying the setup.
+   # start all the services for the use case
+   ./platform.sh start core models
+   ```
 
 ## Architecture
 
-Describe the architecture of the data platform, including an overview of components, data flow diagrams, and integration points.
+![Platform Overview](images/data_platform_overview.png)
+
+This version makes uses a *mostly* open stack comprised of:
+
+<table>
+    <tr>
+        <th style="width:20%">Tool</th>
+        <th style="width:50%">Description</th>
+        <th style="width:30%">URLs</th>
+    </tr>
+    <tr>
+        <td><a href="https://min.io/">MinIO</a></td>
+        <td>An object storage solution that provides an S3-like experience, but with your data staying local.</td>
+        <td><a href="http://localhost:9001/">http://localhost:9001/</a> (UI) <br> <a href="http://localhost:9000/">http://localhost:9000/</a> (API) <br> minio:minio123</td>
+    </tr>
+    <tr>
+        <td><a href="https://airflow.apache.org/">Apache Airflow</a></td>
+        <td>An orchestrator for our data pipelines</td>
+        <td><a href="http://localhost:8081/">http://localhost:8081/</a> (UI)<br> airflow:airflow123</td>
+    </tr>
+    <tr>
+        <td><a href="https://www.python.org/">Python</a></td>
+        <td>Primary language used in data pipelines</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><a href="https://spark.apache.org/">Apache Spark</a></td>
+        <td>Used to process ingested data (e.g. clean/transform tasks), and to analyze with SparkSQL</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><a href="https://trino.io/">Trino</a></td>
+        <td>Distributed query engine enabling us to query files stored in S3/Minio using SQL</td>
+        <td><a href="http://localhost:8082/">http://localhost:8082/</a> (for service/jdbc connections)<br><a href="http://localhost:8082/ui/">http://localhost:8082/ui/</a> (cluster overview UI)<br>Authentication not setup, just use 'trino' for username</td>
+    </tr>
+    <tr>
+        <td><a href="https://cwiki.apache.org/confluence/display/hive/design">Apache Hive Metastore</a></td>
+        <td>Hive acts as a central repository for metadata about our data lake. Our Spark jobs and Trino rely on Hive when querying or modifying tables.</td>
+        <td><a href="http://localhost:8081/">http://localhost:8081/</a> (UI)<br> airflow:airflow123</td>
+    </tr>
+    <tr>
+        <td><a href="https://iceberg.apache.org/">Apache Iceberg</a></td>
+        <td>A table format utilized by our Spark jobs to enable data stored in S3 (Minio) to be querable through engines like Trino or SparkSQL.</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><a href="https://openai.com/">OpenAI GPT 3.5</a></td>
+        <td>Used to generate descriptions for ingested columns. Selected for ease of use, but an OSS model like Mistral works just as well (you'll just need the hardware)</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><a href="https://datahubproject.io/">Datahub</a></td>
+        <td>Serves as our metadata repository. GPT generated column descriptions, along wither technical metadata, would be visible in Datahub users interested in understanding their data and how it relates to other parts of their organization.</td>
+      <td><a href="http://localhost:8084/">http://localhost:8084/</a> (UI)<br>datahub:datahub</td>
+    </tr>
+    <tr>
+        <td><a href="https://jupyter.org/hub">JupyterHub</a></td>
+        <td>Notebooks used test out ideas</td>
+      <td><a href="http://localhost:8888/">http://localhost:8888/</a> (UI)</td>
+    </tr>
+    <tr>
+        <td><a href="https://superset.apache.org/">Superset</a></td>
+        <td>A visualization tool to create dashboards, graphics.  Not really used in this use case, but I included it since I already had it's yaml file downloaded.  Be aware those, it uses a lot of memory</td>
+      <td><a href="http://localhost:8888/">http://localhost:8083/</a>(UI)<br/>admin:admin</td>
+    </tr>
+</table>
+
 
 ## Contributing
 
@@ -145,7 +193,3 @@ Guidelines for contributing to the project, including how to submit issues, the 
 ## License
 
 Include details about the license under which the project is released.
-
----
-
-This README serves as a placeholder and should be customized to fit the specifics of the data platform project and its components.
