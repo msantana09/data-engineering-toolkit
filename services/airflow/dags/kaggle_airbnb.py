@@ -33,13 +33,17 @@ with DAG(
     catchup=False,
 ) as dag:
     download_dataset_task = KaggleDatasetToS3(
-        task_id="download_dataset",
+        task_id="download_kaggle_airbnb_dataset",
         conn_id=KAGGLE_CONN_ID,
         dataset="airbnb/seattle",
         bucket=S3_BUCKET,
         path=f"raw/{SOURCE}",
         aws_conn_id=AWS_CONN_ID,
     )
+    @task
+    def run_datahub_pipeline(recipe_path):
+        helper_functions.run_datahub_pipeline(recipe_path)
+
 
     @task_group()
     def listings():
@@ -84,7 +88,7 @@ with DAG(
                 )
 
             @task
-            def query_llm(columns: list):
+            def query_llm_for_descriptions(columns: list):
                 if not columns:
                     AirflowSkipException("No columns to describe")
 
@@ -124,32 +128,85 @@ with DAG(
                 )
 
             (
-                query_llm.partial().expand(columns=get_columns_missing_descriptions())
+                query_llm_for_descriptions.partial().expand(columns=get_columns_missing_descriptions())
                 >> apply_column_descriptions()
             )
 
-        @task
-        def run_datahub_pipeline(recipe_path):
-            helper_functions.run_datahub_pipeline(recipe_path)
 
         (
             clean
             >> load
             >> generate_column_descriptions()
-            >> run_datahub_pipeline("/opt/airflow/lib/datahub/recipes/airbnb.yaml")
         )
 
     @task_group()
     def reviews():
         # TODO
+        TYPE = "reviews"
+        S3_RAW_PATH = f"s3://{S3_BUCKET}/raw/{SOURCE}"
+        S3_STAGING_PATH = f"s3://{S3_BUCKET}/staging/{SOURCE}/{TYPE}"
+
         @task
         def clean():
             pass
-
+        clean = clean()
         @task
         def load():
             pass
+        load = load()
 
-        clean() >> load()
+        '''
+        clean = SparkSubmitOperator(
+            application=f"{os.environ['AIRFLOW_HOME']}/spark_scripts/{SOURCE}/{TYPE}/clean.py",
+            name=f"{SOURCE}_{TYPE}_clean",
+            task_id="clean",
+            conn_id=SPARK_CONN_ID,
+            conf=spark_config,
+            application_args=[
+                SOURCE,
+                TYPE,
+                S3_RAW_PATH,
+                S3_STAGING_PATH,
+                ";".join(["url", "scrape", "license"]),
+            ],
+        )
 
-    chain(download_dataset_task, [listings(), reviews()])
+        load = SparkSubmitOperator(
+            application=f"{os.environ['AIRFLOW_HOME']}/spark_scripts/{SOURCE}/{TYPE}/load.py",
+            name=f"{SOURCE}_{TYPE}_load",
+            task_id="load",
+            conn_id=SPARK_CONN_ID,
+            conf=spark_config,
+            application_args=[SOURCE, TYPE, S3_STAGING_PATH],
+        )
+        '''
+
+        @task_group()
+        def perform_sentiment_analysis():
+            @task()
+            def get_reviews(**kwargs):
+                pass
+
+            @task
+            def query_llm_for_sentiments(columns: list):
+                pass
+
+            @task
+            def load_sentiment_results(**kwargs):
+                pass
+
+            (
+                query_llm_for_sentiments.partial().expand(columns=get_reviews())
+                >> load_sentiment_results()
+            )
+
+        clean >> load >> perform_sentiment_analysis()
+
+    chain(
+        download_dataset_task,
+        [
+            listings(), 
+            reviews()
+        ],
+        run_datahub_pipeline("/opt/airflow/lib/datahub/recipes/airbnb.yaml")
+        )

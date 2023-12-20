@@ -107,6 +107,7 @@ Before you start, ensure your host system (MacOS) has the following software ins
                                     lakehouse ( minio, hive, trino ),
                                     core ( lakehouse + airflow + spark + kafka )
    ````
+   
    Here are a few examples:
    ```bash
    # start airflow and MinIO
@@ -115,7 +116,8 @@ Before you start, ensure your host system (MacOS) has the following software ins
    # start all the services for the use case:
    # core ( lakehouse ( minio, hive, trino ) + airflow + spark + kafka )
    # models
-   ./platform.sh start core models
+   # datahub
+   ./platform.sh start core models datahub
 
    # shutdown only MinIO
    ./platform.sh shutdown minio
