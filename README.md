@@ -186,17 +186,17 @@ This version makes uses a *mostly* open stack comprised of:
     </tr>
     <tr>
         <td><a href="https://datahubproject.io/">Datahub</a></td>
-        <td>Serves as our metadata repository. GPT generated column descriptions, along wither technical metadata, would be visible in Datahub users interested in understanding their data and how it relates to other parts of their organization.</td>
+        <td>Serves as our metadata repository. GPT generated column descriptions, along with other technical metadata, would be visible in Datahub for users interested in understanding their data and how it relates to other parts of their organization.</td>
       <td><a href="http://localhost:8084/">http://localhost:8084/</a> (UI)<br>datahub:datahub</td>
     </tr>
     <tr>
         <td><a href="https://jupyter.org/hub">JupyterHub</a></td>
-        <td>Notebooks used test out ideas</td>
+        <td>Notebooks used to test out ideas</td>
       <td><a href="http://localhost:8888/">http://localhost:8888/</a> (UI)</td>
     </tr>
     <tr>
         <td><a href="https://superset.apache.org/">Superset</a></td>
-        <td>A visualization tool to create dashboards, graphics.  Not really used in this use case, but I included it since I already had it's yaml file downloaded.  Be aware those, it uses a lot of memory</td>
+        <td>A visualization tool to create dashboards, graphics, etc...  Not really used in this use case, but I included it since I already had its yaml file downloaded.  Be aware those, Superset uses a lot of memory</td>
       <td><a href="http://localhost:8888/">http://localhost:8083/</a>(UI)<br/>admin:admin</td>
     </tr>
 </table>
