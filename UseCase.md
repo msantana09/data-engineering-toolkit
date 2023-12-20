@@ -34,5 +34,5 @@ We'll ingest a small dataset from Kaggle and process it with our platform:
 
 4. Go to [Datahub](http://localhost:8084/) , and search for 'kaggle_airbnb'.  You see a few results, including this `listings` table with ingested metadata showing the GPT3.5 generate column descriptions
 
-    #### SQLTools Browser Tree
+    #### Datahub Dataset
     ![datahub](images/datahub_listings.png)
