@@ -112,8 +112,22 @@ Before you start, ensure your host system (MacOS) has the following software ins
    # start airflow and MinIO
    ./platform.sh start airflow minio
 
-   # start all the services for the use case
+   # start all the services for the use case:
+   # core ( lakehouse ( minio, hive, trino ) + airflow + spark + kafka )
+   # models
    ./platform.sh start core models
+
+   # shutdown only MinIO
+   ./platform.sh shutdown minio
+
+   # shutdown only Minio and delete persisted data (blank slate)
+   ./platform.sh shutdown minio -d
+
+   # shutdown the entire cluster
+   ./platform shutdown
+
+   # shutdown the entire cluster, and delete persisted data for all services
+   ./platform shutdown -d
    ```
 
 ## Architecture
