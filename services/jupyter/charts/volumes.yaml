@@ -10,7 +10,7 @@ spec:
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: /opt/jupyter/notebooks
+    path: /mnt/jupyter/notebooks
   storageClassName: standard
 ---
 apiVersion: v1

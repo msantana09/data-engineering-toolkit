@@ -14,38 +14,38 @@ nodes:
         node-labels: "ingress-ready=true"
   extraPortMappings:
   - containerPort: 80
-    hostPort: 8080
+    hostPort: 8080 # model api
     protocol: TCP
   - containerPort: 30081
-    hostPort: 8081
+    hostPort: 8081 # airflow
     protocol: TCP
   - containerPort: 30082
-    hostPort: 8082
+    hostPort: 8082 # trino
     protocol: TCP
   - containerPort: 30083
-    hostPort: 8083
+    hostPort: 8083 # superset
     protocol: TCP
   - containerPort: 30084
-    hostPort: 8084
+    hostPort: 8084 # datahub
     protocol: TCP
   - containerPort: 30888
-    hostPort: 8888
+    hostPort: 8888 # jupyter
     protocol: TCP
   - containerPort: 30901
-    hostPort: 9001
+    hostPort: 9001 # minio
     protocol: TCP
   extraMounts: # host >> container(control plane). Then map to pods through airflow helm chart
   - hostPath: services/airflow/dags
-    containerPath: /opt/airflow/dags
+    containerPath: /mnt/airflow/dags
   - hostPath: services/airflow/spark_scripts
-    containerPath: /opt/airflow/spark_scripts
+    containerPath: /mnt/airflow/spark_scripts
   - hostPath: services/airflow/lib
-    containerPath: /opt/airflow/lib
+    containerPath: /mnt/airflow/lib
   - hostPath: services/airflow/include
-    containerPath: /opt/airflow/include
+    containerPath: /mnt/airflow/include
   - hostPath: services/jupyter/notebooks
-    containerPath: /opt/jupyter/notebooks
+    containerPath: /mnt/jupyter/notebooks
   - hostPath: services/models/data
-    containerPath: /data/llm
+    containerPath: /mnt/models/data
   - hostPath: services/minio/data
-    containerPath: /opt/minio/data
+    containerPath: /mnt/minio/data

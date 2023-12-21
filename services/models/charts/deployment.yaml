@@ -32,7 +32,7 @@ spec:
       volumes:
       - name: llm-shared-volume        
         hostPath:
-          path: /data/llm
+          path: /mnt/models/data
           type: DirectoryOrCreate
 
 
