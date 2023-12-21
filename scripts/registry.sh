@@ -8,6 +8,8 @@ start_local_registry(){
         --network bridge \
         --name "${reg_name}" \
         -v registry_data:/var/lib/registry \
+        --memory="0.5g" \
+        --cpus=".25" \
         registry:2
     fi
 }
