@@ -36,43 +36,38 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-STORAGE_DIR="$BASE_DIR/services/storage"
-DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-minio.yaml"
+APP="minio"
+DIR="$BASE_DIR/services/$APP"
+CHARTS_DIR="$DIR/charts"
+NAMESPACE="minio"
+IMAGE_REPO_MC="custom-minio-mc"
+IMAGE_TAG_MC="latest"
 
 source "$BASE_DIR/scripts/common_functions.sh"
 
 start() {
     local app="minio"
-    local env_file="$STORAGE_DIR/.env.$app"
+    local env_file="$DIR/.env.$app"
 
-    echo "Starting Minio..."
-    #starting minio and creating initial buckets
-    if docker compose --env-file "$env_file" -f "$DOCKER_COMPOSE_FILE" up -d &> /dev/null ; then
-        echo "Minio started"
-        echo "Waiting for Minio initialization job to complete..."
-        if ! docker wait storage-mc-datalake-init-job-1  &> /dev/null ; then
-            echo "WARNING: Minio initialization job failed"
-        else
-            echo "Minio initialization job completed"
+    kubectl apply -f "$CHARTS_DIR/namespace.yaml" 
+    create_kubernetes_secret "env-secrets" "$NAMESPACE"  "--from-env-file=$DIR/.env"
 
-            # remove the completed job container
-            docker rm storage-mc-datalake-init-job-1   &> /dev/null
-        fi
-    else
-        echo "Failed to start Minio"
+    # Build custom Minio client image and load it into the cluster
+    if ! build_and_load_image "$DIR" "$IMAGE_REPO_MC" "$IMAGE_TAG_MC" ; then
+        echo "Failed to load image to local registry"
         exit 1
     fi 
+
+    # Apply charts
+    kubectl apply -f "$CHARTS_DIR/minio-server.yaml" 
 }
 
-shutdown() {
-    local app="minio"
-    local env_file="$STORAGE_DIR/.env.$app"
-
-    shutdown_docker_compose_stack "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
+shutdown() { 
+    kubectl delete namespace "$NAMESPACE"
 }
 
 init(){
-    create_env_file "$STORAGE_DIR/.env.minio"   "$STORAGE_DIR/.env-minio-template"
+    create_env_file "$DIR/.env"   "$DIR/.env-template"
 }
 
 

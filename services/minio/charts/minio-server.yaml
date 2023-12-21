@@ -1,0 +1,129 @@
+# Deploys a new MinIO Pod into the metadata.namespace Kubernetes namespace
+#
+# The `spec.containers[0].args` contains the command run on the pod
+# The `/data` directory corresponds to the `spec.containers[0].volumeMounts[0].mountPath`
+# That mount path corresponds to a Kubernetes HostPath which binds `/data` to a local drive or volume on the worker node where the pod runs
+# 
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: minio
+  name: minio
+  namespace: minio
+spec:
+  containers:
+  - name: minio
+    image: quay.io/minio/minio:latest
+    envFrom:
+    - secretRef:
+        name: env-secrets
+    command:
+    - /bin/bash
+    - -c
+    args: 
+    - minio server /data --console-address :9001
+    volumeMounts:
+    - mountPath: /data
+      name: localvolume  
+    resources:
+      limits:
+        cpu: ".5"
+        memory: "0.5Gi"
+      requests:
+        cpu: "0.25"
+        memory: "256Mi"
+  volumes:
+  - name: localvolume
+    hostPath: # MinIO generally recommends using locally-attached volumes
+      path: /opt/minio/data # Specify a path to a local drive or volume on the Kubernetes worker node
+      type: DirectoryOrCreate # The path to the last directory must exist
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-init
+  namespace: minio
+spec:
+  template:
+    metadata:
+      name: minio-init
+    spec:
+      containers:
+        - name: model-init
+          image:  minio/mc
+          imagePullPolicy: IfNotPresent
+          envFrom:
+          - secretRef:
+              name: env-secrets
+          command: ["/bin/bash", "-c"]
+          args: [
+            "sleep 5;\
+            until (/usr/bin/mc --quiet config host add minio http://minio-api-svc.minio.svc.cluster.local:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD) do echo '...waiting...' && sleep 1; done; \
+            /usr/bin/mc admin --quiet user add minio $MINIO_HIVE_USER $MINIO_HIVE_PASSWORD; \
+            /usr/bin/mc admin --quiet user add minio $MINIO_AIRFLOW_USER $MINIO_AIRFLOW_PASSWORD; \ 
+            /usr/bin/mc mb --quiet --ignore-existing minio/datalake; \
+            /usr/bin/mc mb --quiet --ignore-existing minio/platform; \
+            # readwrite users \
+            users=($MINIO_HIVE_USER $MINIO_AIRFLOW_USER) \
+            # Iterate over the users \
+            for user in \"${users[@]}\" \
+            do \
+                # Get the current policy of the user \
+                current_policy=$(mc admin user info minio $user | grep 'PolicyName' | cut -d: -f2 | tr -d ' ') \
+                # Check if the current policy is 'readwrite' \
+                if [ \"$current_policy\" != \"readwrite\" ] \
+                then \
+                    # If not, attach the 'readwrite' policy \
+                    /usr/bin/mc admin --quiet policy attach minio readwrite --user $user \
+                else \
+                    echo \"Policy 'readwrite' is already attached to user '$user'\" \
+                fi \
+            done "
+          ]
+          resources:
+            limits:
+              cpu: ".5"
+              memory: "0.5Gi"
+            requests:
+              cpu: "0.25"
+              memory: "256Mi"
+          volumeMounts:
+          - mountPath: /data
+            name: localvolume  
+      restartPolicy: Never
+      volumes:
+      - name: localvolume
+        hostPath: # MinIO generally recommends using locally-attached volumes
+          path: /opt/minio/data # Specify a path to a local drive or volume on the Kubernetes worker node
+          type: DirectoryOrCreate # The path to the last directory must exist
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-console-svc
+  namespace: minio
+spec:
+  selector:
+    app: minio
+  type: NodePort
+  ports:
+    - port: 9001
+      targetPort: 9001
+      nodePort: 30901
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-api-svc
+  namespace: minio
+spec:
+  selector:
+    app: minio
+  type: ClusterIP
+  ports:
+    - port: 9000
+      targetPort: 9000
+      protocol: TCP 

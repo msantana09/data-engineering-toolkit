@@ -26,3 +26,4 @@ __pycache__/
 
 # downloaded models
 services/models/data/downloads
+services/minio/data
