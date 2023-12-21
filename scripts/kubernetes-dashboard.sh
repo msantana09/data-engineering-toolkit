@@ -44,8 +44,13 @@ source "$BASE_DIR/scripts/common_functions.sh"
 
 
 start() {    
+    
     kubectl apply -f "$CHARTS_DIR/kubernetes-dashboard.yaml" \
     -f "$CHARTS_DIR/rbac.yaml"  
+
+    helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+    helm repo update
+    helm upgrade --install --set args={--kubelet-insecure-tls} metrics-server metrics-server/metrics-server --namespace kube-system
 }
 
 # shutdown function
