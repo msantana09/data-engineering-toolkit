@@ -112,7 +112,7 @@ with DAG(
             @task
             def apply_column_descriptions(**kwargs):
                 column_batched_responses = kwargs["ti"].xcom_pull(
-                    task_ids="listings.generate_column_descriptions.query_llm",
+                    task_ids="listings.generate_column_descriptions.query_llm_for_descriptions",
                     key="return_value",
                 )
                 # flattening resulting list of lists into a single list
@@ -185,7 +185,7 @@ with DAG(
         def perform_sentiment_analysis():
             @task()
             def get_reviews(**kwargs):
-                pass
+                return ["placeholder"]
 
             @task
             def query_llm_for_sentiments(columns: list):
