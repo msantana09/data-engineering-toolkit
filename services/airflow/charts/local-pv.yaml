@@ -4,6 +4,7 @@ metadata:
   name: airflow-dag-pv
   labels:
     type: local
+    app: airflow
 spec:
   capacity:
     storage: 128Mi
@@ -19,6 +20,7 @@ metadata:
   name: airflow-lib-pv
   labels:
     type: local
+    app: airflow
 spec:
   capacity:
     storage: 128Mi
@@ -34,6 +36,7 @@ metadata:
   name: airflow-spark-pv
   labels:
     type: local
+    app: airflow
 spec:
   capacity:
     storage: 128Mi
@@ -49,6 +52,7 @@ metadata:
   name: airflow-include-pv
   labels:
     type: local
+    app: airflow
 spec:
   capacity:
     storage: 128Mi
