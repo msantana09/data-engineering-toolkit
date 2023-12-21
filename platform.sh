@@ -34,7 +34,7 @@ while [[ $# -gt 0 ]]; do
             echo "  -h, --help                    Display this help message"
             echo "  [sub_scripts...]              Additional scripts to run (default: core). "
             echo "                                Valid names include: "
-            echo "                                  airflow, datahub, hive, jupyter, minio, models, trino, spark, superset,"
+            echo "                                  airflow, datahub, hive, jupyter, kafka, kubernetes-dashboard, minio, models, trino, spark, superset,"
             echo "                                  lakehouse (minio, hive, trino),"
             echo "                                  core (lakehouse + airflow + spark + kafka)"
             exit 0
@@ -79,15 +79,16 @@ call_app_script(){
 
 
     case "$app" in
-    "minio"|"hive"|"trino"|"airflow"|"spark"|"models"|"superset"|"datahub"|"jupyter"|"kafka")
+    "minio"|"hive"|"trino"|"airflow"|"spark"|"models"|"superset"|"datahub"|"jupyter"|"kafka"|"kubernetes-dashboard")
         # Run the corresponding script
         SCRIPT="$BASE_DIR/scripts/$app.sh"
+        echo " "
         echo "Running $SCRIPT..."
         make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
         ;;
     "core")
         # basically airflow and dependencies
-        for CORE_SCRIPT in "minio" "hive" "trino" "airflow" "spark" "kafka"
+        for CORE_SCRIPT in "minio" "hive" "trino" "airflow" "spark" "kafka" "kubernetes-dashboard"
         do
             SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
             echo "Running $SCRIPT..."
@@ -95,7 +96,7 @@ call_app_script(){
         done
         ;;
     "lakehouse")
-        for CORE_SCRIPT in "minio" "hive" "trino" 
+        for CORE_SCRIPT in "minio" "hive" "trino" "kubernetes-dashboard"
         do
             SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
             echo "Running $SCRIPT..."
@@ -105,7 +106,8 @@ call_app_script(){
     *)
         # Print an error message
         echo "Invalid sub-script name: $app"
-        echo " Valid names are: airflow, datahub, hive, jupyter, kafka, minio, models, trino, spark, superset, lakehouse (minio, hive, trino), core (lakehouse + airflow + spark)"
+        echo " Valid names are: airflow, datahub, hive, jupyter, kafka, kubernetes-dashboard, minio, models, \
+         trino, spark, superset, lakehouse (minio, hive, trino), core (lakehouse + airflow + spark)"
         ;;
     esac
 
