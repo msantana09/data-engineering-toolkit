@@ -73,7 +73,9 @@ start() {
         echo "Failed to start Hive's Postgres Database with docker-compose"
         exit 1
     fi 
-
+    
+    sleep 5;
+    
     kubectl apply -f "$CHARTS_DIR/configMap.yaml" \
     -f "$CHARTS_DIR/service.yaml" \
     -f "$CHARTS_DIR/deployment.yaml"
