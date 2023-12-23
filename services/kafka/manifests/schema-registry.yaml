@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schema-registry
+  labels:
+    service: schema-registry
+  namespace: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: schema-registry
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        service: schema-registry
+    spec:
+      hostname: schema-registry
+      enableServiceLinks: false
+      restartPolicy: Always
+      containers:
+        - name: schema-registry
+          image: confluentinc/cp-schema-registry:7.4.3
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 30091
+          env:
+          - name: SCHEMA_REGISTRY_HOST_NAME
+            value: "schema-registry"
+          - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
+            value: "kafka:29092"
+          - name: SCHEMA_REGISTRY_LISTENERS
+            value: "http://0.0.0.0:30091"
+          resources: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: schema-registry
+  name: schema-registry
+  namespace: kafka
+spec:
+  ports:
+    - port: 30091
+      name: outport
+      targetPort: 30091
+      nodePort: 30091
+  type: NodePort
+  selector:
+    service: schema-registry

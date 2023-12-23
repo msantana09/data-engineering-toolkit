@@ -8,7 +8,8 @@ fi
 CLUSTER="platform"
 DELETE_DATA=false
 BASE_DIR=".."
-
+SERVICE="kafka"
+NAMESPACE="kafka"
 # Process command line arguments
 while [[ $# -gt 0 ]]; do
 
@@ -38,34 +39,33 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-DIR="$BASE_DIR/services/kafka"
-DOCKER_COMPOSE_FILE="$DIR/kafka-full-stack.yaml"
+DIR="$BASE_DIR/services/$SERVICE"
+MANIFESTS_DIR="$DIR/manifests"
+CHARTS_DIR="$DIR/charts"
 
 source "$BASE_DIR/scripts/common_functions.sh"
 
 start() {
-    local app="kafka" 
-    echo "Starting $app..."
-    #starting minio and creating initial buckets
-    if docker compose  -f "$DOCKER_COMPOSE_FILE" up -d &> /dev/null ; then
-        echo "$app started" 
-    else
-        echo "Failed to start $app"
-        exit 1
-    fi 
+    echo "Starting $SERVICE..."
+    
+    # install kafka
+    kubectl apply -f "$MANIFESTS_DIR/namespace.yaml" \
+    -f "$MANIFESTS_DIR/zookeeper.yaml" \
+    -f "$MANIFESTS_DIR/kafka.yaml" \
+    -f "$MANIFESTS_DIR/schema-registry.yaml"
+    
+    # install kafka ui
+    helm repo add kafka-ui https://provectus.github.io/kafka-ui-charts
+    helm install kafka-ui kafka-ui/kafka-ui  --namespace "$NAMESPACE" -f "$CHARTS_DIR/.env.ui.values.yaml"
 }
 
 shutdown() {
-    local app="kafka" 
-    local env_file=""
-
-    echo  "$DOCKER_COMPOSE_FILE"
-
-    shutdown_docker_compose_stack "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
+    kubectl delete namespace "$NAMESPACE"
 }
 
 init(){
-    create_env_file "$DIR/.env.conduktor"  "$DIR/.env-conduktor-template"
+    echo "Initializing $SERVICE..."
+    create_env_file "$CHARTS_DIR/.env.ui.values.yaml"  "$CHARTS_DIR/ui-values-template.yaml"
 }
 
 
