@@ -18,7 +18,7 @@ install() {
 
     kubectl apply  -f "$MANIFESTS_DIR/service.yaml" \
     -f "$MANIFESTS_DIR/ingress.yaml" \
-    -n "$MANIFESTS_DIR"
+    -n "$NAMESPACE"
 
     # run init job
     kubectl apply -f "$MANIFESTS_DIR/deployment-init.yaml" -n "$namespace"
