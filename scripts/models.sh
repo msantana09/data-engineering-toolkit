@@ -10,19 +10,18 @@ NAMESPACE="models"
 IMAGE_REPO="model-api"
 IMAGE_TAG="latest"
 DIR="$BASE_DIR/services/models"
-CHARTS_DIR="$DIR/charts"
-
+MANIFESTS_DIR="$DIR/manifests"
 
 install() {
     local dir=$1
     local namespace=$2
 
-    kubectl apply  -f "$CHARTS_DIR/service.yaml" \
-    -f "$CHARTS_DIR/ingress.yaml" \
-    -n "$namespace"
+    kubectl apply  -f "$MANIFESTS_DIR/service.yaml" \
+    -f "$MANIFESTS_DIR/ingress.yaml" \
+    -n "$MANIFESTS_DIR"
 
     # run init job
-    kubectl apply -f "$CHARTS_DIR/deployment-init.yaml" -n "$namespace"
+    kubectl apply -f "$MANIFESTS_DIR/deployment-init.yaml" -n "$namespace"
 
     # run deployment-init.yaml and wait for it to complete before running main deployment
     if ! kubectl wait --for=condition=complete --timeout=600s job/model-api-init -n "$namespace" ; then
@@ -33,7 +32,7 @@ install() {
         # remove the completed job container
         kubectl delete job/model-api-init -n "$namespace"
         # run main deployment
-        kubectl apply -f "$CHARTS_DIR/deployment.yaml" -n "$namespace"
+        kubectl apply -f "$MANIFESTS_DIR/deployment.yaml" -n "$namespace"
     fi
 }
 

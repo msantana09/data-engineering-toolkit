@@ -11,8 +11,7 @@ SPARK_VERSION="3.5.0"
 IMAGE_REPO="custom-spark-python"
 IMAGE_TAG="latest"
 DIR="$BASE_DIR/services/spark"
-CHARTS_DIR="$DIR/charts"
-
+MANIFESTS_DIR="$DIR/manifests"
 
 start() {
     # Main execution
@@ -25,7 +24,7 @@ start() {
     fi
 
     # Apply roles
-    kubectl apply -f "$CHARTS_DIR/roles.yaml" 
+    kubectl apply -f "$MANIFESTS_DIR/roles.yaml" 
 }
 
 # shutdown function

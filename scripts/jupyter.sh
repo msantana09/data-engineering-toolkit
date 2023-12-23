@@ -10,7 +10,7 @@ NAMESPACE="jupyter"
 IMAGE_REPO="custom-spark-jupyter"
 IMAGE_TAG="latest"
 DIR="$BASE_DIR/services/jupyter"
-CHARTS_DIR="$DIR/charts"
+MANIFESTS_DIR="$DIR/manifests"
 
 
 start() {
@@ -24,11 +24,11 @@ start() {
         exit 1
     fi
 
-    # Apply charts
-    kubectl apply -f "$CHARTS_DIR/volumes.yaml" \
-        -f "$CHARTS_DIR/deployment.yaml" \
-        -f "$CHARTS_DIR/service.yaml" \
-        -f "$CHARTS_DIR/roles.yaml" 
+    # Apply manifests
+    kubectl apply -f "$MANIFESTS_DIR/volumes.yaml" \
+        -f "$MANIFESTS_DIR/deployment.yaml" \
+        -f "$MANIFESTS_DIR/service.yaml" \
+        -f "$MANIFESTS_DIR/roles.yaml" 
 
     # Wait for container startup
     wait_for_container_startup "$NAMESPACE" jupyter app=jupyter

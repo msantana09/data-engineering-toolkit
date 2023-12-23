@@ -8,6 +8,7 @@ source "$SCRIPT_DIR/common_functions.sh"
 
 APP="minio"
 DIR="$BASE_DIR/services/$APP"
+MANIFESTS_DIR="$DIR/manifests"
 CHARTS_DIR="$DIR/charts"
 NAMESPACE="minio"
 IMAGE_REPO_MC="custom-minio-mc"
@@ -18,7 +19,7 @@ start() {
     local app="minio"
     local env_file="$DIR/.env.$app"
 
-    kubectl apply -f "$CHARTS_DIR/namespace.yaml" 
+    kubectl apply -f "$MANIFESTS_DIR/namespace.yaml" 
     create_kubernetes_secret "env-secrets" "$NAMESPACE"  "--from-env-file=$DIR/.env"
 
     # Build custom Minio client image and load it into the cluster
@@ -27,8 +28,8 @@ start() {
         exit 1
     fi 
 
-    # Apply charts
-    kubectl apply -f "$CHARTS_DIR/minio-server.yaml" 
+    # Apply manifests
+    kubectl apply -f "$MANIFESTS_DIR/minio-server.yaml" 
 }
 
 shutdown() { 
