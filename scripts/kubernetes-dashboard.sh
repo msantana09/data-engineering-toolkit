@@ -4,8 +4,8 @@ BASE_DIR=".."
 SCRIPT_PATH="$(realpath "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 
-source "$SCRIPT_DIR/_entry.sh" "$@"
-source "$SCRIPT_DIR/common_functions.sh"
+source "$SCRIPT_DIR/helper_functions/entry.sh" "$@"
+source "$SCRIPT_DIR/helper_functions/common.sh"
 
 NAMESPACE="kubernetes-dashboard"
 DIR="$BASE_DIR/services/$NAMESPACE"

@@ -1,5 +1,5 @@
 #!/bin/bash
-source scripts/common_functions.sh
+source scripts/helper_functions/common.sh
 source scripts/registry.sh
 
 # Required CLI tools
@@ -76,25 +76,28 @@ fi
 call_app_script(){
     local app="$1"
     local delete_data_option=""
+    local scripts_to_run=()
     
     if [[ "$ACTION" == "shutdown" ]] && [[ "$DELETE_DATA" == true ]]; then
         delete_data_option="--delete-data"
     fi
 
     if [[ " ${apps[@]} " =~ " ${app} " ]]; then
-        SCRIPT="$BASE_DIR/scripts/$app.sh"
-        make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
+        scripts_to_run+=("$BASE_DIR/scripts/$app.sh")
     elif [[ "$app" == "core" ]]; then
         for core_app in "${core_apps[@]}"; do
-            SCRIPT="$BASE_DIR/scripts/$core_app.sh"
-            make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
+            scripts_to_run+=("$BASE_DIR/scripts/$core_app.sh")
         done
     elif [[ "$app" == "lakehouse" ]]; then
         for lakehouse_app in "${lakehouse_apps[@]}"; do
-            SCRIPT="$BASE_DIR/scripts/$lakehouse_app.sh"
-            make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
+            scripts_to_run+=("$BASE_DIR/scripts/$lakehouse_app.sh")
         done
     fi
+
+    for SCRIPT in "${scripts_to_run[@]}"; do
+        run_script "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
+    done
+
 }
 
 # Start function
@@ -102,9 +105,13 @@ start(){
     start_local_registry
 
     echo "Starting $CLUSTER..."
-
     create_kind_cluster "$CLUSTER" "$BASE_DIR/infra/kind/kind-config.yaml"
- 
+
+    # Set the context to the cluster
+    # this should already be set by create_kind_cluster through kind, but just in case
+    kubectl config use-context "kind-$CLUSTER"
+
+    # updating containerd config
     finish_local_registry_setup "$BASE_DIR"
 
     # Apply ingress controller and wait for pods to be running
@@ -113,13 +120,16 @@ start(){
 
     for SUB_SCRIPT in "${SUB_SCRIPTS[@]}"
     do
-        # Run the corresponding script. if it fails, exit
+        # Run the corresponding script
         call_app_script "$SUB_SCRIPT"
     done
 }
 
 # Shutdown function
 shutdown(){
+    # Set the context to the cluster
+    # this should already be set by create_kind_cluster through kind, but just in case
+    kubectl config use-context "kind-$CLUSTER"
 
     if [[ ${#SUB_SCRIPTS[@]} -eq 0 ]]; then
         echo "Shutting down $CLUSTER..."
@@ -181,7 +191,7 @@ init(){
     do        
         printf "\n###### Initializing $app .env files\n"
         SCRIPT="$BASE_DIR/scripts/$app.sh"
-        make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
+        run_script "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
     done
 }
 

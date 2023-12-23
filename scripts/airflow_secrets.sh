@@ -2,8 +2,9 @@
 
 # Determine the base directory of the script
 SCRIPT_PATH="$(realpath "$0")"
-SCRIPT_BASE_DIR="$(dirname "$SCRIPT_PATH")"
-source $SCRIPT_BASE_DIR/common_functions.sh
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+
+source $SCRIPT_DIR/helper_functions/common.sh
 
 create_secrets(){
     local namespace=$1

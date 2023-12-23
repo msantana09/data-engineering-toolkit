@@ -164,7 +164,7 @@ check_requirements() {
 }
 
 # Function to make script executable if not already
-make_executable_and_run() {
+run_script() {
     local script_path=$1
 
     if [[ ! -f "$script_path" ]]; then
