@@ -16,21 +16,10 @@ STORAGE_DIR="$BASE_DIR/services/storage"
 DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-hive.yaml"
 
 
-create_hive_secret() {
-    local namespace=$1
-    local env_file=$2
-
-    # not using create_kubernetes_secret function because of the hyphens in values
-    # is being interpreted as flags
-    kubectl create secret generic "hive-secrets"  -n "$namespace" \
-       "--from-env-file=$env_file" 
-
-}
-
 start() {
     create_namespace "$NAMESPACE"
 
-    create_hive_secret "$NAMESPACE" "$DIR/.env"
+    create_kubernetes_secret "hive-secrets" "$NAMESPACE" "--from-env-file=$env_file" 
 
     # Build custom image and load it into the cluster
     if ! build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" ; then

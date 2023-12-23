@@ -32,9 +32,14 @@ shutdown() {
     kubectl delete namespace "$NAMESPACE"
 }
 
+init(){
+    # nothing to do
+    echo ""
+}   
+
 # Main execution
 case $ACTION in
-    start|shutdown)
+    start|init|shutdown)
         $ACTION
         ;;
     *)

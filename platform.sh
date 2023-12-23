@@ -5,11 +5,16 @@ source scripts/registry.sh
 # Required CLI tools
 REQUIRED_TOOLS=("realpath" "helm" "kubectl" "docker") 
 check_requirements "${REQUIRED_TOOLS[@]}"
+
 # check if docker is running, else start it
 if ! docker info >/dev/null 2>&1; then
-    echo "ERROR::: Docker is not running.  Please start docker and try again."
+    echo "Docker is not running.  Please start docker and try again."
     exit 1
 fi
+
+apps=("minio" "hive" "trino" "airflow" "spark" "models" "superset" "datahub" "jupyter" "kafka" "kubernetes-dashboard")
+core_apps=("minio" "hive" "trino" "airflow" "spark" "kubernetes-dashboard")
+lakehouse_apps=("minio" "hive" "trino" "kubernetes-dashboard")
 
 # Determine the base directory of the script
 SCRIPT_PATH="$(realpath "$0")"
@@ -69,47 +74,27 @@ fi
 
 
 call_app_script(){
-    app="$1"
-    delete_data_option=""
+    local app="$1"
+    local delete_data_option=""
     
     if [[ "$ACTION" == "shutdown" ]] && [[ "$DELETE_DATA" == true ]]; then
         delete_data_option="--delete-data"
     fi
 
-
-    case "$app" in
-    "minio"|"hive"|"trino"|"airflow"|"spark"|"models"|"superset"|"datahub"|"jupyter"|"kafka"|"kubernetes-dashboard")
-        # Run the corresponding script
+    if [[ " ${apps[@]} " =~ " ${app} " ]]; then
         SCRIPT="$BASE_DIR/scripts/$app.sh"
-        echo " "
-        echo "Running $SCRIPT..."
         make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
-        ;;
-    "core")
-        # lakehouse + airflow + spark  
-        for CORE_SCRIPT in "minio" "hive" "trino" "airflow" "spark" "kubernetes-dashboard"
-        do
-            SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
-            echo "Running $SCRIPT..."
+    elif [[ "$app" == "core" ]]; then
+        for core_app in "${core_apps[@]}"; do
+            SCRIPT="$BASE_DIR/scripts/$core_app.sh"
             make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
         done
-        ;;
-    "lakehouse")
-        for CORE_SCRIPT in "minio" "hive" "trino" "kubernetes-dashboard"
-        do
-            SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
-            echo "Running $SCRIPT..."
+    elif [[ "$app" == "lakehouse" ]]; then
+        for lakehouse_app in "${lakehouse_apps[@]}"; do
+            SCRIPT="$BASE_DIR/scripts/$lakehouse_app.sh"
             make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
         done
-        ;;
-    *)
-        # Print an error message
-        echo "Invalid sub-script name: $app"
-        echo " Valid names are: airflow, datahub, hive, jupyter, kafka, kubernetes-dashboard, minio, models, \
-         trino, spark, superset, lakehouse (minio, hive, trino), core (lakehouse + airflow + spark)"
-        ;;
-    esac
-
+    fi
 }
 
 # Start function
@@ -146,22 +131,29 @@ shutdown(){
         stop_local_registry
 
         # Shutdown all storage services outside cluster (docker compose)
-        for file_path in "$BASE_DIR"/services/storage/*.yaml
+        for file_path in "$STORAGE_DIR"/*.yaml
         do
             filename="${file_path##*/}"
 
             # Check if the file name matches the pattern
             if [[ $filename =~ docker-compose-(.*).yaml ]]; then
+                # check if file_path is listed in docker-compose ls output
+                if ! docker-compose ls | grep "$file_path" >/dev/null 2>&1; then
+                    # skipping if not running
+                    continue
+                fi
 
+                # check to see if the services in the docker-compose file are running
                 # Extract the app name from the file name
                 local app="${BASH_REMATCH[1]}"
                 local env_file="$STORAGE_DIR/.env.$app"
                 # Check if .env file exists 
-                if [ -f  "$env_file" ]; then
-                    shutdown_docker_compose_stack "$app" "$env_file" "$DELETE_DATA" "$STORAGE_DIR/docker-compose-$app.yaml"
+                if [ ! -f  "$env_file" ]; then
+                    env_file=""
                 fi
+                shutdown_docker_compose_stack "$app" "$env_file" "$DELETE_DATA" "$STORAGE_DIR/docker-compose-$app.yaml"
             else
-                echo "Pattern not found"
+                echo "Pattern not found"            
             fi
         done
     else
@@ -184,9 +176,9 @@ recreate(){
 # create .env files if they doesn't exist
 init(){
     # ACTION="init"
-    for app in "airflow" "datahub" "hive" "jupyter" "models" "trino" "superset" "kafka" "minio"
-    do
-        
+    # update to iterate through all apps
+    for app in "${apps[@]}"
+    do        
         printf "\n###### Initializing $app .env files\n"
         SCRIPT="$BASE_DIR/scripts/$app.sh"
         make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER"
@@ -198,7 +190,6 @@ case $ACTION in
         $ACTION
         ;;
     *)
-        echo "Error: Invalid action $ACTION"
-        exit 1
+        echo "Error: Invalid action $ACTION"        exit 1
         ;;
 esac
