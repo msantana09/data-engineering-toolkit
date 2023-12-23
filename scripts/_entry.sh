@@ -5,7 +5,7 @@ if [[ $# -gt 0 ]]; then
     ACTION="$1"
     shift
 fi
-
+BASE_DIR=".."
 CLUSTER="platform"
 DELETE_DATA=false
 
