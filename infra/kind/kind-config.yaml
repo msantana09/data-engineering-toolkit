@@ -28,13 +28,22 @@ nodes:
   - containerPort: 30084
     hostPort: 8084 # datahub
     protocol: TCP
+  - containerPort: 30090
+    hostPort: 9090 # kafka UI
+    protocol: TCP
+  - containerPort: 30091
+    hostPort: 9091 # kafka-schema-registry
+    protocol: TCP
+  - containerPort: 30092
+    hostPort: 9092 # kafka-broker
+    protocol: TCP
   - containerPort: 30888
     hostPort: 8888 # jupyter
     protocol: TCP
   - containerPort: 30901
     hostPort: 9001 # minio
     protocol: TCP
-  extraMounts: # host >> container(control plane). Then map to pods through airflow helm chart
+  extraMounts: # host >> container(control plane). This is for development purposes only.
   - hostPath: services/airflow/dags
     containerPath: /mnt/airflow/dags
   - hostPath: services/airflow/spark_scripts
