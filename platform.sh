@@ -15,7 +15,6 @@ fi
 SCRIPT_PATH="$(realpath "$0")"
 BASE_DIR="$(dirname "$SCRIPT_PATH")"
 STORAGE_DIR="$BASE_DIR/services/storage"
-
 ACTION=""
 SUB_SCRIPTS=()
 CLUSTER="platform"
@@ -87,8 +86,8 @@ call_app_script(){
         make_executable_and_run "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
         ;;
     "core")
-        # basically airflow and dependencies
-        for CORE_SCRIPT in "minio" "hive" "trino" "airflow" "spark" "kafka" "kubernetes-dashboard"
+        # lakehouse + airflow + spark  
+        for CORE_SCRIPT in "minio" "hive" "trino" "airflow" "spark" "kubernetes-dashboard"
         do
             SCRIPT="$BASE_DIR/scripts/$CORE_SCRIPT.sh"
             echo "Running $SCRIPT..."
@@ -113,36 +112,6 @@ call_app_script(){
 
 }
 
- 
-finish_local_registry_setup(){
-    reg_port='5001'
-    # 3. Add the registry config to the nodes
-    #
-    # This is necessary because localhost resolves to loopback addresses that are
-    # network-namespace local.
-    # In other words: localhost in the container is not localhost on the host.
-    #
-    # We want a consistent name that works from both ends, so we tell containerd to
-    # alias localhost:${reg_port} to the registry container when pulling images
-    REGISTRY_DIR="/etc/containerd/certs.d/localhost:${reg_port}"
-    for node in $(kind get nodes --name platform); do
-    docker exec "${node}" mkdir -p "${REGISTRY_DIR}"
-    cat <<EOF | docker exec -i "${node}" cp /dev/stdin "${REGISTRY_DIR}/hosts.toml"
-    [host."http://${reg_name}:5000"]
-EOF
-    done
-
-    # 4. Connect the registry to the cluster network if not already connected
-    # This allows kind to bootstrap the network but ensures they're on the same network
-    if [ "$(docker inspect -f='{{json .NetworkSettings.Networks.kind}}' "${reg_name}")" = 'null' ]; then
-    docker network connect "kind" "${reg_name}"
-    fi
-
-    # 5. Document the local registry
-    # https://github.com/kubernetes/enhancements/tree/master/keps/sig-cluster-lifecycle/generic/1755-communicating-a-local-registry
-    kubectl apply -f "$BASE_DIR/infra/kind/local-registry-config.yaml"
-}
-
 # Start function
 start(){
     start_local_registry
@@ -150,8 +119,8 @@ start(){
     echo "Starting $CLUSTER..."
 
     create_kind_cluster "$CLUSTER" "$BASE_DIR/infra/kind/kind-config.yaml"
-
-    finish_local_registry_setup
+ 
+    finish_local_registry_setup "$BASE_DIR"
 
     # Apply ingress controller and wait for pods to be running
     kubectl apply -f $BASE_DIR/infra/nginx/ingress-kind-nginx.yaml
@@ -171,12 +140,12 @@ shutdown(){
         echo "Shutting down $CLUSTER..."
 
         # Shutdown all services        
-        delete_kind_cluster "$CLUSTER"
-        # shut down kafka
-        call_app_script "kafka"
+        delete_kind_cluster "$CLUSTER" 
+
         # shut down local registry
         stop_local_registry
 
+        # Shutdown all storage services outside cluster (docker compose)
         for file_path in "$BASE_DIR"/services/storage/*.yaml
         do
             filename="${file_path##*/}"
@@ -195,8 +164,6 @@ shutdown(){
                 echo "Pattern not found"
             fi
         done
-
-
     else
         echo "Shutting down ${SUB_SCRIPTS[@]}..."
 
