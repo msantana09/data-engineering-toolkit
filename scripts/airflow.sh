@@ -1,59 +1,26 @@
 #!/bin/bash
 
-# Setting default values 
-if [[ $# -gt 0 ]]; then
-    ACTION="$1"
-    shift
-fi
+SCRIPT_PATH="$(realpath "$0")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 
-CLUSTER="platform"
-DELETE_DATA=false
-BASE_DIR=".."
+source "$SCRIPT_DIR/_entry.sh" "$@"
+source "$SCRIPT_DIR/common_functions.sh"
 
-# Process command line arguments
-while [[ $# -gt 0 ]]; do
-    if [[ -z $1 ]]; then
-    # Skip empty arguments
-        shift
-        continue
-    fi
-    
-    case $1 in
-        -b|--base_dir)
-            BASE_DIR="$2"
-            shift 2
-            ;;
-        -c|--cluster)
-            CLUSTER="$2"
-            shift 2
-            ;;
-        -d|--delete-data)
-            DELETE_DATA=true
-            shift
-            ;;
-        *)
-            echo "Error: Invalid argument $1"
-            exit 1
-            ;;
-    esac
-done
 
 NAMESPACE="airflow"
 AIRFLOW_VERSION="2.7.3"
 IMAGE_REPO="custom-airflow"
 IMAGE_TAG="latest"
-
 DIR="$BASE_DIR/services/airflow"
+MANIFESTS_DIR="$DIR/manifests"
 CHARTS_DIR="$DIR/charts"
-
 STORAGE_DIR="$BASE_DIR/services/storage"
 DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-airflow.yaml"
 
 
-source "$BASE_DIR/scripts/common_functions.sh"
 
 # Function to install or upgrade airflow
-install_airflow() {
+install_airflow_helm_chart() {
     local dir=$1
     local namespace=$2
 
@@ -65,30 +32,6 @@ install_airflow() {
         echo "Failed to install/upgrade Airflow"
         exit 1
     fi
-}
-
-uninstall_airflow() {
-    local namespace=$1
-
-    if ! helm uninstall airflow --namespace "$namespace"; then
-        echo "Failed to uninstall Airflow"
-        exit 1
-    fi
-}
-
-# Function to create secrets
-create_secrets(){
-    local namespace=$1
-
-    source "$BASE_DIR/scripts/airflow_secrets.sh"
-
-    create_webserver_secret "$namespace"
-    fernet_key=$(create_or_update_fernet_key "$DIR/.env")
-    create_fernet_secret "$namespace" "$fernet_key" 
-    create_minio_connection_secret "$namespace" "$DIR/.env"
-    create_lakehouse_secret "$namespace" "$DIR/.env"
-    create_kaggle_connection_secret "$namespace" "$DIR/.env"
-    create_postgres_metadata_db_secret "$namespace" "$DIR/.env"
 }
 
 # run unit tests
@@ -113,7 +56,9 @@ start() {
     fi
 
     create_namespace "$NAMESPACE"
-    create_secrets "$NAMESPACE"
+
+    source "$BASE_DIR/scripts/airflow_secrets.sh"
+    create_secrets "$NAMESPACE" "$DIR"
 
     if ! build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" ; then
         echo "Failed to load image to local registry"
@@ -126,21 +71,22 @@ start() {
         exit 1
     fi 
 
-    if ! kubectl apply -f "$CHARTS_DIR/local-pv.yaml" || ! kubectl apply -f "$CHARTS_DIR/local-pvc.yaml"; then
+    if ! kubectl apply -f "$MANIFESTS_DIR/local-pv.yaml" || ! kubectl apply -f "$MANIFESTS_DIR/local-pvc.yaml"; then
         echo "Failed to apply Kubernetes PV/PVC configurations"
         exit 1
     fi   
 
-    # Add and update helm repository
-    install_airflow "$CHARTS_DIR" "$NAMESPACE"
+    # Add and update helm repository (depends on pv/pvc)
+    install_airflow_helm_chart "$CHARTS_DIR" "$NAMESPACE"
 
-    # Wait for container startup
-    wait_for_container_startup "$NAMESPACE" airflow-web component=web
-
-    if ! kubectl apply -f "$CHARTS_DIR/roles.yaml" || ! kubectl apply -f "$CHARTS_DIR/roles.yaml"; then
+    # Apply role configurations (Service Account created by Helm chart)
+    if ! kubectl apply -f "$MANIFESTS_DIR/roles.yaml" ; then
         echo "Failed to apply role configurations"
         exit 1
     fi
+
+    # Wait for container startup
+    wait_for_container_startup "$NAMESPACE" airflow-web component=web
 }
 
 # shutdown function
@@ -170,7 +116,7 @@ shutdown() {
         # Delete each persistent volume
         kubectl delete pv $pv
     done
-    }
+}
 
 init(){
     # copy .env file if it doesn't exist
@@ -180,7 +126,6 @@ init(){
     create_env_file "$STORAGE_DIR/.env.airflow"  "$STORAGE_DIR/.env-airflow-template"
 }
 
-# Main execution
 case $ACTION in 
     init|start|shutdown) 
         $ACTION ;;

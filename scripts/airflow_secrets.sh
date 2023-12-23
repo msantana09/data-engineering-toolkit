@@ -5,6 +5,19 @@ SCRIPT_PATH="$(realpath "$0")"
 SCRIPT_BASE_DIR="$(dirname "$SCRIPT_PATH")"
 source $SCRIPT_BASE_DIR/common_functions.sh
 
+create_secrets(){
+    local namespace=$1
+    local source_dir=$2
+
+    create_webserver_secret "$namespace"
+    fernet_key=$(create_or_update_fernet_key "$source_dir/.env")
+    create_fernet_secret "$namespace" "$fernet_key" 
+    create_minio_connection_secret "$namespace" "$source_dir/.env"
+    create_lakehouse_secret "$namespace" "$source_dir/.env"
+    create_kaggle_connection_secret "$namespace" "$source_dir/.env"
+    create_postgres_metadata_db_secret "$namespace" "$source_dir/.env"
+}
+
 
 create_webserver_secret() {
     local namespace=$1
