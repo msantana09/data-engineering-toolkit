@@ -525,7 +525,7 @@ global:
       #type: INTERNAL
       # Confluent Kafka Implementation
       type: KAFKA
-      url: "http://schema-registry.kafka.svc.cluster.local:30090"
+      url: "http://schema-registry.kafka.svc.cluster.local:30091"
 
       # Glue Implementation - `url` not applicable
       # type: AWS_GLUE

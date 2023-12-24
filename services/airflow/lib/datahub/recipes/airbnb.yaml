@@ -18,4 +18,4 @@ sink:
   config:
     connection:
       bootstrap: "kafka.kafka.svc.cluster.local:29092"
-      schema_registry_url: "http://schema-registry.kafka.svc.cluster.local:30090"
+      schema_registry_url: "http://schema-registry.kafka.svc.cluster.local:30091"

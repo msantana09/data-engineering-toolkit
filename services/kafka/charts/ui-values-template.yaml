@@ -96,7 +96,7 @@ service:
   # In case of service type LoadBalancer, you can specify reserved static IP
   # loadBalancerIP: 10.11.12.13
   # if you want to force a specific nodePort. Must be use with service.type=NodePort
-  nodePort: 30083
+  nodePort: 30090
 
 # Ingress configuration
 ingress:
