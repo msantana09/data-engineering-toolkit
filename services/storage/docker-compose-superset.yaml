@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   superset-postgres:
+    container_name: superset-postgres
     image: postgres:16
     env_file:
       - .env.superset

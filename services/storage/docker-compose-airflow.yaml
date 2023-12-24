@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   airflow-postgres:
+    container_name: airflow-postgres
     image: postgres:16
     env_file:
       - .env.airflow

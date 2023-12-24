@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   hive-metastore-postgres:
+    container_name: hive-metastore-postgres
     image: postgres:16
     env_file:
       - .env.hive
