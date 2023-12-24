@@ -27,8 +27,8 @@ spec:
             name: hive-secrets
         resources:
           limits:
-            cpu: "1"
-            memory: "2Gi"
+            cpu: "300m"
+            memory: "1Gi"
         volumeMounts:
         - name: hive-config-volume
           mountPath: /mnt/hive-config

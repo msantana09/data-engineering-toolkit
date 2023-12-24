@@ -1,4 +1,4 @@
-FROM apache/hive:4.0.0-alpha-2
+FROM apache/hive:4.0.0-beta-1
 
 USER root
 RUN apt-get update && \
@@ -10,6 +10,10 @@ RUN apt-get update && \
 #COPY conf/hive-site.xml /opt/hive/conf/hive-site.xml
 RUN chown hive:hive /opt/hive/conf/hive-site.xml && \
     chmod 664 /opt/hive/conf/hive-site.xml
+
+# Download Postgres JDBC driver
+RUN curl https://jdbc.postgresql.org/download/postgresql-42.7.0.jar\
+ -Lo /opt/hive/lib/postgresql-42.7.0.jar
 
 USER hive
 
