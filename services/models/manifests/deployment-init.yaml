@@ -14,8 +14,8 @@ spec:
           command: ["python3", "download_models.py"]
           resources:
             limits:
-              cpu: "1"
-              memory: "4Gi"
+              cpu: "500m"
+              memory: "2Gi"
           volumeMounts:
           - name: llm-shared-volume
             mountPath: /mnt/llm-shared-volume
