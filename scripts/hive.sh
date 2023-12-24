@@ -17,8 +17,9 @@ DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-hive.yaml"
 
 
 start() {
-    create_namespace "$NAMESPACE"
-
+    create_namespace "$NAMESPACE"    
+    
+    local env_file="$DIR/.env"
     create_kubernetes_secret "hive-secrets" "$NAMESPACE" "--from-env-file=$env_file" 
 
     # Build custom image and load it into the cluster
@@ -39,6 +40,12 @@ start() {
     -f "$MANIFESTS_DIR/deployment.yaml"
 
     wait_for_container_startup "$NAMESPACE"  hive-metastore app=hive-metastore
+
+    # tail the logs of the container with label app=hive-metastore in the namespace hive, 
+    # and exit once the string "Initialization script completed" is found
+    kubectl -n hive logs -f "$(kubectl -n hive get pods -l app=hive-metastore -o jsonpath='{.items[0].metadata.name}')" | grep -q "Initialization script completed"
+
+            
 }
 
 # shutdown function
