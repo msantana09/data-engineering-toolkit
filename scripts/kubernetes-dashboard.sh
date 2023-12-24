@@ -17,14 +17,6 @@ start() {
     
     kubectl apply -f "$MANIFESTS_DIR/kubernetes-dashboard.yaml" \
     -f "$MANIFESTS_DIR/rbac.yaml"  
-
-    helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
-    helm repo update
-    helm upgrade --install --set args={--kubelet-insecure-tls} metrics-server metrics-server/metrics-server --namespace kube-system
-
-    # Running metric-server on Kind Kubernetes
-    # https://gist.github.com/sanketsudake/a089e691286bf2189bfedf295222bd43
-    kubectl patch deployment metrics-server -n kube-system --patch "$(cat "$CHARTS_DIR/metric-server-patch.yaml")"
 }
 
 # shutdown function
