@@ -24,7 +24,7 @@ start() {
     
     # install kafka ui
     helm repo add kafka-ui https://provectus.github.io/kafka-ui-charts
-    helm install kafka-ui kafka-ui/kafka-ui  --namespace "$NAMESPACE" -f "$CHARTS_DIR/.env.ui.values.yaml"
+    helm  upgrade --install kafka-ui kafka-ui/kafka-ui  --namespace "$NAMESPACE" -f "$CHARTS_DIR/.env.ui.values.yaml"
 }
 
 shutdown() {
