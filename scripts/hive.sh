@@ -41,11 +41,13 @@ start() {
 
     wait_for_container_startup "$NAMESPACE"  hive-metastore app=hive-metastore
 
-    # tail the logs of the container with label app=hive-metastore in the namespace hive, 
-    # and exit once the string "Starting Hive Metastore Server" is found
-    kubectl -n hive logs -f "$(kubectl -n hive get pods -l app=hive-metastore -o jsonpath='{.items[0].metadata.name}')" | grep -q "Starting Hive Metastore Server"
-
-            
+    # check if hive has started already
+    if ! kubectl -n hive logs "$(kubectl -n hive get pods -l app=hive-metastore -o jsonpath='{.items[0].metadata.name}')" | grep  "Starting Hive Metastore Server" &> /dev/null ; then
+        # tail the logs of the container with label app=hive-metastore in the namespace hive, 
+        # and exit once the string "Starting Hive Metastore Server" is found.
+        echo "Waiting for Hive initialization to complete..."
+        kubectl -n hive logs -f "$(kubectl -n hive get pods -l app=hive-metastore -o jsonpath='{.items[0].metadata.name}')" | grep -q "Starting Hive Metastore Server"
+    fi
 }
 
 # shutdown function
