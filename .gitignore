@@ -7,6 +7,7 @@
 # ignore all files logs
 logs
 test.sh
+services/kafka/data
 
 
 # ignore all files .DS_Store
