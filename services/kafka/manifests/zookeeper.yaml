@@ -1,3 +1,57 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: zookeeper-data-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: zookeeper-data-local-storage
+  capacity:
+    storage: 1Gi
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/zookeeper/data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zookeeper-data-pvc
+  namespace: kafka
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: zookeeper-data-local-storage
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: zookeeper-log-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: zookeeper-log-local-storage
+  capacity:
+    storage: 1Gi
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/zookeeper/log
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zookeeper-log-pvc
+  namespace: kafka
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: zookeeper-log-local-storage
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,12 +72,7 @@ spec:
       hostname: zookeeper
       restartPolicy: Always
       containers:
-      - name: zookeeper
-        image: confluentinc/cp-zookeeper:7.4.3
-        resources: {}
-        ports:
-        - containerPort: 2181
-        env:
+      - env:
         - name: TZ
         - name: ZOOKEEPER_CLIENT_PORT
           value: "2181"
@@ -31,6 +80,23 @@ spec:
           value: "2000"
         - name: ZOOKEEPER_SERVER_ID
           value: "1"
+        name: zookeeper
+        image: confluentinc/cp-zookeeper:7.4.3
+        resources: {}
+        ports:
+        - containerPort: 2181
+        volumeMounts:
+          - mountPath: /var/lib/zookeeper/data
+            name: zookeeper-data
+          - mountPath: /var/lib/zookeeper/log
+            name: zookeeper-log
+      volumes:
+        - name: zookeeper-data
+          persistentVolumeClaim:
+            claimName: zookeeper-data-pvc
+        - name: zookeeper-log
+          persistentVolumeClaim:
+            claimName: zookeeper-log-pvc
 ---
 apiVersion: v1
 kind: Service

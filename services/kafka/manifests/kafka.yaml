@@ -1,3 +1,30 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kafka-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: kafka-local-storage
+  capacity:
+    storage: 1Gi
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/kafka/data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-pvc
+  namespace: kafka
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: kafka-local-storage
+  resources:
+    requests:
+      storage: 1Gi
+---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -53,6 +80,13 @@ spec:
         - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
           value: "1"
         resources: {}
+        volumeMounts:
+          - mountPath: /var/lib/kafka/data
+            name: kafka-data
+      volumes:
+        - name: kafka-data
+          persistentVolumeClaim:
+            claimName: kafka-pvc
 ---
 apiVersion: v1
 kind: Service
