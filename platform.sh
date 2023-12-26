@@ -13,7 +13,7 @@ if ! docker info >/dev/null 2>&1; then
 fi
 
 apps=("minio" "hive" "trino" "airflow" "spark" "models" "superset" "datahub" "jupyter" "kafka" "kubernetes-dashboard")
-core_apps=("minio" "hive" "trino" "airflow" "spark" "kubernetes-dashboard")
+core_apps=("minio" "hive" "trino" "airflow" "spark" "kubernetes-dashboard" "kafka")
 lakehouse_apps=("minio" "hive" "trino" "kubernetes-dashboard")
 
 # Determine the base directory of the script
