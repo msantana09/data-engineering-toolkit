@@ -105,7 +105,7 @@ start(){
     start_local_registry
 
     echo "Starting $CLUSTER..."
-    create_kind_cluster "$CLUSTER" "$BASE_DIR/infra/kind/kind-config.yaml"
+    create_kind_cluster "$CLUSTER" "$BASE_DIR/cluster/kind/kind-config.yaml"
 
     # Set the context to the cluster
     # this should already be set by create_kind_cluster through kind, but just in case
@@ -115,7 +115,7 @@ start(){
     finish_local_registry_setup "$BASE_DIR"
 
     # Apply ingress controller and wait for pods to be running
-    kubectl apply -f $BASE_DIR/infra/nginx/ingress-kind-nginx.yaml
+    kubectl apply -f $BASE_DIR/cluster/nginx/ingress-kind-nginx.yaml
     wait_for_container_startup ingress-nginx ingress-nginx app.kubernetes.io/component=controller
 
     for SUB_SCRIPT in "${SUB_SCRIPTS[@]}"

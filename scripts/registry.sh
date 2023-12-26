@@ -55,5 +55,5 @@ EOF
 
     # 5. Document the local registry
     # https://github.com/kubernetes/enhancements/tree/master/keps/sig-cluster-lifecycle/generic/1755-communicating-a-local-registry
-    kubectl apply -f "$BASE_DIR/infra/kind/local-registry-config.yaml"
+    kubectl apply -f "$BASE_DIR/cluster/kind/local-registry-config.yaml"
 }

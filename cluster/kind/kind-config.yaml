@@ -58,3 +58,7 @@ nodes:
     containerPath: /mnt/models/data
   - hostPath: services/minio/data
     containerPath: /mnt/minio/data
+  - hostPath: services/kafka/data/kafka
+    containerPath: /mnt/kafka/data
+  - hostPath: services/kafka/data/zookeeper
+    containerPath: /mnt/zookeeper
