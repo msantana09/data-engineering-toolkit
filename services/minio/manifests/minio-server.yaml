@@ -119,8 +119,9 @@ metadata:
 spec:
   selector:
     app: minio
-  type: ClusterIP
+  type: NodePort
   ports:
     - port: 9000
       targetPort: 9000
+      nodePort: 30900
       protocol: TCP 

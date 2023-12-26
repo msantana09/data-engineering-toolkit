@@ -7,7 +7,8 @@ This project provides a **local development** environment for Data Engineers & S
 ### Scope
 This project is intended for local development only. 
 
-In future projects, we will focus on deploying some of the services in the project to a cloud provider, with special attention paid to security, scalability, reliablity, networking, storage, observability, and cost management options. 
+In future projects, we will focus on deploying some of the services in the project to a cloud provider, with special attention paid to security, scalability, reliablity, networking, storage, observability, and cost management options.
+
 
 ### Use Case
 We'll ingest a dataset from Kaggle and process it with our platform. See more details [here](/UseCase.md)
@@ -107,7 +108,7 @@ Before you start, ensure your host system (MacOS) has the following software ins
    -h, --help                    Display this help message
    [sub_scripts...]              Additional scripts to run (default: core). 
                                  Valid names include: 
-                                    airflow, datahub, hive, jupyter, minio, models, trino, spark, superset,
+                                    airflow, datahub, hive, jupyter, kafka, minio, models, spark, trino, 
                                     lakehouse ( minio, hive, trino ),
                                     core ( lakehouse + airflow + spark + kafka )
    ````
@@ -189,7 +190,7 @@ This version makes uses a *mostly* open stack comprised of:
     <tr>
         <td><a href="https://cwiki.apache.org/confluence/display/hive/design">Apache Hive Metastore</a></td>
         <td>Hive acts as a central repository for metadata about our data lake. Our Spark jobs and Trino rely on Hive when querying or modifying tables.</td>
-        <td><a href="http://localhost:8081/">http://localhost:8081/</a> (UI)<br> airflow:airflow123</td>
+        <td></td>
     </tr>
     <tr>
         <td><a href="https://iceberg.apache.org/">Apache Iceberg</a></td>
@@ -209,20 +210,8 @@ This version makes uses a *mostly* open stack comprised of:
     <tr>
         <td><a href="https://jupyter.org/hub">JupyterHub</a></td>
         <td>Notebooks used to test out ideas</td>
-      <td><a href="http://localhost:8888/">http://localhost:8888/</a> (UI)</td>
+      <td><a href="http://localhost:8083/">http://localhost:8083/</a> (UI)</td>
     </tr>
-    <tr>
-        <td><a href="https://superset.apache.org/">Superset</a></td>
-        <td>A visualization tool to create dashboards, graphics, etc...  Not really used in this use case, but I included it since I already had its yaml file downloaded.  Be aware those, Superset uses a lot of memory</td>
-      <td><a href="http://localhost:8888/">http://localhost:8083/</a>(UI)<br/>admin:admin</td>
-    </tr>
+
 </table>
 
-
-## Contributing
-
-Guidelines for contributing to the project, including how to submit issues, the pull request process, and coding standards.
-
-## License
-
-Include details about the license under which the project is released.

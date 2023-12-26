@@ -23,7 +23,7 @@ nodes:
     hostPort: 8082 # trino
     protocol: TCP
   - containerPort: 30083
-    hostPort: 8083 # superset
+    hostPort: 8083 # jupyter
     protocol: TCP
   - containerPort: 30084
     hostPort: 8084 # datahub
@@ -37,11 +37,11 @@ nodes:
   - containerPort: 30092
     hostPort: 9092 # kafka-broker
     protocol: TCP
-  - containerPort: 30888
-    hostPort: 8888 # jupyter
+  - containerPort: 30900
+    hostPort: 9000 # minio-api
     protocol: TCP
   - containerPort: 30901
-    hostPort: 9001 # minio
+    hostPort: 9001 # minio-console
     protocol: TCP
   extraMounts: # host >> container(control plane). This is for development purposes only.
   - hostPath: services/airflow/dags
