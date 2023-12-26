@@ -100,7 +100,7 @@ wait_for_container_startup() {
             break
         else
             echo "Waiting for containers to be ready..."
-            sleep 10
+            sleep 5
         fi
     done
 }
