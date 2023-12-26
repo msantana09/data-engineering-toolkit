@@ -2,11 +2,15 @@
 
 ## Introduction
 
-The goal of this project is to provide a local development environment for Data Engineers & Scientists to easily experiement with new tools and use cases. Many of the tools in the project are pre-configured to work with each other, minimizing the effort needed to get started. 
+This project provides a **local development** environment for Data Engineers & Scientists to easily experiement with new tools and use cases. Many of the tools in the project are pre-configured to work with each other, minimizing the effort needed to get started. 
 
-### The use case
-We'll ingest a small dataset from Kaggle and process it with our platform. See more details [here](/UseCase.md)
+### Scope
+This project is intended for local development only. 
 
+In future projects, we will focus on deploying some of the services in the project to a cloud provider, with special attention paid to security, scalability, reliablity, networking, storage, observability, and cost management options. 
+
+### Use Case
+We'll ingest a dataset from Kaggle and process it with our platform. See more details [here](/UseCase.md)
 
 
 ## Prerequisites
