@@ -44,5 +44,11 @@ class KaggleHook(BaseHook):
         :param path: The local path where to save the dataset.
         """
         self.client.dataset_download_files(dataset, path=path, unzip=True)
+
+        # get names of downloaded files
+        file_names = os.listdir(path)
+
         logger.info(f"Downloaded dataset to {path}")   
+
+        return file_names
 

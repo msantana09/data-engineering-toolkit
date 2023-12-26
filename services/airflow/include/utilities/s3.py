@@ -6,18 +6,18 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def list_files_in_directory(local_directory):
+def list_files_in_directory(local_directory:str):
     """List all files in a given directory."""
     return [f for f in os.listdir(local_directory) if os.path.isfile(os.path.join(local_directory, f))]
 
-def upload_file_to_s3(bucket_name, local_path, s3_key, aws_conn_id=None, s3_hook: S3Hook = None):
+def upload_file_to_s3(bucket_name:str, local_path:str, s3_key:str, aws_conn_id:str=None, s3_hook: S3Hook = None):
     """Upload a single file to an S3 bucket."""
     if s3_hook is None:
         s3_hook = S3Hook(aws_conn_id=aws_conn_id)
     s3_hook.load_file(filename=local_path, bucket_name=bucket_name, replace=True, key=s3_key)
     logger.info(f"Uploaded {os.path.basename(local_path)} to s3://{bucket_name}/{s3_key}")
 
-def upload_directory_to_s3(bucket_name, local_directory, s3_prefix, aws_conn_id=None, s3_hook: S3Hook = None):
+def upload_directory_to_s3(bucket_name:str, local_directory:str, s3_prefix:str, aws_conn_id:str=None, s3_hook: S3Hook = None):
     """
     Uploads all files from a local directory to an S3 bucket.
     :param bucket_name: Name of the S3 bucket.

@@ -21,10 +21,13 @@ class KaggleDatasetToS3(BaseOperator):
         temp_dir = tempfile.TemporaryDirectory()
         
         # Download dataset
-        self.kaggle_hook.download_dataset(dataset=self.dataset, path=temp_dir.name)
+        file_names=self.kaggle_hook.download_dataset(dataset=self.dataset, path=temp_dir.name)
 
         # Upload dataset to S3        
         upload_directory_to_s3(self.bucket, temp_dir.name, self.path, aws_conn_id=self.aws_conn_id)
 
         # Delete temporary directory
         temp_dir.cleanup()
+
+        # return file names
+        return file_names
