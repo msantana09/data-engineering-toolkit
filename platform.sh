@@ -12,7 +12,7 @@ if ! docker info >/dev/null 2>&1; then
     exit 1
 fi
 
-apps=("minio" "hive" "trino" "airflow" "spark" "models" "superset" "datahub" "jupyter" "kafka" "kubernetes-dashboard")
+apps=("minio" "hive" "trino" "airflow" "spark" "models" "datahub" "jupyter" "kafka" "kubernetes-dashboard")
 core_apps=("minio" "hive" "trino" "airflow" "spark" "kubernetes-dashboard" "kafka")
 lakehouse_apps=("minio" "hive" "trino" "kubernetes-dashboard")
 
@@ -38,7 +38,7 @@ while [[ $# -gt 0 ]]; do
             echo "  -h, --help                    Display this help message"
             echo "  [sub_scripts...]              Additional scripts to run (default: core). "
             echo "                                Valid names include: "
-            echo "                                  airflow, datahub, hive, jupyter, kafka, kubernetes-dashboard, minio, models, trino, spark, superset,"
+            echo "                                  airflow, datahub, hive, jupyter, kafka, kubernetes-dashboard, minio, models, trino, spark,"
             echo "                                  lakehouse (minio, hive, trino),"
             echo "                                  core (lakehouse + airflow + spark + kafka)"
             exit 0
