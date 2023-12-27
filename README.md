@@ -11,7 +11,7 @@ In future projects, we will focus on deploying some of the services in the proje
 
 
 ### Use Case
-We'll ingest a dataset from Kaggle and process it with our platform. See more details [here](/UseCase.md)
+We'll ingest a dataset from Kaggle and process it with our platform, which some help from language models. See more details [here](/UseCase.md)
 
 
 ## Prerequisites
