@@ -1,11 +1,11 @@
-from fastapi import FastAPI, HTTPException
 import torch
+import json
+import prompts
+import logging
 from openai import OpenAI
 from fastapi import FastAPI, HTTPException, Request
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
-from model import ColumnAnalysisRequest, TextData
-import prompts
-import logging
+from model import DescribeColumnsRequest, TextData
 from utilities.openai import num_tokens_from_string
 
 logging.basicConfig(level=logging.INFO)
@@ -57,8 +57,8 @@ def language_detection(data: TextData):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.post("/column_analysis")
-def column_analysis(data: ColumnAnalysisRequest):
+@app.post("/describe_columns")
+def describe_columns(data: DescribeColumnsRequest):
 
     model = "gpt-3.5-turbo-16k"
     message = f"""
@@ -71,7 +71,7 @@ def column_analysis(data: ColumnAnalysisRequest):
     try:
         messages = [
             {
-                "content": prompts.column_analysis_csv,
+                "content": prompts.describe_columns_csv,
                 "role": "system"
             },
             {
@@ -94,8 +94,8 @@ def column_analysis(data: ColumnAnalysisRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/column_analysis/tokens")
-def column_analysis_tokens(data: ColumnAnalysisRequest): 
+@app.post("/describe_columns/tokens")
+def describe_columns_tokens(data: DescribeColumnsRequest): 
 
     message = f"""
     context: {data.context}
@@ -109,11 +109,7 @@ def column_analysis_tokens(data: ColumnAnalysisRequest):
 @app.post("/dq_check")
 async def dq_check(request: Request): 
 
-
     model = "gpt-3.5-turbo-16k"
-    import json
- 
-
     data =  await request.json() 
 
     try:

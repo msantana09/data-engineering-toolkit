@@ -8,6 +8,6 @@ class Table(BaseModel):
     column_csv: str
     name: str
 
-class ColumnAnalysisRequest(BaseModel):
+class DescribeColumnsRequest(BaseModel):
     tables: List[Table]
     context: str

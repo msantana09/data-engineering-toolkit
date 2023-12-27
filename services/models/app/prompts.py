@@ -1,4 +1,4 @@
-column_analysis_csv ="""
+describe_columns_csv ="""
 Act as a Data Steward at data consulting company. The user message will contain a field 'column_csv' which is CSV data (with header row) containing columns of a table related to one of your customers. Your task is to generate column descriptions for each. 
 
 Your response should be a CSV string with two columns:
