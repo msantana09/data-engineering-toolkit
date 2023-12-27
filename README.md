@@ -7,7 +7,7 @@ Welcome to our Data Platform project! Designed with Data Engineer and Scientist 
 Any of the tools listed in the [Architecture](#architecture) section can be used independently, or you can follow along with the sample [use case](/UseCase.md) for a more comprehensive walkthrough. 
 
 ### Background
-In data engineering, setting up an environment with all the necessary tools can be time-consuming, especially if you're new to the tech (which is often the case given the number of products out there). This realization hit home during my work on a few side projects, each requiring setup efforts. I was collecting a bunch of snippets (bash,kubectl, helm, etc...) for different projects, and eventually decided to build a dev playground of sorts. A solution that helps me explore ideas by having a suite of tools I regularly use already integrated with each other. And easy to start/stop, reset, and expand as needed. The project is the public version of those efforts. 
+In data engineering, setting up an environment with all the necessary tools can be time-consuming, especially if you're new to the tech (which is often the case given the number of products out there). This realization hit home during my work on a few side projects, each requiring setup efforts. As I was already collecting a bunch of snippets (bash,kubectl, helm, etc...) for different projects, I decided to build a dev playground of sorts. A solution that helps me explore ideas by having a suite of tools I regularly use already integrated with each other. And easy to start/stop, reset, and expand as needed. The project is the public version of those efforts. 
 
 ### Scope
 This project is intended for local development only. 
