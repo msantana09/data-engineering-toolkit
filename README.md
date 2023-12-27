@@ -2,17 +2,89 @@
 
 ## Introduction
 
-This project provides a **local development** environment for Data Engineers & Scientists to easily experiement with new tools and use cases. Many of the tools in the project are pre-configured to work with each other, minimizing the effort needed to get started. 
+Welcome to our Data Platform project! Designed with Data Engineer and Scientist in mind, this project offers a comprehensive **local development** environment. Our goal is to streamline your workflow by providing a suite of pre-configured tools that work seamlessly together, enabling you to focus more on innovation and less on setup.
+
+Any of the tools listed in the [Architecture](#architecture) section can be used independently, or you can follow along with the sample [use case](/UseCase.md) for a more comprehensive walkthrough. 
+
+### Background
+In data engineering, setting up an environment with all the necessary tools can be time-consuming, especially if you're new to the tech (which is often the case given the number of products out there). This realization hit home during my work on a few side projects, each requiring setup efforts. I was collecting a bunch of snippets (bash,kubectl, helm, etc...) for different projects, and eventually decided to build a dev playground of sorts. A solution that helps me explore ideas by having a suite of tools I regularly use already integrated with each other. And easy to start/stop, reset, and expand as needed. The project is the public version of those efforts. 
 
 ### Scope
 This project is intended for local development only. 
 
-In future projects, we will focus on deploying some of the services in the project to a cloud provider, with special attention paid to security, scalability, reliablity, networking, storage, observability, and cost management options.
+In future projects, I will focus on deploying some of the services in the project to a cloud provider, with special attention paid to security, scalability, reliablity, networking, storage, observability, and cost management options.... But this one is just for local use.
 
 
 ### Use Case
-We'll ingest a dataset from Kaggle and process it with our platform, which some help from language models. See more details [here](/UseCase.md)
+We'll ingest a dataset from Kaggle and process it with our platform, which some help from large language models. See more details [here](/UseCase.md)
 
+
+
+## Architecture
+
+![Platform Overview](images/data_platform_overview.png)
+
+This version makes uses a *mostly* open stack comprised of:
+
+<table>
+    <tr>
+        <th style="width:20%">Tool</th>
+        <th style="width:50%">Description</th>
+        <th style="width:30%">URLs</th>
+    </tr>
+    <tr>
+        <td><a href="https://min.io/">MinIO</a></td>
+        <td>An object storage solution that provides an S3-like experience, but with your data staying local.</td>
+        <td><a href="http://localhost:9001/">http://localhost:9001/</a> (UI) <br> <a href="http://localhost:9000/">http://localhost:9000/</a> (API) <br> minio:minio123</td>
+    </tr>
+    <tr>
+        <td><a href="https://airflow.apache.org/">Apache Airflow</a></td>
+        <td>An orchestrator for our data pipelines</td>
+        <td><a href="http://localhost:8081/">http://localhost:8081/</a> (UI)<br> airflow:airflow123</td>
+    </tr>
+    <tr>
+        <td><a href="https://www.python.org/">Python</a></td>
+        <td>Primary language used in data pipelines</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><a href="https://spark.apache.org/">Apache Spark</a></td>
+        <td>Used to process ingested data (e.g. clean/transform tasks), and to analyze with SparkSQL</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><a href="https://trino.io/">Trino</a></td>
+        <td>Distributed query engine enabling us to query files stored in S3/Minio using SQL</td>
+        <td><a href="http://localhost:8082/">http://localhost:8082/</a> (for service/jdbc connections)<br><a href="http://localhost:8082/ui/">http://localhost:8082/ui/</a> (cluster overview UI)<br>Authentication not setup, just use 'trino' for username</td>
+    </tr>
+    <tr>
+        <td><a href="https://cwiki.apache.org/confluence/display/hive/design">Apache Hive Metastore</a></td>
+        <td>Hive acts as a central repository for metadata about our data lake. Our Spark jobs and Trino rely on Hive when querying or modifying tables.</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><a href="https://iceberg.apache.org/">Apache Iceberg</a></td>
+        <td>A table format utilized by our Spark jobs to enable data stored in S3 (Minio) to be querable through engines like Trino or SparkSQL.</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><a href="https://openai.com/">OpenAI GPT 3.5</a></td>
+        <td>Used to generate descriptions for ingested columns. Selected for ease of use, but an OSS model like Mistral works just as well (you'll just need the hardware)</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><a href="https://jupyter.org/hub">JupyterHub</a></td>
+        <td>Notebooks used to test out ideas</td>
+      <td><a href="http://localhost:8083/">http://localhost:8083/</a> (UI)</td>
+    </tr>
+    <tr>
+        <td><a href="https://datahubproject.io/">Datahub</a></td>
+        <td>Serves as our metadata repository. GPT generated column descriptions, along with other technical metadata, would be visible in Datahub for users interested in understanding their data and how it relates to other parts of their organization.</td>
+      <td><a href="http://localhost:8084/">http://localhost:8084/</a> (UI)<br>datahub:datahub</td>
+    </tr>
+
+
+</table>
 
 ## Prerequisites
 
@@ -149,69 +221,3 @@ Before you start, ensure your host system (MacOS) has the following software ins
     # e.g. kubectl logs airflow-web-66f94b5b94-pl8pg  -n airflow
     kubectl logs -f <pod name> -n <namespace>
     ```
-
-## Architecture
-
-![Platform Overview](images/data_platform_overview.png)
-
-This version makes uses a *mostly* open stack comprised of:
-
-<table>
-    <tr>
-        <th style="width:20%">Tool</th>
-        <th style="width:50%">Description</th>
-        <th style="width:30%">URLs</th>
-    </tr>
-    <tr>
-        <td><a href="https://min.io/">MinIO</a></td>
-        <td>An object storage solution that provides an S3-like experience, but with your data staying local.</td>
-        <td><a href="http://localhost:9001/">http://localhost:9001/</a> (UI) <br> <a href="http://localhost:9000/">http://localhost:9000/</a> (API) <br> minio:minio123</td>
-    </tr>
-    <tr>
-        <td><a href="https://airflow.apache.org/">Apache Airflow</a></td>
-        <td>An orchestrator for our data pipelines</td>
-        <td><a href="http://localhost:8081/">http://localhost:8081/</a> (UI)<br> airflow:airflow123</td>
-    </tr>
-    <tr>
-        <td><a href="https://www.python.org/">Python</a></td>
-        <td>Primary language used in data pipelines</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td><a href="https://spark.apache.org/">Apache Spark</a></td>
-        <td>Used to process ingested data (e.g. clean/transform tasks), and to analyze with SparkSQL</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td><a href="https://trino.io/">Trino</a></td>
-        <td>Distributed query engine enabling us to query files stored in S3/Minio using SQL</td>
-        <td><a href="http://localhost:8082/">http://localhost:8082/</a> (for service/jdbc connections)<br><a href="http://localhost:8082/ui/">http://localhost:8082/ui/</a> (cluster overview UI)<br>Authentication not setup, just use 'trino' for username</td>
-    </tr>
-    <tr>
-        <td><a href="https://cwiki.apache.org/confluence/display/hive/design">Apache Hive Metastore</a></td>
-        <td>Hive acts as a central repository for metadata about our data lake. Our Spark jobs and Trino rely on Hive when querying or modifying tables.</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td><a href="https://iceberg.apache.org/">Apache Iceberg</a></td>
-        <td>A table format utilized by our Spark jobs to enable data stored in S3 (Minio) to be querable through engines like Trino or SparkSQL.</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td><a href="https://openai.com/">OpenAI GPT 3.5</a></td>
-        <td>Used to generate descriptions for ingested columns. Selected for ease of use, but an OSS model like Mistral works just as well (you'll just need the hardware)</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td><a href="https://datahubproject.io/">Datahub</a></td>
-        <td>Serves as our metadata repository. GPT generated column descriptions, along with other technical metadata, would be visible in Datahub for users interested in understanding their data and how it relates to other parts of their organization.</td>
-      <td><a href="http://localhost:8084/">http://localhost:8084/</a> (UI)<br>datahub:datahub</td>
-    </tr>
-    <tr>
-        <td><a href="https://jupyter.org/hub">JupyterHub</a></td>
-        <td>Notebooks used to test out ideas</td>
-      <td><a href="http://localhost:8083/">http://localhost:8083/</a> (UI)</td>
-    </tr>
-
-</table>
-
