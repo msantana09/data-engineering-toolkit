@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: model-api-deployment
+  name: model-api
 spec:
   replicas: 1
   selector:
@@ -20,8 +20,8 @@ spec:
         - containerPort: 8000
         resources:
           limits:
-            cpu: "500m"
-            memory: "4Gi"
+            cpu: "1"
+            memory: "3Gi"
         envFrom:
         - secretRef:
             name: env-secrets
