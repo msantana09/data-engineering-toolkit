@@ -2,7 +2,7 @@ from airflow.providers.trino.hooks.trino import TrinoHook
 import csv
 import io
 
-def identify_columns_missing_comments(hook:TrinoHook, database:str, table:str)->list:
+def get_columns_missing_comments(hook:TrinoHook, database:str, table:str)->list:
     '''
     Returns a list of columns that are missing comments
     '''
@@ -16,8 +16,7 @@ def identify_columns_missing_comments(hook:TrinoHook, database:str, table:str)->
         """
     return list(hook.get_records(query) )
 
-
-def create_llm_column_request_batches(columns:list, batch_size:int=5):
+def create_llm_column_request_batches(columns:list, batch_size:int=5)->list:
     '''
     Returns a list of lists of columns to be used in the LLM API request
     '''
@@ -28,7 +27,7 @@ def create_llm_column_request_batches(columns:list, batch_size:int=5):
     cols_without_comment_batched = [cols_without_comment[i:i + batch_size] for i in range(0, len(cols_without_comment), batch_size)]
     return cols_without_comment_batched
 
-def build_model_api_payload_csv(dataset_context:str, table:str, columns:list) -> dict: 
+def build_llm_column_request_payload_csv(dataset_context:str, table:str, columns:list) -> dict: 
     '''
     Returns a dictionary that can be used as the payload for the LLM API request
     '''
@@ -43,12 +42,13 @@ def build_model_api_payload_csv(dataset_context:str, table:str, columns:list) ->
     }
     return payload
 
-def build_comment_sql(column_responses:list, database:str, table:str, prefix:str="(ChatGPT generated) "):
+def build_comment_ddl(column_responses:list, database:str, table:str, prefix:str="(ChatGPT generated)")->list:
     '''
     Returns a list of SQL statements to be executed to update the column comments
     '''
     
     statements = []
+    print(column_responses)
     for column in column_responses:
         # skipping columns with null descriptions
         if not column['description']:
@@ -59,7 +59,7 @@ def build_comment_sql(column_responses:list, database:str, table:str, prefix:str
         statements.append(sql)
     return statements
 
-def list_of_dicts_to_csv(data):
+def list_of_dicts_to_csv(data:list)->str:
     output = io.StringIO()
     keys = data[0].keys()
     dict_writer = csv.DictWriter(output, keys)
@@ -67,8 +67,7 @@ def list_of_dicts_to_csv(data):
     dict_writer.writerows(data)
     return output.getvalue()
 
-
-def csv_to_json_array(csv_string):
+def csv_to_dict_array(csv_string:str)->list:
     csv_reader = csv.reader(csv_string.splitlines())
     field_names = next(csv_reader)
     values = []

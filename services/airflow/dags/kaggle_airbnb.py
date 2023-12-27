@@ -1,4 +1,6 @@
 import os
+import logging
+import json
 from airflow.models.baseoperator import chain
 from airflow.decorators import task, task_group
 from pendulum import datetime
@@ -8,7 +10,7 @@ from lib.spark.config import config as spark_config
 from airflow.providers.trino.hooks.trino import TrinoHook
 from airflow.exceptions import AirflowSkipException
 from airflow import DAG
-import logging
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from include.utilities.requests import post_json_request
 from include.helper_functions import kaggle_airbnb as helper_functions
 
@@ -19,9 +21,8 @@ S3_BUCKET = "datalake"
 AWS_CONN_ID = "minio_default"
 KAGGLE_CONN_ID = "kaggle_default"
 SPARK_CONN_ID = "spark_local"
-CONN_ID = "trino_default"
+TRINO_CONN_ID = "trino_default"
 DATABASE_NAME = "kaggle_airbnb"
-TABLE_NAME = "listings"
 MODEL_SERVICE_BASE_URL = "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local:80/api/v1/models"
 
 
@@ -50,6 +51,8 @@ with DAG(
         TYPE = "listings"
         S3_RAW_PATH = f"s3://{S3_BUCKET}/raw/{SOURCE}"
         S3_STAGING_PATH = f"s3://{S3_BUCKET}/staging/{SOURCE}/{TYPE}"
+        TABLE_NAME = "listings"
+
 
         clean = SparkSubmitOperator(
             application=f"{os.environ['AIRFLOW_HOME']}/spark_scripts/{SOURCE}/{TYPE}/clean.py",
@@ -75,73 +78,10 @@ with DAG(
             application_args=[SOURCE, TYPE, S3_STAGING_PATH],
         )
 
-        @task_group()
-        def generate_column_descriptions():
-            @task()
-            def get_columns_missing_descriptions(**kwargs):
-                hook = TrinoHook(trino_conn_id=CONN_ID)
-                columns = helper_functions.identify_columns_missing_comments(
-                    hook=hook, database=DATABASE_NAME, table=TABLE_NAME
-                )
-                return helper_functions.create_llm_column_request_batches(
-                    columns=columns, batch_size=100
-                )
-
-            @task
-            def query_llm_for_descriptions(columns: list):
-                if not columns:
-                    AirflowSkipException("No columns to describe")
-
-                payload = helper_functions.build_model_api_payload_csv(
-                    dataset_context="AirBnB", table=TABLE_NAME, columns=columns
-                )
-
-                logger.info("Sending payload to API")
-                response = post_json_request(f"{MODEL_SERVICE_BASE_URL}/describe_columns", payload)
-
-                if response.status_code != 200:
-                    raise Exception(f"Error from Models service API: {response.text}")
-
-                content = response.json()["content"]
-                usage = response.json()["usage"]
-                logger.info(f"Usage: {usage}")
-                logger.debug(f"Result: {content}")
-
-                return helper_functions.csv_to_json_array(content)
-
-            @task
-            def apply_column_descriptions(**kwargs):
-                column_batched_responses = kwargs["ti"].xcom_pull(
-                    task_ids="listings.generate_column_descriptions.query_llm_for_descriptions",
-                    key="return_value",
-                )
-                # flattening resulting list of lists into a single list
-                column_responses = [
-                    item for sublist in column_batched_responses for item in sublist
-                ]
-
-                TrinoHook(trino_conn_id=CONN_ID).run(
-                    sql=helper_functions.build_comment_sql(
-                        column_responses, database=DATABASE_NAME, table=TABLE_NAME
-                    ),
-                    autocommit=True,
-                )
-
-            (
-                query_llm_for_descriptions.partial().expand(columns=get_columns_missing_descriptions())
-                >> apply_column_descriptions()
-            )
-
-
-        (
-            clean
-            >> load
-            >> generate_column_descriptions()
-        )
+        clean >> load 
 
     @task_group()
     def reviews():
-        # TODO
         TYPE = "reviews"
         S3_RAW_PATH = f"s3://{S3_BUCKET}/raw/{SOURCE}"
         S3_STAGING_PATH = f"s3://{S3_BUCKET}/staging/{SOURCE}/{TYPE}"
@@ -167,34 +107,104 @@ with DAG(
             conn_id=SPARK_CONN_ID,
             conf=spark_config,
             application_args=[SOURCE, TYPE, S3_STAGING_PATH],
-        )  
+        )
 
-        @task_group()
-        def perform_sentiment_analysis():
-            @task()
-            def get_reviews(**kwargs):
-                return ["placeholder"]
+        clean >> load 
 
-            @task
-            def query_llm_for_sentiments(columns: list):
-                pass
+    @task_group()
+    def generate_column_descriptions(tables:list):
 
-            @task
-            def load_sentiment_results(**kwargs):
-                pass
+        @task
+        def query_llm_for_descriptions(table:str):
+            def _get_columns_missing_descriptions(table):
+                hook = TrinoHook(trino_conn_id=TRINO_CONN_ID)
+                columns = helper_functions.get_columns_missing_comments(
+                    hook=hook, database=DATABASE_NAME, table=table
+                )
+                return helper_functions.create_llm_column_request_batches(
+                    columns=columns, batch_size=100
+                )
+            
+            def _generate_descriptions(table, columns):
+                payload = helper_functions.build_llm_column_request_payload_csv(
+                    dataset_context="AirBnB", table=table, columns=columns
+                )
 
-            (
-                query_llm_for_sentiments.partial().expand(columns=get_reviews())
-                >> load_sentiment_results()
+                logger.info("Sending payload to API")
+                response = post_json_request(f"{MODEL_SERVICE_BASE_URL}/describe_columns", payload)
+
+                if response.status_code != 200:
+                    raise Exception(f"Error from Models service API: {response.text}")
+
+                content = response.json()["content"]
+                usage = response.json()["usage"]
+                logger.info(f"Usage: {usage}")
+                return helper_functions.csv_to_dict_array(content)
+            
+            def _upload_description_data_to_staging(table, columns):
+                output = f"staging/{SOURCE}/{table}_column_descriptions.json"
+                hook = S3Hook(aws_conn_id=AWS_CONN_ID)
+                hook.load_string(
+                    string_data=json.dumps(columns),
+                    key=output,
+                    bucket_name=S3_BUCKET,
+                    replace=True,
+                )
+            
+            column_batches = _get_columns_missing_descriptions(table=table)
+
+            if not column_batches or len(column_batches) == 0:
+                raise AirflowSkipException("No columns to describe")
+            
+            responses = []
+            for columns in column_batches:
+                responses.extend(_generate_descriptions(table, columns) )
+
+            # write column_json to s3
+            _upload_description_data_to_staging(table, responses)
+
+        @task
+        def apply_column_descriptions(table, **kwargs):
+            def _download_description_data(table):
+                hook = S3Hook(aws_conn_id=AWS_CONN_ID)
+
+                column_responses_path = hook.download_file(
+                    key=f"staging/{SOURCE}/{table}_column_descriptions.json",
+                    bucket_name=S3_BUCKET,
+                    local_path=f"/tmp/{table}_column_descriptions.json",
+                    preserve_file_name=True,
+                )
+
+                with open(column_responses_path, "r") as f:
+                    column_responses_json = f.read()
+                return json.loads(column_responses_json)
+            
+            column_descriptions = _download_description_data(table)
+
+            TrinoHook(trino_conn_id=TRINO_CONN_ID).run(
+                sql=helper_functions.build_comment_ddl(
+                    column_descriptions, database=DATABASE_NAME, table=table
+                ),
+                autocommit=True,
             )
 
-        clean >> load >> perform_sentiment_analysis()
+        (
+            query_llm_for_descriptions.partial().expand(table=tables)
+            >> apply_column_descriptions.partial().expand(table=tables)
+        )
 
+    '''
+    1. Download dataset from Kaggle
+    2. Clean and load data into staging (listing and reviews tables done in parallel)
+    3. Generate column descriptions for columns in each table
+    4. Run Datahub pipeline to ingest data into Datahub
+    '''
     chain(
         download_dataset_task,
         [
             listings(), 
             reviews()
         ],
+        generate_column_descriptions(['listings', 'reviews']),
         run_datahub_pipeline("/opt/airflow/lib/datahub/recipes/airbnb.yaml")
         )
