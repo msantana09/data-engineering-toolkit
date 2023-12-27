@@ -32,9 +32,9 @@ config = {
     "spark.hadoop.fs.s3a.endpoint": os.environ['AWS_ENDPOINT_URL_S3'],
 
     "spark.kubernetes.namespace": "airflow",
-    "spark.kubernetes.container.image":"custom-spark-python:latest",
+    "spark.kubernetes.container.image":"kind-registry:5000/custom-spark-python:latest",
     "spark.kubernetes.authenticate.driver.serviceAccountName": "airflow-service-account",
-    "spark.kubernetes.file.upload.path": "s3://platform/spark_k8_uploads/",
+    "spark.kubernetes.file.upload.path": "s3://platform/spark_k8s_uploads/",
     # Passing env vars to spark driver and executors to prevent
     # hardcoding credentials in the spark scripts/Dockerfile
     "spark.kubernetes.driverEnv.AWS_REGION": os.environ['AWS_REGION'],

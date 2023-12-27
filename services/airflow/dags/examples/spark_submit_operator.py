@@ -27,7 +27,7 @@ This Apache Airflow DAG (`example_spark_submit`) is designed as an example to te
 
 ### Tasks
 1. **Spark on Kubernetes (spark_submit_k8_driver)**
-   - **Connection ID**: `spark_k8`
+   - **Connection ID**: `spark_k8s`
      - The master is set to the Kubernetes (k8s) control plane.
      - Deploy mode is set to `cluster`.
    - **Task ID**: `spark_submit_k8_driver`
@@ -49,7 +49,7 @@ def example_spark_submit():
     dynamic_spark_conf = partial(update_spark_config, spark_config)
     
     spark_submit_k8_driver = SparkSubmitOperator(
-        conn_id="spark_k8",
+        conn_id="spark_k8s",
         task_id="spark_submit_k8_driver",
         name="spark_submit_k8_driver",
         application=APPLICATION_PATH, 

@@ -71,7 +71,7 @@ airflow:
        {
        "in_cluster": "True"
        }
-    - id: spark_k8
+    - id: spark_k8s
       type: spark
       host: k8s://kubernetes.default.svc:443
       description: Spark driver started by K8 control plane.  Executor logs WILL NOT be visible in Airflow
