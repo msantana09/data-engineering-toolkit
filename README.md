@@ -199,7 +199,7 @@ Before you start, ensure your host system (MacOS) has the following software ins
    # shutdown only MinIO
    ./platform.sh shutdown minio
 
-   # shutdown only Minio and delete persisted data (blank slate)
+   # shutdown only Minio and delete persisted data (a reset)
    ./platform.sh shutdown minio -d
 
    # shutdown the entire cluster
@@ -209,7 +209,7 @@ Before you start, ensure your host system (MacOS) has the following software ins
    ./platform shutdown -d
    ```
 
-    Once the desired services are up and running, you might be interested in see logs and other activities. Most of the applications are running within a Kubernetes cluster created with the [Kind](https://kind.sigs.k8s.io/) tool, which automatically updates the context in your terminal to the newly created cluster. Meaning you will be able to immediately run `kubectl` [commands](https://kubernetes.io/docs/reference/kubectl/cheatsheet/) like:
+    Once the desired services are up and running, you might be interested in seeings logs and other activities. Most of the applications are running within a Kubernetes cluster created with the [Kind](https://kind.sigs.k8s.io/) tool, which automatically updates the context in your terminal to the newly created cluster. Meaning you will be able to immediately run `kubectl` [commands](https://kubernetes.io/docs/reference/kubectl/cheatsheet/) like:
     ```bash
     # list pods in the airflow namespace
     kubectl get pods -n airflow
