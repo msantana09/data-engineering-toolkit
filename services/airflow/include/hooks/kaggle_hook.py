@@ -11,7 +11,6 @@ class KaggleHook(BaseHook):
 
     :conn_id: Connection ID to retrieve Kaggle credentials.
     """
-
     default_conn_name = "kaggle_default"
     conn_type = "generic"
     hook_name = "Kaggle"
@@ -21,11 +20,13 @@ class KaggleHook(BaseHook):
     ) -> None:
         super().__init__(*args, **kwargs)
         self.conn_id = conn_id
+
+
+    def download_dataset(self, dataset, path):
         connection = self.get_connection(self.conn_id)
 
         os.environ['KAGGLE_USERNAME'] = connection.login
         os.environ['KAGGLE_KEY']= connection.password
-
         '''
         Import Kaggle API here to avoid import errors since the package 
         immediately checks for the existence of the KAGGLE_USERNAME and 
@@ -35,8 +36,6 @@ class KaggleHook(BaseHook):
         self.client = KaggleApi()
         self.client.authenticate()
 
-
-    def download_dataset(self, dataset, path):
         """
         Download a dataset from Kaggle.
 

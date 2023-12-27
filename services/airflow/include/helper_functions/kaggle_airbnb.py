@@ -1,7 +1,24 @@
 from airflow.providers.trino.hooks.trino import TrinoHook
 import csv
 import io
+import logging
+from airflow.exceptions import AirflowException
 
+logger = logging.getLogger(__name__)
+
+def handle_failure(context):
+    # Log the error
+    error = context.get('exception')
+    task_instance = context.get('task_instance')
+    logger.error(f"Task {task_instance.task_id} failed with error: {error}")
+    
+    #  This would be a good place to send an email notification
+    #  or a Slack alert, but we'll leave that for another day
+    #  See https://airflow.apache.org/docs/apache-airflow/stable/_modules/airflow/utils/email.html
+    #  and https://airflow.apache.org/docs/apache-airflow/stable/_modules/airflow/providers/slack/operators/slack.html
+
+    raise AirflowException(error)
+    
 def get_columns_missing_comments(hook:TrinoHook, database:str, table:str)->list:
     '''
     Returns a list of columns that are missing comments
