@@ -21,8 +21,8 @@ spec:
         - containerPort: 8888
         resources:
           limits:
-            cpu: "300m"
-            memory: "2Gi"
+            cpu: "500m"
+            memory: "3Gi"
         volumeMounts:
         - name: jupyter-pvc-volume
           mountPath: /opt/spark/notebooks

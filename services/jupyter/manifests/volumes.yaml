@@ -4,6 +4,7 @@ metadata:
   name: jupyter-notebook-pv
   labels:
     type: local
+    app: jupyter
 spec:
   capacity:
     storage: 1Gi
