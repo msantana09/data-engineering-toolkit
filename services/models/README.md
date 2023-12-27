@@ -1,17 +1,6 @@
 TODO - placeholder
 
 ```bash
-
-    # language detection
-    ##################
-    curl -X 'POST'  'http://localhost:8080/api/v1/models/language' \
-    -H 'accept: application/json' \
-    -H 'Content-Type: application/json' \
-    -d '{ "text": "que pasa"}' 
-
-    # result
-    # {"result":[{"label":"es","score":0.9912946820259094}]}
-    
     
     # sentiment analysis
     ##################
