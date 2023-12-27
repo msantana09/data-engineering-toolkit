@@ -1,7 +1,7 @@
 from pendulum import datetime
 from airflow.decorators import dag
 from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
-from lib.spark.config import config as spark_config
+from include.spark.config import config as spark_config
 from functools import partial
 
 APPLICATION_PATH="/opt/airflow/spark_scripts/spark_sample.py"
