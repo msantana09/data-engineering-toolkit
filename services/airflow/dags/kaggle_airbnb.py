@@ -22,7 +22,7 @@ SPARK_CONN_ID = "spark_local"
 CONN_ID = "trino_default"
 DATABASE_NAME = "kaggle_airbnb"
 TABLE_NAME = "listings"
-MODEL_SERVICE_URL = "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local:80/api/v1/models/column_analysis"
+MODEL_SERVICE_BASE_URL = "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local:80/api/v1/models"
 
 
 with DAG(
@@ -67,7 +67,7 @@ with DAG(
         )
 
         load = SparkSubmitOperator(
-            application=f"{os.environ['AIRFLOW_HOME']}/spark_scripts/{SOURCE}/{TYPE}/load.py",
+            application=f"{os.environ['AIRFLOW_HOME']}/spark_scripts/{SOURCE}/load.py",
             name=f"{SOURCE}_{TYPE}_load",
             task_id="load",
             conn_id=SPARK_CONN_ID,
@@ -83,7 +83,7 @@ with DAG(
                 columns = helper_functions.identify_columns_missing_comments(
                     hook=hook, database=DATABASE_NAME, table=TABLE_NAME
                 )
-                return helper_functions.create_llm_request_batches(
+                return helper_functions.create_llm_column_request_batches(
                     columns=columns, batch_size=100
                 )
 
@@ -97,7 +97,7 @@ with DAG(
                 )
 
                 logger.info("Sending payload to API")
-                response = post_json_request(MODEL_SERVICE_URL, payload)
+                response = post_json_request(f"{MODEL_SERVICE_BASE_URL}/describe_columns", payload)
 
                 if response.status_code != 200:
                     raise Exception(f"Error from Models service API: {response.text}")
@@ -146,16 +146,6 @@ with DAG(
         S3_RAW_PATH = f"s3://{S3_BUCKET}/raw/{SOURCE}"
         S3_STAGING_PATH = f"s3://{S3_BUCKET}/staging/{SOURCE}/{TYPE}"
 
-        @task
-        def clean():
-            pass
-        clean = clean()
-        @task
-        def load():
-            pass
-        load = load()
-
-        '''
         clean = SparkSubmitOperator(
             application=f"{os.environ['AIRFLOW_HOME']}/spark_scripts/{SOURCE}/{TYPE}/clean.py",
             name=f"{SOURCE}_{TYPE}_clean",
@@ -166,20 +156,18 @@ with DAG(
                 SOURCE,
                 TYPE,
                 S3_RAW_PATH,
-                S3_STAGING_PATH,
-                ";".join(["url", "scrape", "license"]),
+                S3_STAGING_PATH 
             ],
         )
-
+ 
         load = SparkSubmitOperator(
-            application=f"{os.environ['AIRFLOW_HOME']}/spark_scripts/{SOURCE}/{TYPE}/load.py",
+            application=f"{os.environ['AIRFLOW_HOME']}/spark_scripts/{SOURCE}/load.py",
             name=f"{SOURCE}_{TYPE}_load",
             task_id="load",
             conn_id=SPARK_CONN_ID,
             conf=spark_config,
             application_args=[SOURCE, TYPE, S3_STAGING_PATH],
-        )
-        '''
+        )  
 
         @task_group()
         def perform_sentiment_analysis():

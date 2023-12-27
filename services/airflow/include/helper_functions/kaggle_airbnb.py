@@ -17,14 +17,14 @@ def identify_columns_missing_comments(hook:TrinoHook, database:str, table:str)->
     return list(hook.get_records(query) )
 
 
-def create_llm_request_batches(columns:list, batch_size:int=5):
+def create_llm_column_request_batches(columns:list, batch_size:int=5):
     '''
     Returns a list of lists of columns to be used in the LLM API request
     '''
 
     cols_without_comment = [{"name":col[0], "type":col[1]} for col in columns]
 
-    # splitting into chunks of 5 columns to prevent API from timing out or token issues 
+    # splitting into batches to prevent API from timing out or token issues 
     cols_without_comment_batched = [cols_without_comment[i:i + batch_size] for i in range(0, len(cols_without_comment), batch_size)]
     return cols_without_comment_batched
 

@@ -25,7 +25,7 @@ TODO - placeholder
 
     # column descriptions
     ##################
-    curl -X 'POST'  'http://localhost:8080/api/v1/models/column_analysis' \
+    curl -X 'POST'  'http://localhost:8080/api/v1/models/describe_columns' \
     -H 'accept: application/json' \
     -H 'Content-Type: application/json' \
     -d ' {"context": "AirBnB", "tables": [{"name": "listings", "column_csv": "name,type\r\nid,integer\r\nname,varchar\r\nsummary,varchar\r\n"}]}'
