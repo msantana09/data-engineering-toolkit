@@ -1,4 +1,4 @@
-FROM custom-spark-python as jupyter_base
+FROM localhost:5001/custom-spark-python as jupyter_base
 
 USER root
 
