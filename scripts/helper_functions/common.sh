@@ -235,3 +235,20 @@ shutdown_docker_compose_stack() {
     docker compose $env_option -f "$docker_compose_file" down $volume_option $service
 
 }
+
+delete_pvs() {
+    local label=$1
+
+    # Get all persistent volumes with label app=$app
+    pvs=$(kubectl get pv -l "$label" -o jsonpath="{.items[*].metadata.name}")
+
+    echo "Deleting persistent volumes"
+    echo "$pvs"
+
+    # Iterate over the list of persistent volumes
+    for pv in $pvs
+    do
+        # Delete each persistent volume
+        kubectl delete pv $pv
+    done
+}

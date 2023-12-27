@@ -93,7 +93,6 @@ shutdown() {
     local app="airflow"
     local env_file="$STORAGE_DIR/.env.$app"
 
-
     # check if namespace exists, and if it does, delete it
     if kubectl get namespace "$NAMESPACE" &> /dev/null; then
         kubectl delete namespace "$NAMESPACE"
@@ -102,19 +101,7 @@ shutdown() {
     # Check if .env file exists 
     shutdown_docker_compose_stack "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
 
-    # Delete persistent volumes
-    # Get all persistent volumes with label app=airflow
-    pvs=$(kubectl get pv -l app=airflow -o jsonpath="{.items[*].metadata.name}")
-
-    echo "Deleting persistent volumes"
-    echo "$pvs"
-
-    # Iterate over the list of persistent volumes
-    for pv in $pvs
-    do
-        # Delete each persistent volume
-        kubectl delete pv $pv
-    done
+    delete_pvs "app=airflow" 
 }
 
 init(){
