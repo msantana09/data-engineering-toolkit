@@ -1,7 +1,6 @@
 
 import sys
 from pyspark.sql import SparkSession,  DataFrame, functions as F
-from pyspark.sql.types import DoubleType
 
 
 def drop_null_comments(df: DataFrame ) -> DataFrame:
@@ -10,7 +9,9 @@ def drop_null_comments(df: DataFrame ) -> DataFrame:
 
     
 def run(source, type,  s3_source_path: str, s3_target_path: str):
-    spark = SparkSession.builder.appName(f"{source}_{type}_clean").getOrCreate()
+    spark = SparkSession.builder\
+      .appName(f"{source}_{type}_clean")\
+      .getOrCreate()
 
     df = spark.read\
             .option("sep",",")\
