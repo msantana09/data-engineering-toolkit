@@ -17,9 +17,6 @@ VOL_MOUNT="/mnt/llm-shared-volume/downloads"
 sentiment_tokenizer = AutoTokenizer.from_pretrained(f"{VOL_MOUNT}/nlptown/bert-base-multilingual-uncased-sentiment")
 sentiment_model = AutoModelForSequenceClassification.from_pretrained(f"{VOL_MOUNT}/nlptown/bert-base-multilingual-uncased-sentiment")
 
-language_tokenizer = AutoTokenizer.from_pretrained(f"{VOL_MOUNT}/papluca/xlm-roberta-base-language-detection")
-language_model = AutoModelForSequenceClassification.from_pretrained(f"{VOL_MOUNT}/papluca/xlm-roberta-base-language-detection")
-
 app = FastAPI(root_path="/api/v1/models")
  
 
@@ -44,18 +41,6 @@ def analyze_sentiment(data: TextData):
         return {"result": outcome}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/language")
-def language_detection(data: TextData):
-    try:
-        pipe = pipeline("text-classification", model=language_model, tokenizer=language_tokenizer)
-        result = pipe(data.text)
-
-        return {"result": result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
 
 @app.post("/describe_columns")
 def describe_columns(data: DescribeColumnsRequest):
