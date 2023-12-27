@@ -221,3 +221,8 @@ Before you start, ensure your host system (MacOS) has the following software ins
     # e.g. kubectl logs airflow-web-66f94b5b94-pl8pg  -n airflow
     kubectl logs -f <pod name> -n <namespace>
     ```
+
+# Additional Resources
+- [Running Kafka on kubernetes for local development](https://dev.to/thegroo/running-kafka-on-kubernetes-for-local-development-2a54)
+- [How to make a Helm chart in 10 minutes](https://opensource.com/article/20/5/helm-charts)
+- [analytical_dp_with_sq](https://github.com/josephmachado/analytical_dp_with_sql/tree/main)
