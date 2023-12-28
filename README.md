@@ -58,6 +58,11 @@ This version makes uses a *mostly* open stack comprised of:
       <td><a href="http://localhost:8084/">http://localhost:8084/</a> (UI)<br>datahub:datahub</td>
     </tr>
     <tr>
+        <td><a href="https://kafka.apache.org/">Apache Kafka</a></td>
+        <td>Distributed event streaming platform. In our use case, profiling jobs write messages to Kafka topics, and are then processed by Datahub.</td>
+        <td><a href="http://localhost:9090/">http://localhost:9090/</a> (Kafka UI) </td>
+    </tr>
+    <tr>
         <td><a href="https://cwiki.apache.org/confluence/display/hive/design">Apache Hive Metastore</a></td>
         <td>Hive acts as a central repository for metadata about our data lake. Our Spark jobs and Trino rely on Hive when querying or modifying tables.</td>
         <td></td>
@@ -65,6 +70,11 @@ This version makes uses a *mostly* open stack comprised of:
     <tr>
         <td><a href="https://iceberg.apache.org/">Apache Iceberg</a></td>
         <td>A table format utilized by our Spark jobs to enable data stored in S3 (Minio) to be querable through engines like Trino or SparkSQL.</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><a href="https://spark.apache.org/">Apache Spark</a></td>
+        <td>Used to process ingested data (e.g. clean/transform tasks), and to analyze with SparkSQL</td>
         <td></td>
     </tr>
     <tr>
@@ -77,11 +87,7 @@ This version makes uses a *mostly* open stack comprised of:
         <td>Primary language used in data pipelines</td>
         <td></td>
     </tr>
-    <tr>
-        <td><a href="https://spark.apache.org/">Apache Spark</a></td>
-        <td>Used to process ingested data (e.g. clean/transform tasks), and to analyze with SparkSQL</td>
-        <td></td>
-    </tr>
+
 
 </table>
 
