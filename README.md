@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Welcome to our Data Platform project! Designed with Data Engineer and Scientist in mind, this project offers a comprehensive **local development** environment. Our goal is to streamline your workflow by providing a suite of pre-configured tools that work seamlessly together, enabling you to focus more on innovation and less on setup.
+Welcome to our Data Platform project! Designed with Data Engineer and Scientist in mind, this project offers a comprehensive **local development** environment. The goal is to streamline your workflow by providing a suite of pre-configured tools that work seamlessly together, enabling you to focus more on innovation and less on setup.
 
 Any of the tools listed in the [Architecture](#architecture) section can be used independently, or you can follow along with the sample [use case](/UseCase.md) for a more comprehensive walkthrough. 
 
