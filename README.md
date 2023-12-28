@@ -43,19 +43,19 @@ This version makes uses a *mostly* open stack comprised of:
         <td><a href="http://localhost:8081/">http://localhost:8081/</a> (UI)<br> airflow:airflow123</td>
     </tr>
     <tr>
-        <td><a href="https://www.python.org/">Python</a></td>
-        <td>Primary language used in data pipelines</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td><a href="https://spark.apache.org/">Apache Spark</a></td>
-        <td>Used to process ingested data (e.g. clean/transform tasks), and to analyze with SparkSQL</td>
-        <td></td>
-    </tr>
-    <tr>
         <td><a href="https://trino.io/">Trino</a></td>
         <td>Distributed query engine enabling us to query files stored in S3/Minio using SQL</td>
-        <td><a href="http://localhost:8082/">http://localhost:8082/</a> (for service/jdbc connections)<br><a href="http://localhost:8082/ui/">http://localhost:8082/ui/</a> (cluster overview UI)<br>Authentication not setup, just use 'trino' for username</td>
+        <td><a href="http://localhost:8082/">http://localhost:8082/</a> (API)<br/><a href="http://localhost:8082/ui/">http://localhost:8082/ui/</a> (UI)<br>Authentication not enabled, just use 'trino' for username</td>
+    </tr>
+    <tr>
+        <td><a href="https://jupyter.org/hub">JupyterHub</a></td>
+        <td>Notebooks used to test out ideas</td>
+      <td><a href="http://localhost:8083/">http://localhost:8083/</a> (UI)</td>
+    </tr>
+    <tr>
+        <td><a href="https://datahubproject.io/">Datahub</a></td>
+        <td>Serves as our metadata repository. GPT generated column descriptions, along with other technical metadata, would be visible in Datahub for users interested in understanding their data and how it relates to other parts of their organization.</td>
+      <td><a href="http://localhost:8084/">http://localhost:8084/</a> (UI)<br>datahub:datahub</td>
     </tr>
     <tr>
         <td><a href="https://cwiki.apache.org/confluence/display/hive/design">Apache Hive Metastore</a></td>
@@ -73,16 +73,15 @@ This version makes uses a *mostly* open stack comprised of:
         <td></td>
     </tr>
     <tr>
-        <td><a href="https://jupyter.org/hub">JupyterHub</a></td>
-        <td>Notebooks used to test out ideas</td>
-      <td><a href="http://localhost:8083/">http://localhost:8083/</a> (UI)</td>
+        <td><a href="https://www.python.org/">Python</a></td>
+        <td>Primary language used in data pipelines</td>
+        <td></td>
     </tr>
     <tr>
-        <td><a href="https://datahubproject.io/">Datahub</a></td>
-        <td>Serves as our metadata repository. GPT generated column descriptions, along with other technical metadata, would be visible in Datahub for users interested in understanding their data and how it relates to other parts of their organization.</td>
-      <td><a href="http://localhost:8084/">http://localhost:8084/</a> (UI)<br>datahub:datahub</td>
+        <td><a href="https://spark.apache.org/">Apache Spark</a></td>
+        <td>Used to process ingested data (e.g. clean/transform tasks), and to analyze with SparkSQL</td>
+        <td></td>
     </tr>
-
 
 </table>
 
@@ -160,7 +159,7 @@ Before you start, ensure your host system (MacOS) has the following software ins
 
 4. **Configure use case credentials (Optional)**
 
-   If you're planning on running the sample use case you'll need to configure your Kaggle and OpenAI credentials
+   If you're planning on running the sample [use case](/UseCase.md), you will need to configure your Kaggle and OpenAI credentials
 
    - **Kaggle**: Update `AIRFLOW_CONN_KAGGLE_DEFAULT` in file `services/airflow/.env` with your [Kaggle](https://www.kaggle.com/) username and key
    - **OpenAI**: Update `OPENAI_API_KEY` in file `services/models/.env` with your [OpenAI](https://openai.com/)  key
