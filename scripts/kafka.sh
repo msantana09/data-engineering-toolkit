@@ -28,12 +28,21 @@ start() {
 }
 
 shutdown() {
-    kubectl delete namespace "$NAMESPACE"
+    delete_namespace "$NAMESPACE"
+
+    # delete data directory
+    if  [[ "$DELETE_DATA" == true ]]; then
+        find $DIR/data/kafka -mindepth 1 -exec rm -rf {} +
+        find $DIR/data/zookeeper -mindepth 1 -exec rm -rf {} +
+    fi
 }
 
 init(){
     echo "Initializing $SERVICE..."
     create_env_file "$CHARTS_DIR/.env.ui.values.yaml"  "$CHARTS_DIR/ui-values-template.yaml"
+
+    # create data directory if it doesn't exist 
+    mkdir -p "$DIR/data" "$DIR/data/kafka" "$DIR/data/zookeeper"
 }
 
 

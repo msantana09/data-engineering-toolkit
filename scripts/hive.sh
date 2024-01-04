@@ -52,13 +52,12 @@ start() {
 
 # shutdown function
 shutdown() {
-    kubectl delete namespace "$NAMESPACE"
 
     local app="hive"
     local env_file="$STORAGE_DIR/.env.$app"
+    delete_namespace "$NAMESPACE"
 
     shutdown_docker_compose_stack "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
-
 }
 
 init(){

@@ -41,9 +41,10 @@ start() {
 
 # shutdown function
 shutdown() {
-    kubectl delete namespace "$NAMESPACE"
     app="datahub"
     env_file="$STORAGE_DIR/.env.datahub"
+
+    delete_namespace "$NAMESPACE"
 
     shutdown_docker_compose_stack "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
 }

@@ -1,6 +1,6 @@
 #!/bin/bash
 source scripts/helper_functions/common.sh
-source scripts/registry.sh
+source scripts/helper_functions/registry.sh
 
 # Required CLI tools
 REQUIRED_TOOLS=("realpath" "helm" "kubectl" "docker") 
@@ -12,10 +12,6 @@ if ! docker info >/dev/null 2>&1; then
     exit 1
 fi
 
-apps=("minio" "hive" "trino" "airflow" "spark" "models" "datahub" "jupyter" "kafka" "kubernetes-dashboard")
-core_apps=("minio" "hive" "trino" "airflow" "spark" "kubernetes-dashboard" "kafka")
-lakehouse_apps=("minio" "hive" "trino" "kubernetes-dashboard")
-
 # Determine the base directory of the script
 SCRIPT_PATH="$(realpath "$0")"
 BASE_DIR="$(dirname "$SCRIPT_PATH")"
@@ -24,6 +20,10 @@ ACTION=""
 SUB_SCRIPTS=()
 CLUSTER="platform"
 DELETE_DATA=false
+
+apps=($(get_apps "$BASE_DIR/scripts"))
+core_apps=("minio" "hive" "trino" "airflow" "spark" "kubernetes-dashboard" "kafka")
+lakehouse_apps=("minio" "hive" "trino" "kubernetes-dashboard")
 
 # Process command line arguments
 while [[ $# -gt 0 ]]; do
@@ -84,14 +84,6 @@ call_app_script(){
 
     if [[ " ${apps[@]} " =~ " ${app} " ]]; then
         scripts_to_run+=("$BASE_DIR/scripts/$app.sh")
-    elif [[ "$app" == "core" ]]; then
-        for core_app in "${core_apps[@]}"; do
-            scripts_to_run+=("$BASE_DIR/scripts/$core_app.sh")
-        done
-    elif [[ "$app" == "lakehouse" ]]; then
-        for lakehouse_app in "${lakehouse_apps[@]}"; do
-            scripts_to_run+=("$BASE_DIR/scripts/$lakehouse_app.sh")
-        done
     fi
 
     for SCRIPT in "${scripts_to_run[@]}"; do
@@ -187,6 +179,7 @@ recreate(){
 init(){
     # ACTION="init"
     # update to iterate through all apps
+    echo "${apps[@]}"
     for app in "${apps[@]}"
     do        
         printf "\n###### Initializing $app .env files\n"

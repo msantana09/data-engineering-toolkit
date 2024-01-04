@@ -29,7 +29,7 @@ start() {
 
 # shutdown function
 shutdown() {
-    kubectl delete namespace "$NAMESPACE"
+    delete_namespace "$NAMESPACE"
 }
 
 init(){

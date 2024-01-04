@@ -18,9 +18,10 @@ IMAGE_TAG_MC="latest"
 start() {
     local app="minio"
     local env_file="$DIR/.env.$app"
-
+    
     kubectl apply -f "$MANIFESTS_DIR/namespace.yaml" 
     create_kubernetes_secret "env-secrets" "$NAMESPACE"  "--from-env-file=$DIR/.env"
+
 
     # Build custom Minio client image and load it into the cluster
     if ! build_and_load_image "$DIR" "$IMAGE_REPO_MC" "$IMAGE_TAG_MC" ; then
@@ -33,11 +34,18 @@ start() {
 }
 
 shutdown() { 
-    kubectl delete namespace "$NAMESPACE"
+    delete_namespace "$NAMESPACE"
+
+    # delete data directory
+    if  [[ "$DELETE_DATA" == true ]]; then
+        find $DIR/data -mindepth 1 -exec rm -rf {} +
+    fi
 }
 
 init(){
     create_env_file "$DIR/.env"   "$DIR/.env-template"
+    # create data directory if it doesn't exist 
+    mkdir -p "$DIR/data"
 }
 
 

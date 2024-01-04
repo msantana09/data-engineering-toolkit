@@ -252,3 +252,36 @@ delete_pvs() {
         kubectl delete pv $pv
     done
 }
+
+get_apps(){
+    local directory=$1
+    local apps=()
+
+    # Iterate over the files in the specified directory
+    while IFS= read -r file; do
+        # Remove the directory path and file extension
+        local file_name=$(basename "$file" | sed 's/\.[^.]*$//')
+        # Add the file name to the array
+        apps+=("$file_name")
+    done < <(find "$directory" -maxdepth 1 -type f)
+
+
+    echo "${apps[@]}"
+}
+
+delete_namespace() {
+    local namespace=$1
+
+    # Check if kubectl command exists
+    if ! command -v kubectl &> /dev/null; then
+        echo "Error: kubectl command not found"
+        return 1
+    fi
+
+    if kubectl get namespace "$namespace" &> /dev/null; then
+        echo "Namespace $namespace exists. Deleting..."
+        kubectl delete namespace "$namespace"
+    else
+        echo "Namespace $namespace does not exist. No action taken."
+    fi
+}

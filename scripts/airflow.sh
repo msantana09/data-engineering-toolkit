@@ -56,7 +56,7 @@ start() {
 
     create_namespace "$NAMESPACE"
 
-    source "$BASE_DIR/scripts/airflow_secrets.sh"
+    source "$BASE_DIR/scripts/helper_functions/airflow/secrets.sh"
     create_secrets "$NAMESPACE" "$DIR"
 
     if ! build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" ; then

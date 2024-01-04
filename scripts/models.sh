@@ -52,12 +52,13 @@ start() {
 
 # Shutdown function
 shutdown() {
-    kubectl delete namespace "$NAMESPACE"
+   delete_namespace "$NAMESPACE"
 }
 
 
 init(){
     create_env_file "$DIR/.env"  "$DIR/.env-template"
+    mkdir -p "$DIR/data"
 }
 
 
