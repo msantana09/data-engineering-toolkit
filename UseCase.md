@@ -4,15 +4,17 @@
 We'll ingest a dataset from Kaggle and process it with our platform:
 - Use custom Airflow operators and hooks to ingest CSVs to a raw bucket in Minio
 - Run Spark jobs to clean some of the columns, and write the output using the Apache Iceberg table format
-- Since the Kaggle data set did not come with column descriptions, we'll share some details about the data set with GPT 3.5 and ask it to generate initial column descriptions for us 
+- Since the Kaggle data set did not come with column descriptions, we'll share some details about the data set with GPT 3.5 and ask it to generate initial column descriptions
 - Run a Datahub CLI pipeline task to profile our tables utilizing Trino, and publish results to a Kafka topic
-- Datahub's metadata service will consume messages from the Kafka topic, and present the profiling results in the Datahub UI
+- After ~5mins, Datahub's metadata service will consume messages from the Kafka topic and present the profiling results in the Datahub UI
 
 ### Resource Requirements
-- it's recommended to allocate (at least) **4 cores and 16GB memory** to Docker in order for all services in the use case to run successfully.
+- It's recommended to allocate (at least) **4 cores and 16GB memory** to Docker in order for all services in the use case to run successfully.
 - To run with lower specs (min 8GB memory needed), you can run the use case in two steps:
-    1. the Airflow DAG will complete successfully with just the `core` and `models` services running. 
-    2. You can then shutdown `core` and `models` services, and start just `kafka` and `datahub` services. Since Kafka utilizes a persistent volume, messages will still be available for Datahub to consume once Datahub is fully started. 
+    1. Run `./platform.sh start core models` 
+        - Run the Airflow DAG (see steps 3 & 4 in next section). It will complete successfully with just the `core` and `models` services running. And since Kafka utilizes a persistent volume, messages will be available for Datahub to consume once it is started. 
+    2. Run `./platform.sh shutdown core models && ./platform.sh start kafka datahub`
+        - This will shutdown services required to run the DAG, and leave only Kafka and Datahub running. (see step 5 in next section) 
 
 
 ## Steps
