@@ -156,9 +156,9 @@ Before you start, ensure your host system (MacOS) has the following software ins
    ````bash
    ./platform.sh init
    ````
-3. **Install project dependencies (Optional)**
+3. **Install project dependencies**
 
-   If you plan on doing any development you'll want to install these project dependencies.
+   These are dependencies needed for local development, and for a few unit tests executed when Airflow is started.
    ```
    pip install -r requirements-dev.txt
    ```
