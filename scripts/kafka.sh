@@ -30,6 +30,10 @@ start() {
 shutdown() {
     delete_namespace "$NAMESPACE"
 
+    # removing persistent volumes
+    delete_pvs "app=kafka" 
+    delete_pvs "app=zookeeper"
+
     # delete data directory
     if  [[ "$DELETE_DATA" == true ]]; then
         find $DIR/data/kafka -mindepth 1 -exec rm -rf {} +
