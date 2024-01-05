@@ -15,7 +15,7 @@ spec:
           resources:
             limits:
               cpu: "500m"
-              memory: "2Gi"
+              memory: "3Gi"
           volumeMounts:
           - name: llm-shared-volume
             mountPath: /mnt/llm-shared-volume
