@@ -209,13 +209,10 @@ shutdown_docker_compose_stack() {
     local env_file=$2
     local delete_data=$3
     local docker_compose_file=$4
-    local service=""
-
-    if [[ $app == "minio" ]]; then
-        service="minio"
-    fi
-
     local env_option=""
+    local action="Shutting down storage for"
+    local volume_option=""
+
     if [[ -n $env_file ]]; then 
         if [[ ! -f $env_file ]]; then
             echo "Error: file not found - $env_file"
@@ -223,16 +220,14 @@ shutdown_docker_compose_stack() {
         fi
         env_option="--env-file $env_file"
     fi
-    
-    local action="Shutting down storage for"
-    local volume_option=""
+
     if [[ $delete_data == true ]]; then
         action="Deleting volumes for"
         volume_option="-v"
     fi
 
     echo "$action $app..."
-    docker compose $env_option -f "$docker_compose_file" down $volume_option $service
+    docker compose $env_option -f "$docker_compose_file" down $volume_option
 
 }
 
