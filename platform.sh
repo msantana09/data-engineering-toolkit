@@ -22,8 +22,6 @@ CLUSTER="platform"
 DELETE_DATA=false
 
 apps=($(get_apps "$BASE_DIR/scripts"))
-core_apps=("minio" "hive" "trino" "airflow" "spark" "kubernetes-dashboard" "kafka")
-lakehouse_apps=("minio" "hive" "trino" "kubernetes-dashboard")
 
 # Process command line arguments
 while [[ $# -gt 0 ]]; do
@@ -126,6 +124,10 @@ shutdown(){
     if [[ ${#SUB_SCRIPTS[@]} -eq 0 ]]; then
         echo "Shutting down $CLUSTER..."
 
+        # services with local storage
+        call_app_script "minio"
+        call_app_script "kafka"
+
         # Shutdown all services        
         delete_kind_cluster "$CLUSTER" 
 
@@ -157,6 +159,7 @@ shutdown(){
             else
                 echo "Pattern not found"            
             fi
+
         done
     else
         echo "Shutting down ${SUB_SCRIPTS[@]}..."
@@ -164,7 +167,7 @@ shutdown(){
         # Shutdown only the specified services
         for SUB_SCRIPT in "${SUB_SCRIPTS[@]}"
         do
-            call_app_script "$SUB_SCRIPT"
+            call_app_script "$SUB_SCRIPT" 
         done
     fi
 }
@@ -179,7 +182,6 @@ recreate(){
 init(){
     # ACTION="init"
     # update to iterate through all apps
-    echo "${apps[@]}"
     for app in "${apps[@]}"
     do        
         printf "\n###### Initializing $app .env files\n"
