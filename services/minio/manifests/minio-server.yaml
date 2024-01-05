@@ -61,10 +61,8 @@ spec:
             /usr/bin/mc admin --quiet user add minio $MINIO_AIRFLOW_USER $MINIO_AIRFLOW_PASSWORD; \ 
             /usr/bin/mc mb --quiet --ignore-existing minio/datalake; \
             /usr/bin/mc mb --quiet --ignore-existing minio/platform; \
-            users=($MINIO_HIVE_USER $MINIO_AIRFLOW_USER); \
-            for user in \"${users[@]}\"; do \
-                /usr/bin/mc admin --quiet policy attach minio readwrite --user $user > /dev/null 2>&1; \
-            done; \
+            /usr/bin/mc admin --quiet policy attach minio readwrite --user $MINIO_HIVE_USER > /dev/null 2>&1; \
+            /usr/bin/mc admin --quiet policy attach minio readwrite --user $MINIO_AIRFLOW_USER > /dev/null 2>&1; \
             echo \"done...\""
           ]
           resources:
