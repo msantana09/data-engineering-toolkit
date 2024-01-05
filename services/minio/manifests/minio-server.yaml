@@ -63,13 +63,9 @@ spec:
             /usr/bin/mc mb --quiet --ignore-existing minio/platform; \
             users=($MINIO_HIVE_USER $MINIO_AIRFLOW_USER); \
             for user in \"${users[@]}\"; do \
-                current_policy=$(mc admin user info minio $user | grep 'PolicyName' | cut -d: -f2 | tr -d ' '); \
-                if [ \"$current_policy\" != \"readwrite\" ]; then \
-                    /usr/bin/mc admin --quiet policy attach minio readwrite --user $user; \
-                else \
-                    echo \"Policy 'readwrite' is already attached to user '$user'\"; \
-                fi; \
-            done; "
+                /usr/bin/mc admin --quiet policy attach minio readwrite --user $user > /dev/null 2>&1; \
+            done; \
+            echo \"done...\""
           ]
           resources:
             limits:
