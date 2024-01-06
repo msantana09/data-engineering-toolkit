@@ -16,14 +16,24 @@ start_local_registry(){
 
 # stop local registry
 stop_local_registry(){
+    delete_data=$1
     reg_name='kind-registry'
     reg_port='5001'
 
     # if it exists, stop and remove it
     if [ "$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)" == 'true' ]; then
+        echo "Stopping registry"
         docker stop "${reg_name}"
         docker rm "${reg_name}"
     fi
+
+    # if delete_data is true, delete the volume if it exists 
+
+    if [[ "$delete_data" == true ]] && [[ -n "$(docker volume ls -q | grep -w 'registry_data')" ]]; then
+        echo "Deleting registry data"
+        docker volume rm registry_data
+    fi
+    
 }
 
 

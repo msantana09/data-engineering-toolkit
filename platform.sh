@@ -71,23 +71,28 @@ if [[ ${#SUB_SCRIPTS[@]} -eq 0 ]] && [[ "$ACTION" == "start" ]]; then
 fi
 
 
-call_app_script(){
+run_app_subscript(){
     local app="$1"
-    local delete_data_option=""
-    local scripts_to_run=()
-    
-    if [[ "$ACTION" == "shutdown" ]] && [[ "$DELETE_DATA" == true ]]; then
-        delete_data_option="--delete-data"
-    fi
+    local delete_data_option=$2
+    local script_to_run=""
 
+    # if delete_data_option is not set, set it to ""
+    if [[ -z "$delete_data_option" ]]; then
+        delete_data_option=""
+    fi   
+
+    # check if app is in the list of apps
     if [[ " ${apps[@]} " =~ " ${app} " ]]; then
-        scripts_to_run+=("$BASE_DIR/scripts/$app.sh")
+        script_to_run="$BASE_DIR/scripts/$app.sh"
     fi
 
-    for SCRIPT in "${scripts_to_run[@]}"; do
-        run_script "$SCRIPT" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
-    done
-
+    # if script_to_run is not empty, run it
+    if [[ -n "$script_to_run" ]]; then
+        run_script "$script_to_run" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
+    else
+        echo "Error: Invalid app name - $app"
+        exit 1
+    fi
 }
 
 # Start function
@@ -108,66 +113,57 @@ start(){
     kubectl apply -f $BASE_DIR/cluster/nginx/ingress-kind-nginx.yaml
     wait_for_container_startup ingress-nginx ingress-nginx app.kubernetes.io/component=controller
 
+    echo  "${SUB_SCRIPTS[@]}"
     for SUB_SCRIPT in "${SUB_SCRIPTS[@]}"
     do
+        echo "Starting $SUB_SCRIPT..."
         # Run the corresponding script
-        call_app_script "$SUB_SCRIPT"
+        run_app_subscript "$SUB_SCRIPT"
     done
 }
 
 # Shutdown function
 shutdown(){
+    local delete_data_option=""    
+    if [[ "$DELETE_DATA" == true ]]; then
+        delete_data_option="--delete-data"
+    fi
+
     # Set the context to the cluster
     # this should already be set by create_kind_cluster through kind, but just in case
     kubectl config use-context "kind-$CLUSTER"
 
     if [[ ${#SUB_SCRIPTS[@]} -eq 0 ]]; then
+        # No sub-scripts specified, shut down everything        
         echo "Shutting down $CLUSTER..."
 
         # services with local storage
-        call_app_script "minio"
-        call_app_script "kafka"
+        run_app_subscript "minio" "$delete_data_option"
+        run_app_subscript "kafka" "$delete_data_option"
 
-        # Shutdown all services        
+        # Delete cluster container      
         delete_kind_cluster "$CLUSTER" 
 
         # shut down local registry
-        stop_local_registry
+        stop_local_registry "$DELETE_DATA"
 
         # Shutdown all storage services outside cluster (docker compose)
-        for file_path in "$STORAGE_DIR"/*.yaml
-        do
-            filename="${file_path##*/}"
-
-            # Check if the file name matches the pattern
-            if [[ $filename =~ docker-compose-(.*).yaml ]]; then
-                # check if file_path is listed in docker-compose ls output
-                if ! docker-compose ls | grep "$file_path" >/dev/null 2>&1; then
-                    # skipping if not running
-                    continue
-                fi
-
-                # check to see if the services in the docker-compose file are running
-                # Extract the app name from the file name
-                local app="${BASH_REMATCH[1]}"
-                local env_file="$STORAGE_DIR/.env.$app"
-                # Check if .env file exists 
-                if [ ! -f  "$env_file" ]; then
-                    env_file=""
-                fi
-                shutdown_docker_compose_stack "$app" "$env_file" "$DELETE_DATA" "$STORAGE_DIR/docker-compose-$app.yaml"
-            else
-                echo "Pattern not found"            
-            fi
-
-        done
+        ## extract app labels from docker compose stack containers
+        local storage_containers=$(docker ps -q --filter label=com.docker.compose.project=storage)
+        if [[ -n "$storage_containers" ]]; then 
+            local storage_app_labels="$(docker inspect "$storage_containers" --format '{{ index .Config.Labels "app"}}')"
+            echo "Shutting down storage services: $storage_app_labels"
+            for app in "${storage_app_labels[@]}"
+            do
+                shutdown_docker_compose_stack "$app" "$STORAGE_DIR/.env.$app" "$DELETE_DATA" "$STORAGE_DIR/docker-compose-$app.yaml"
+            done
+        fi
     else
-        echo "Shutting down ${SUB_SCRIPTS[@]}..."
-
         # Shutdown only the specified services
+        echo "Shutting down ${SUB_SCRIPTS[@]}..."
         for SUB_SCRIPT in "${SUB_SCRIPTS[@]}"
         do
-            call_app_script "$SUB_SCRIPT" 
+            run_app_subscript "$SUB_SCRIPT" "$delete_data_option"
         done
     fi
 }
