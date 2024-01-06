@@ -137,9 +137,11 @@ shutdown(){
         # No sub-scripts specified, shut down everything        
         echo "Shutting down $CLUSTER..."
 
-        # services with local storage
-        run_app_subscript "minio" "$delete_data_option"
-        run_app_subscript "kafka" "$delete_data_option"
+        if [[ "$DELETE_DATA" == true ]]; then
+            # Delete local storage
+            run_app_subscript "minio" "$delete_data_option"
+            run_app_subscript "kafka" "$delete_data_option"
+        fi
 
         # Delete cluster container      
         delete_kind_cluster "$CLUSTER" 
@@ -150,14 +152,14 @@ shutdown(){
         # Shutdown all storage services outside cluster (docker compose)
         ## extract app labels from docker compose stack containers
         local storage_containers=$(docker ps -q --filter label=com.docker.compose.project=storage)
-        if [[ -n "$storage_containers" ]]; then 
-            local storage_app_labels="$(docker inspect "$storage_containers" --format '{{ index .Config.Labels "app"}}')"
-            echo "Shutting down storage services: $storage_app_labels"
-            for app in "${storage_app_labels[@]}"
-            do
+        for container in $storage_containers
+        do
+            local app="$(docker inspect $container --format '{{ index .Config.Labels "app"}}')"
+            if [[ -n "$app" ]]; then
+                echo "Shutting down storage services: $app"
                 shutdown_docker_compose_stack "$app" "$STORAGE_DIR/.env.$app" "$DELETE_DATA" "$STORAGE_DIR/docker-compose-$app.yaml"
-            done
-        fi
+            fi
+        done
     else
         # Shutdown only the specified services
         echo "Shutting down ${SUB_SCRIPTS[@]}..."
