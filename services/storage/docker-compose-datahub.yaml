@@ -4,6 +4,8 @@ services:
   datahub-postgres:
     container_name: datahub-postgres
     image: postgres:16
+    labels:
+      - app=datahub
     env_file:
       - .env.datahub
     volumes:
@@ -17,6 +19,8 @@ services:
   datahub-elasticsearch-01:
     container_name: datahub-elasticsearch-01
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    labels:
+      - app=datahub
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - platform-datahub-elasticsearch-data:/usr/share/elasticsearch/data

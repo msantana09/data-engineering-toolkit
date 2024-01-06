@@ -4,6 +4,8 @@ services:
   airflow-postgres:
     container_name: airflow-postgres
     image: postgres:16
+    labels:
+      - app=airflow
     env_file:
       - .env.airflow
     volumes:
