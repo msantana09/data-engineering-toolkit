@@ -237,15 +237,19 @@ delete_pvs() {
     # Get all persistent volumes with label app=$app
     pvs=$(kubectl get pv -l "$label" -o jsonpath="{.items[*].metadata.name}")
 
-    echo "Deleting persistent volumes"
-    echo "$pvs"
+    if [[ -n $pvs ]]; then
+        echo "Deleting persistent volumes"
+        echo "$pvs"
 
-    # Iterate over the list of persistent volumes
-    for pv in $pvs
-    do
-        # Delete each persistent volume
-        kubectl delete pv $pv
-    done
+        # Iterate over the list of persistent volumes
+        for pv in $pvs
+        do
+            # Delete each persistent volume
+            kubectl delete pv $pv
+        done
+    else
+        echo "No persistent volumes found with label $label"
+    fi 
 }
 
 get_apps(){
