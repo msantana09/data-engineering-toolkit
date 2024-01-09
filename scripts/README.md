@@ -59,7 +59,7 @@ For example, if we wanted to add a new application like [Apache Nifi](https://ni
     # Source the main execution script. 
     ####################################################
     # Main execution
-    ource "$SCRIPT_DIR/helper_functions/action_execution.sh"
+    source "$SCRIPT_DIR/helper_functions/action_execution.sh"
     ```
 
 
