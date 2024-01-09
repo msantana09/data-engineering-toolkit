@@ -1,6 +1,9 @@
 #!/bin/bash
-source scripts/helper_functions/common.sh
-source scripts/helper_functions/registry.sh
+
+SCRIPT_PATH="$(realpath "$0")"
+BASE_DIR="$(dirname "$SCRIPT_PATH")"
+source "$BASE_DIR/scripts/helper_functions/common.sh"
+source "$BASE_DIR/scripts/helper_functions/registry.sh"
 
 # Required CLI tools
 REQUIRED_TOOLS=("realpath" "helm" "kubectl" "docker") 
@@ -13,8 +16,6 @@ if ! docker info >/dev/null 2>&1; then
 fi
 
 # Determine the base directory of the script
-SCRIPT_PATH="$(realpath "$0")"
-BASE_DIR="$(dirname "$SCRIPT_PATH")"
 STORAGE_DIR="$BASE_DIR/services/storage"
 ACTION=""
 SUB_SCRIPTS=()
