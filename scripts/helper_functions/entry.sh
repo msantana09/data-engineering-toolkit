@@ -3,14 +3,16 @@
 # exit on error
 set -e
 
+BASE_DIR=".."
+CLUSTER="platform"
+DELETE_DATA=false
+
 # Setting default values 
 if [[ $# -gt 0 ]]; then
     ACTION="$1"
     shift
 fi
-BASE_DIR=".."
-CLUSTER="platform"
-DELETE_DATA=false
+
 
 # Process command line arguments
 while [[ $# -gt 0 ]]; do

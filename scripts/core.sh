@@ -1,6 +1,5 @@
 #!/bin/bash
 
-services=("minio" "hive" "trino" "airflow" "spark" "kubernetes-dashboard" "kafka")
 
 SCRIPT_PATH="$(realpath "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
@@ -8,6 +7,7 @@ SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 source "$SCRIPT_DIR/helper_functions/entry.sh" "$@"
 source "$SCRIPT_DIR/helper_functions/common.sh"
 
+services=("minio" "hive" "trino" "airflow" "spark" "kubernetes-dashboard" "kafka")
 delete_data_option=""
 
 if [[ "$ACTION" == "shutdown" ]] && [[ "$DELETE_DATA" == true ]]; then
