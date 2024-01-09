@@ -67,6 +67,7 @@ done
 
 # if SUB_SCRIPTS is empty and ACTION==start, default SUB_SCRIPTS to 'core'
 if [[ ${#SUB_SCRIPTS[@]} -eq 0 ]] && [[ "$ACTION" == "start" ]]; then
+    echo 'No sub-scripts specified. Defaulting to "core".'
     SUB_SCRIPTS=("core")
 fi
 
@@ -150,16 +151,7 @@ shutdown(){
         stop_local_registry "$DELETE_DATA"
 
         # Shutdown all storage services outside cluster (docker compose)
-        ## extract app labels from docker compose stack containers
-        local storage_containers=$(docker ps -q --filter label=com.docker.compose.project=storage)
-        for container in $storage_containers
-        do
-            local app="$(docker inspect $container --format '{{ index .Config.Labels "app"}}')"
-            if [[ -n "$app" ]]; then
-                echo "Shutting down storage services: $app"
-                shutdown_docker_compose_stack "$app" "$STORAGE_DIR/.env.$app" "$DELETE_DATA" "$STORAGE_DIR/docker-compose-$app.yaml"
-            fi
-        done
+        shutdown_running_storage_containers "$STORAGE_DIR" "$DELETE_DATA"
     else
         # Shutdown only the specified services
         echo "Shutting down ${SUB_SCRIPTS[@]}..."

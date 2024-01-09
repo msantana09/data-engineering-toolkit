@@ -231,6 +231,29 @@ shutdown_docker_compose_stack() {
 
 }
 
+shutdown_running_storage_containers(){
+    local storage_dir=$1
+    local delete_data=$2
+    local apps=()
+
+    # extract app labels from docker compose stack containers
+    local storage_containers=$(docker ps -q --filter label=com.docker.compose.project=storage)
+    for container_id in $storage_containers
+    do
+        local app="$(docker inspect $container_id --format '{{ index .Config.Labels "app"}}')"
+        # add to apps array if not already present
+        if [[ ! " ${apps[@]} " =~ " ${app} " ]]; then
+            apps+=("$app")
+        fi
+    done
+
+    for app in "${apps[@]}"
+    do 
+        echo "Shutting down storage services: $app"
+        shutdown_docker_compose_stack "$app" "$storage_dir/.env.$app" "$delete_data" "$storage_dir/docker-compose-$app.yaml"
+    done
+}
+
 delete_pvs() {
     local label=$1
 
