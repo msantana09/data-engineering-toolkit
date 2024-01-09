@@ -4,7 +4,7 @@
 
 Welcome to our Data Platform project! Designed with Data Engineers in mind, this project offers a comprehensive **local development** environment. The goal is to streamline your workflow by providing a suite of pre-configured tools that work seamlessly together, enabling you to focus more on innovation and less on setup.
 
-Any of the tools listed in the [Architecture](#architecture) section can be used independently, or you can follow along with the sample [use case](/UseCase.md) for a more comprehensive walkthrough. 
+Any of the tools listed in the [Architecture](#architecture) section can be used independently, or you can follow along with the sample [use case](/UseCase.md) for a comprehensive walkthrough. 
 
 ### Background
 In data engineering, setting up an environment with all the necessary tools can be time-consuming, especially if you're new to the tech (which is often the case given the number of products out there). This realization hit home during my work on a few side projects, each requiring setup efforts. As I was already collecting a bunch of snippets (bash, kubectl, helm, etc...) for different projects, I decided to build a dev playground of sorts. A solution that helps me explore ideas by having a suite of tools I regularly use already integrated with each other. And easy to start/stop, reset, and expand as needed. The project is the public version of those efforts. 
@@ -148,6 +148,7 @@ Before you start, ensure your host system (MacOS) has the following software ins
    git clone https://github.com/msantana09/data_platform.git
    cd data_platform
    ```
+   - IMPORTANT - due to relative file references in cluster/kind/kind-config.yaml for mounted directories, you must be  within the project's root directory to execute the platform.sh script
 
 2. **Initialize .env files**
 
