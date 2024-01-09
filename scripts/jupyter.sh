@@ -16,7 +16,7 @@ MANIFESTS_DIR="$SERVICE_DIR/manifests"
 start() {
    
     create_namespace "$SERVICE"
-    create_kubernetes_secret "env-secrets" "$SERVICE"  "--from-env-file=$DSERVICE_DIRIR/.env"
+    create_kubernetes_secret "env-secrets" "$SERVICE"  "--from-env-file=$SERVICE_DIR/.env"
 
     # Build custom image and load it into the cluster
     if ! build_and_load_image "$SERVICE_DIR" "$IMAGE_REPO" "$IMAGE_TAG" ; then
