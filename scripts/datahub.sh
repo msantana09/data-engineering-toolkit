@@ -6,62 +6,54 @@ SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 source "$SCRIPT_DIR/helper_functions/entry.sh" "$@"
 source "$SCRIPT_DIR/helper_functions/common.sh"
 
-NAMESPACE="datahub"
-DIR="$BASE_DIR/services/datahub"
-CHARTS_DIR="$DIR/charts"
+SERVICE="datahub"
+SERVICE_DIR="$BASE_DIR/services/$SERVICE"
+CHARTS_DIR="$SERVICE_DIR/charts"
 STORAGE_DIR="$BASE_DIR/services/storage"
-DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-datahub.yaml"
+DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-$SERVICE.yaml"
 
 
 create_postgresql_secrets() {
-    local namespace=$1
-    local env_file=$2
+    local env_file="$SERVICE_DIR/.env"
     local password=$(get_key_value "$env_file" POSTGRES_PASSWORD)
 
-    create_kubernetes_secret "postgresql-secrets" "$namespace" "--from-literal=postgres-password=$password"
+    create_kubernetes_secret "postgresql-secrets" "$SERVICE" "--from-literal=postgres-password=$password"
 }
 
 start() {
-    create_namespace "$NAMESPACE"
-    create_postgresql_secrets "$NAMESPACE" "$DIR/.env"
+    create_namespace "$SERVICE"
+    create_postgresql_secrets 
 
-    if ! docker-compose --env-file "$STORAGE_DIR/.env.datahub"  -f "$DOCKER_COMPOSE_FILE" up -d datahub-postgres datahub-elasticsearch-01  &> /dev/null ; then
+    if ! docker-compose --env-file "$STORAGE_DIR/.env.datahub"  \
+        -f "$DOCKER_COMPOSE_FILE" up \
+        -d datahub-postgres datahub-elasticsearch-01  &> /dev/null ; then
         echo "Failed to start Datahub's Postgres Database with docker-compose"
         exit 1
     fi 
 
     helm upgrade --install prerequisites datahub/datahub-prerequisites \
-        --values "$CHARTS_DIR/prerequisites-values.yaml" --namespace $NAMESPACE
+        --values "$CHARTS_DIR/prerequisites-values.yaml" --namespace $SERVICE
 
     # setting a 10 minute timeout for the datahub chart since it does a bunch of checks and upgrades at startup
     helm upgrade --install datahub datahub/datahub \
-        --values "$CHARTS_DIR/values.yaml" --namespace $NAMESPACE --timeout 10m
+        --values "$CHARTS_DIR/values.yaml" --namespace $SERVICE --timeout 10m
 
 }
 
 # shutdown function
 shutdown() {
-    app="datahub"
-    env_file="$STORAGE_DIR/.env.datahub"
+    env_file="$STORAGE_DIR/.env.$SERVICE"
 
-    delete_namespace "$NAMESPACE"
+    delete_namespace "$SERVICE"
 
-    shutdown_docker_compose_stack "$app" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
+    shutdown_docker_compose_stack "$SERVICE" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
 }
 
 init(){
     # create .env file if it doesn't exist
-    create_env_file "$DIR/.env"  "$DIR/.env-template"
+    create_env_file "$SERVICE_DIR/.env"  "$SERVICE_DIR/.env-template"
     create_env_file "$STORAGE_DIR/.env.datahub"  "$STORAGE_DIR/.env-datahub-template"
 }
 
 # Main execution
-case $ACTION in
-    init|start|shutdown)
-        $ACTION
-        ;;
-    *)
-        echo "Error: Invalid action $ACTION"
-        exit 1
-        ;;
-esac
+source "$SCRIPT_DIR/helper_functions/action_execution.sh"

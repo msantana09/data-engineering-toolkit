@@ -6,19 +6,19 @@ SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 source "$SCRIPT_DIR/helper_functions/entry.sh" "$@"
 source "$SCRIPT_DIR/helper_functions/common.sh"
 
-NAMESPACE="spark"
+SERVICE="spark"
 SPARK_VERSION="3.5.0"
 IMAGE_REPO="custom-spark-python"
 IMAGE_TAG="latest"
-DIR="$BASE_DIR/services/spark"
-MANIFESTS_DIR="$DIR/manifests"
+SERVICE_DIR="$BASE_DIR/services/$SERVICE"
+MANIFESTS_DIR="$SERVICE_DIR/manifests"
 
 start() {
     # Main execution
-    create_namespace "$NAMESPACE"
+    create_namespace "$SERVICE"
 
     # Build custom image and load it into the cluster
-    if ! build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" ; then
+    if ! build_and_load_image "$SERVICE_DIR" "$IMAGE_REPO" "$IMAGE_TAG" ; then
         echo "Failed to load image to local registry"
         exit 1
     fi
@@ -29,7 +29,7 @@ start() {
 
 # shutdown function
 shutdown() {
-    delete_namespace "$NAMESPACE"
+    delete_namespace "$SERVICE"
 }
 
 init(){
@@ -38,12 +38,4 @@ init(){
 }   
 
 # Main execution
-case $ACTION in
-    start|init|shutdown)
-        $ACTION
-        ;;
-    *)
-        echo "Error: Invalid action $ACTION"
-        exit 1
-        ;;
-esac
+source "$SCRIPT_DIR/helper_functions/action_execution.sh"

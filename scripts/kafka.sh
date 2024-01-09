@@ -6,12 +6,10 @@ SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 source "$SCRIPT_DIR/helper_functions/entry.sh" "$@"
 source "$SCRIPT_DIR/helper_functions/common.sh"
 
-
 SERVICE="kafka"
-NAMESPACE="kafka" 
-DIR="$BASE_DIR/services/$SERVICE"
-MANIFESTS_DIR="$DIR/manifests"
-CHARTS_DIR="$DIR/charts"
+SERVICE_DIR="$BASE_DIR/services/$SERVICE"
+MANIFESTS_DIR="$SERVICE_DIR/manifests"
+CHARTS_DIR="$SERVICE_DIR/charts"
 
 start() {
     echo "Starting $SERVICE..."
@@ -24,11 +22,13 @@ start() {
     
     # install kafka ui
     helm repo add kafka-ui https://provectus.github.io/kafka-ui-charts
-    helm  upgrade --install kafka-ui kafka-ui/kafka-ui  --namespace "$NAMESPACE" -f "$CHARTS_DIR/.env.ui.values.yaml"
+    helm  upgrade --install kafka-ui kafka-ui/kafka-ui  \
+        --namespace "$SERVICE" \
+        -f "$CHARTS_DIR/.env.ui.values.yaml"
 }
 
 shutdown() {
-    delete_namespace "$NAMESPACE"
+    delete_namespace "$SERVICE"
 
     # removing persistent volumes
     delete_pvs "app=kafka" 
@@ -36,8 +36,8 @@ shutdown() {
 
     # delete data directory
     if  [[ "$DELETE_DATA" == true ]]; then
-        find $DIR/data/kafka -mindepth 1 -exec rm -rf {} +
-        find $DIR/data/zookeeper -mindepth 1 -exec rm -rf {} +
+        find $SERVICE_DIR/data/kafka -mindepth 1 -exec rm -rf {} +
+        find $SERVICE_DIR/data/zookeeper -mindepth 1 -exec rm -rf {} +
     fi
 }
 
@@ -46,17 +46,9 @@ init(){
     create_env_file "$CHARTS_DIR/.env.ui.values.yaml"  "$CHARTS_DIR/ui-values-template.yaml"
 
     # create data directory if it doesn't exist 
-    mkdir -p "$DIR/data" "$DIR/data/kafka" "$DIR/data/zookeeper"
+    mkdir -p "$SERVICE_DIR/data" "$SERVICE_DIR/data/kafka" "$SERVICE_DIR/data/zookeeper"
 }
 
 
 # Main execution
-case $ACTION in
-    init|start|shutdown)
-        $ACTION
-        ;;
-    *)
-        echo "Error: Invalid action $ACTION"
-        exit 1
-        ;;
-esac
+source "$SCRIPT_DIR/helper_functions/action_execution.sh"

@@ -6,20 +6,20 @@ SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 source "$SCRIPT_DIR/helper_functions/entry.sh" "$@"
 source "$SCRIPT_DIR/helper_functions/common.sh"
 
-NAMESPACE="jupyter"
+SERVICE="jupyter"
 IMAGE_REPO="custom-spark-jupyter"
 IMAGE_TAG="latest"
-DIR="$BASE_DIR/services/jupyter"
-MANIFESTS_DIR="$DIR/manifests"
+SERVICE_DIR="$BASE_DIR/services/$SERVICE"
+MANIFESTS_DIR="$SERVICE_DIR/manifests"
 
 
 start() {
    
-    create_namespace "$NAMESPACE"
-    create_kubernetes_secret "env-secrets" "$NAMESPACE"  "--from-env-file=$DIR/.env"
+    create_namespace "$SERVICE"
+    create_kubernetes_secret "env-secrets" "$SERVICE"  "--from-env-file=$DSERVICE_DIRIR/.env"
 
     # Build custom image and load it into the cluster
-    if ! build_and_load_image "$DIR" "$IMAGE_REPO" "$IMAGE_TAG" ; then
+    if ! build_and_load_image "$SERVICE_DIR" "$IMAGE_REPO" "$IMAGE_TAG" ; then
         echo "Failed to load image to local registry"
         exit 1
     fi
@@ -31,27 +31,19 @@ start() {
         -f "$MANIFESTS_DIR/roles.yaml" 
 
     # Wait for container startup
-    wait_for_container_startup "$NAMESPACE" jupyter app=jupyter
+    wait_for_container_startup "$SERVICE" jupyter app=jupyter
 }
 
 # shutdown function
 shutdown() {
-    delete_namespace "$NAMESPACE"
+    delete_namespace "$SERVICE"
 
     delete_pvs "app=jupyter" 
 }
 
 init(){
-    create_env_file "$DIR/.env"  "$DIR/.env-template"
+    create_env_file "$SERVICE_DIR/.env"  "$SERVICE_DIR/.env-template"
 }
 
 # Main execution
-case $ACTION in
-    init|start|shutdown)
-        $ACTION
-        ;;
-    *)
-        echo "Error: Invalid action $ACTION"
-        exit 1
-        ;;
-esac
+source "$SCRIPT_DIR/helper_functions/action_execution.sh"

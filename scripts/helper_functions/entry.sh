@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# exit on error
+set -e
+
 # Setting default values 
 if [[ $# -gt 0 ]]; then
     ACTION="$1"

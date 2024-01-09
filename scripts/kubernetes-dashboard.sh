@@ -1,5 +1,4 @@
 #!/bin/bash
-BASE_DIR=".."
 
 SCRIPT_PATH="$(realpath "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
@@ -7,10 +6,10 @@ SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 source "$SCRIPT_DIR/helper_functions/entry.sh" "$@"
 source "$SCRIPT_DIR/helper_functions/common.sh"
 
-NAMESPACE="kubernetes-dashboard"
-DIR="$BASE_DIR/services/$NAMESPACE"
-MANIFESTS_DIR="$DIR/manifests"
-CHARTS_DIR="$DIR/charts"
+SERVICE="kubernetes-dashboard"
+SERVICE_DIR="$BASE_DIR/services/$SERVICE"
+MANIFESTS_DIR="$SERVICE_DIR/manifests"
+CHARTS_DIR="$SERVICE_DIR/charts"
 
 
 start() {    
@@ -30,12 +29,4 @@ init(){
 }
 
 # Main execution
-case $ACTION in
-    init|start|shutdown)
-        $ACTION
-        ;;
-    *)
-        echo "Error: Invalid action $ACTION"
-        exit 1
-        ;;
-esac
+source "$SCRIPT_DIR/helper_functions/action_execution.sh"
