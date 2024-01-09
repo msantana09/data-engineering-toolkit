@@ -12,7 +12,7 @@ IMAGE_TAG="latest"
 SERVICE_DIR="$BASE_DIR/services/$SERVICE"
 MANIFESTS_DIR="$SERVICE_DIR/manifests"
 STORAGE_DIR="$BASE_DIR/services/storage"
-DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-hive.yaml"
+DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-$SERVICE.yaml"
 
 
 start() {
