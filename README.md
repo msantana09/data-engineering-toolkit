@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Welcome to our Data Platform project! Designed with Data Engineer and Scientist in mind, this project offers a comprehensive **local development** environment. The goal is to streamline your workflow by providing a suite of pre-configured tools that work seamlessly together, enabling you to focus more on innovation and less on setup.
+Welcome to our Data Platform project! Designed with Data Engineers in mind, this project offers a comprehensive **local development** environment. The goal is to streamline your workflow by providing a suite of pre-configured tools that work seamlessly together, enabling you to focus more on innovation and less on setup.
 
 Any of the tools listed in the [Architecture](#architecture) section can be used independently, or you can follow along with the sample [use case](/UseCase.md) for a more comprehensive walkthrough. 
 
@@ -204,7 +204,7 @@ Before you start, ensure your host system (MacOS) has the following software ins
    # shutdown only MinIO
    ./platform.sh shutdown minio
 
-   # shutdown only Minio and delete persisted data (a reset)
+   # shutdown only Minio and delete persisted data 
    ./platform.sh shutdown minio -d
 
    # shutdown the entire cluster
