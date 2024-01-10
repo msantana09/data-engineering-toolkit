@@ -46,7 +46,7 @@ We'll ingest a dataset from Kaggle and process it with our platform:
     #### SQLTools Browser Tree
     ![SQLTools Browser Tree](images/SQLTools_browser.png)
 
-5. Go to [Datahub](http://localhost:8084/) , and search for 'kaggle_airbnb'.  You see a few results, including this `listings` table with ingested metadata showing the GPT3.5 generate column descriptions
-
+5. Go to [Datahub](http://localhost:8084/) , and search for 'kaggle_airbnb'.  You will see a few results, including this `listings` table with ingested metadata showing the GPT3.5 generate column descriptions. 
+    - NOTE: You may want to wait 2-3mins after the Airflow job completes before searching Datahub, since there is a slight delay as Elastisearch indices are rebuilt.  
     #### Datahub Dataset
     ![datahub](images/datahub_listings.png)
