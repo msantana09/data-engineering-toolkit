@@ -12,13 +12,6 @@ We'll ingest a dataset from Kaggle and process it with our platform, with some h
 ### Background
 In data engineering, setting up an environment with all the necessary tools can be time-consuming, especially if you're new to the tech (which is often the case given the number of products out there). This realization struck home during my work on a few side projects, each requiring setup efforts. As I was already collecting a bunch of snippets (bash, kubectl, helm, etc...) for different projects, I decided to build a dev playground of sorts. A solution that helps me explore ideas by having a suite of tools I regularly use already integrated with each other. And easy to start/stop, reset, and expand as needed. The project is the public version of those efforts. 
 
-## Scope
-This project is intended for local development only. 
-
-In future projects, I will focus on deploying some of the services in the project to a cloud provider, with special attention paid to security, scalability, reliablity, networking, storage, observability, and cost management options.... But this one is just for local use.
-
-
-
 
 
 ## Architecture
