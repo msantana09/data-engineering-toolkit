@@ -5,7 +5,7 @@
 Welcome to our Data Platform project! Designed with Data Engineers in mind, this project offers a comprehensive **local development** environment. The goal is to enable learning and innovation by providing a suite of pre-configured tools that work seamlessly together OOTB, along with an end to end [use case](/UseCase.md) illustrating a typical data product life cycle. I also included a few [notebooks](/services/jupyter/notebooks/airbnb/) to enable interactive exploration of the ingested data and of the APIs (e.g. sentiment analysis) available in the platform.
 
 ### Use Case
-We'll ingest a dataset from Kaggle and process it with our platform, which some help from large language models. See more details [here](/UseCase.md)
+We'll ingest a dataset from Kaggle and process it with our platform, with some help from generative and classication models. See more details [here](/UseCase.md)
 
 
 
