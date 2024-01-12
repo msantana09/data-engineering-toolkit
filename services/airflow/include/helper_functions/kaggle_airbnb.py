@@ -84,7 +84,7 @@ def list_of_dicts_to_csv(data:list)->str:
     dict_writer.writerows(data)
     return output.getvalue()
 
-def csv_to_dict_array(csv_string:str)->list:
+def csv_to_list_of_dicts(csv_string:str)->list:
     csv_reader = csv.reader(csv_string.splitlines())
     field_names = next(csv_reader)
     values = []

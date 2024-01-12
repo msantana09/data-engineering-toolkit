@@ -8,7 +8,7 @@ module_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
 # Append this directory to sys.path
 sys.path.append(module_dir)
 
-from include.helper_functions.kaggle_airbnb import get_columns_missing_comments, create_llm_column_request_batches, build_llm_column_request_payload_csv,list_of_dicts_to_csv,build_comment_ddl,csv_to_dict_array
+from include.helper_functions.kaggle_airbnb import get_columns_missing_comments, create_llm_column_request_batches, build_llm_column_request_payload_csv,list_of_dicts_to_csv,build_comment_ddl,csv_to_list_of_dicts
 
 class TestKaggleAirbnb(unittest.TestCase):
     def setUp(self):
@@ -55,7 +55,7 @@ class TestKaggleAirbnb(unittest.TestCase):
     def test_csv_to_dict_array(self):
         expected = [{'name': 'John', 'age': '30'}, {'name': 'Jane', 'age': '25'}]
         test_csv = 'name,age\nJohn,30\nJane,25\n' 
-        result = csv_to_dict_array(test_csv)
+        result = csv_to_list_of_dicts(test_csv)
         assert result == expected
 
 if __name__ == '__main__':

@@ -169,7 +169,7 @@ with DAG(
                 content = response.json()["content"]
                 usage = response.json()["usage"]
                 logger.info(f"Usage: {usage}")
-                return helper_functions.csv_to_dict_array(content)
+                return helper_functions.csv_to_list_of_dicts(content)
             
             def _upload_description_data_to_staging(table, columns):
                 output = f"staging/{SOURCE}/{table}_column_descriptions.json"

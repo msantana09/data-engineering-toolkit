@@ -1,6 +1,6 @@
 
 import sys
-from pyspark.sql import SparkSession,  DataFrame, functions as F
+from pyspark.sql import SparkSession,  DataFrame
 
 
 def drop_null_comments(df: DataFrame ) -> DataFrame:
