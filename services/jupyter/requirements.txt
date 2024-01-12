@@ -3,3 +3,4 @@ pandas==2.0.2
 fsspec
 s3fs
 tiktoken==0.5.2
+trino>=0.327.0
