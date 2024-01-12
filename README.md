@@ -5,12 +5,12 @@
 Welcome to our Data Platform project! Designed with Data Engineers in mind, this project offers a comprehensive **local development** environment. The goal is to enable learning and innovation by providing a suite of pre-configured tools that work seamlessly together OOTB, along with an end to end [use case](/UseCase.md) illustrating a typical data product life cycle. I also included a few [notebooks](/services/jupyter/notebooks/airbnb/) to enable interactive exploration of the ingested data and of the APIs (e.g. sentiment analysis) available in the platform.
 
 ### Use Case
-We'll ingest a dataset from Kaggle and process it with our platform, with some help from generative and classication models. See more details [here](/UseCase.md)
+We'll ingest a dataset from Kaggle and process it with our platform, with some help from generative and classification models. See more details [here](/UseCase.md)
 
 
 
 ### Background
-In data engineering, setting up an environment with all the necessary tools can be time-consuming, especially if you're new to the tech (which is often the case given the number of products out there). This realization hit home during my work on a few side projects, each requiring setup efforts. As I was already collecting a bunch of snippets (bash, kubectl, helm, etc...) for different projects, I decided to build a dev playground of sorts. A solution that helps me explore ideas by having a suite of tools I regularly use already integrated with each other. And easy to start/stop, reset, and expand as needed. The project is the public version of those efforts. 
+In data engineering, setting up an environment with all the necessary tools can be time-consuming, especially if you're new to the tech (which is often the case given the number of products out there). This realization struck home during my work on a few side projects, each requiring setup efforts. As I was already collecting a bunch of snippets (bash, kubectl, helm, etc...) for different projects, I decided to build a dev playground of sorts. A solution that helps me explore ideas by having a suite of tools I regularly use already integrated with each other. And easy to start/stop, reset, and expand as needed. The project is the public version of those efforts. 
 
 ## Scope
 This project is intended for local development only. 
@@ -25,7 +25,7 @@ In future projects, I will focus on deploying some of the services in the projec
 
 ![Platform Overview](images/data_platform_overview.png)
 
-This version makes uses a *mostly* open stack comprised of:
+This version uses a *mostly* open stack comprised of:
 
 <table>
     <tr>
@@ -70,7 +70,7 @@ This version makes uses a *mostly* open stack comprised of:
     </tr>
     <tr>
         <td><a href="https://iceberg.apache.org/">Apache Iceberg</a></td>
-        <td>A table format utilized by our Spark jobs to enable data stored in S3 (Minio) to be querable through engines like Trino or SparkSQL.</td>
+        <td>A table format utilized by our Spark jobs to enable data stored in S3 (Minio) to be queryable through engines like Trino or SparkSQL.</td>
         <td></td>
     </tr>
     <tr>
@@ -153,7 +153,7 @@ Before you start, ensure your host system (MacOS) has the following software ins
 
 2. **Initialize .env files**
 
-   The project comes with several template files (e.g. .env-template) containing the default credentials and configurations for for the various services.  The command below copies the default template files to .env files, which are ignored by git. You can then modify the .env files as needed.
+   The project comes with several template files (e.g. .env-template) containing the default credentials and configurations for the various services.  The command below copies the default template files to .env files, which are then ignored by git. You can then modify the .env files as needed.
 
    ````bash
    ./platform.sh init
@@ -216,7 +216,7 @@ Before you start, ensure your host system (MacOS) has the following software ins
    ./platform shutdown -d
    ```
 
-    Once the desired services are up and running, you might be interested in seeings logs and other activities. Most of the applications are running within a Kubernetes cluster created with the [Kind](https://kind.sigs.k8s.io/) tool, which automatically updates the context in your terminal to the newly created cluster. Meaning you will be able to immediately run `kubectl` [commands](https://kubernetes.io/docs/reference/kubectl/cheatsheet/) like:
+    Once the desired services are up and running, you might be interested in seeing logs and other activities. Most of the applications are running within a Kubernetes cluster created with the [Kind](https://kind.sigs.k8s.io/) tool, which automatically updates the context in your terminal to the newly created cluster. You will be able to immediately run `kubectl` [commands](https://kubernetes.io/docs/reference/kubectl/cheatsheet/) like:
     ```bash
     # list pods in the airflow namespace
     kubectl get pods -n airflow
