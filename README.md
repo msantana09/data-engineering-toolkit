@@ -5,12 +5,12 @@
 Welcome to our Data Platform project! Designed with Data Engineers in mind, this project offers a comprehensive **local development** environment. The goal is to enable learning and innovation by providing a suite of pre-configured tools that work seamlessly together OOTB, along with an end to end [use case](/UseCase.md) illustrating a typical data product life cycle. I also included a few [notebooks](/services/jupyter/notebooks/airbnb/) to enable interactive exploration of the ingested data and of the APIs (e.g. sentiment analysis) available in the platform.
 
 ### Use Case
-We'll ingest a dataset from Kaggle and process it with our platform, with some help from generative and classification models. See more details [here](/UseCase.md)
+We'll ingest a dataset from Kaggle using custom Airflow hooks and operators, and process it using many of the [tools](#architecture) in our platform. See more details [here](/UseCase.md)
 
 
 
 ### Background
-In data engineering, setting up an environment with all the necessary tools can be time-consuming, especially if you're new to the tech (which is often the case given the number of products out there). This realization struck home during my work on a few side projects, each requiring setup efforts. As I was already collecting a bunch of snippets (bash, kubectl, helm, etc...) for different projects, I decided to build a dev playground of sorts. A solution that helps me explore ideas by having a suite of tools I regularly use already integrated with each other. And easy to start/stop, reset, and expand as needed. The project is the public version of those efforts. 
+In data engineering, setting up an environment with all the necessary tools can be time-consuming, especially if you're new to the tech (which is often the case given the number of products out there). This realization struck home during my work on a few side projects, each requiring setup efforts. As I was already collecting a bunch of snippets (bash, kubectl, helm, etc...) for different projects, I decided to build a dev workbench of sorts. A solution that helps me explore ideas by having a suite of tools I regularly use already integrated with each other. And easy to start/stop, reset, and expand as needed. The project is the public version of those efforts. 
 
 
 
