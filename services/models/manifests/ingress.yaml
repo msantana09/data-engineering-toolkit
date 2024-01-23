@@ -5,8 +5,6 @@ metadata:
   namespace: models
   annotations:
     kubernetes.io/ingress.class: nginx
-    # rewrite-target is used to remove the /api/v1/models prefix from the URL
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
     # setting 2 minute timeouts for the model-api
     nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
@@ -15,10 +13,10 @@ spec:
   rules:
   - http:
       paths:
-      - path: /api/v1/models/?(.*)
+      - path: /api/v1/models/
         pathType: ImplementationSpecific
         backend:
           service:
-            name: model-api-service
+            name: model-api-svc
             port:
               number: 8000

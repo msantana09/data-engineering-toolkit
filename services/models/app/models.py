@@ -10,4 +10,7 @@ class Table(BaseModel):
 
 class DescribeColumnsRequest(BaseModel):
     tables: List[Table]
-    context: str
+    context: str 
+
+class SentimentResponse(BaseModel):
+    result: str

@@ -26,7 +26,7 @@ TRINO_CONN_ID = "trino_default"
 S3_BUCKET = "datalake"
 SOURCE = "kaggle_airbnb"
 DATABASE_NAME = "kaggle_airbnb"
-MODEL_SERVICE_BASE_URL = "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local:80/api/v1/models"
+MODEL_SERVICE_BASE_URL = "http://model-api-svc.models.svc.cluster.local:8000/api/v1/models"
 
 doc = """
 # Kaggle Airbnb Data Pipeline
