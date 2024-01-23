@@ -1,17 +1,22 @@
-# Data Platform 
+# Data Engineering Toolkit 
 
 ## Introduction
 
-Welcome to our Data Platform project! Designed with Data Engineers in mind, this project offers a comprehensive **local development** environment. The goal is to enable learning and innovation by providing a suite of pre-configured tools that work seamlessly together OOTB, along with an end to end [use case](/UseCase.md) illustrating a typical data product life cycle. I also included a few [notebooks](/services/jupyter/notebooks/airbnb/) to enable interactive exploration of the ingested data and of the APIs (e.g. sentiment analysis) available in the platform.
+Welcome to our Data Engineering Toolkit project! 
+
+This project offers a comprehensive **local development** environment utilizing tools of the trade. 
+
+Setting up an dev environment with all the necessary tools can be time-consuming, especially if you're new to the tech (which is often the case given the number of products out there). This realization struck home during my work on a few side projects, each requiring setup/troubleshooting efforts. Since I was already collecting a bunch of snippets (bash, kubectl, helm, etc...) for different projects, I decided to collect my learnings into this toolkit.
+
+The goal is to bootstrap innovation by providing a suite of pre-configured tools that work seamlessly together OOTB, along with an end to end [use case](/UseCase.md) illustrating a typical data product life cycle.
+
+Also included are a few [notebooks](/services/jupyter/notebooks/airbnb/) to enable interactive exploration of the ingested data and of the APIs (e.g. sentiment analysis) available in the toolkit.
 
 ### Use Cases
-#### Generate Column Descriptions for a Kaggle dataset in our lakehouse
-We'll ingest a dataset from Kaggle using custom Airflow hooks and operators, and process it using many of the [tools](#architecture) in our platform. See more details [here](/UseCase.md)
+#### 1. Generate Column Descriptions for a Kaggle dataset in our lakehouse
+We will ingest a dataset from Kaggle using custom Airflow hooks and operators, and process it using many of the [tools](#architecture) in our platform. See more details [here](/UseCase.md). 
+- Tools used: Airflow, MinIO, Spark, Hive, Iceberg, Trino, LLMs, Datahub, and Kafka
 
-
-
-### Background
-In data engineering, setting up an environment with all the necessary tools can be time-consuming, especially if you're new to the tech (which is often the case given the number of products out there). This realization struck home during my work on a few side projects, each requiring setup efforts. As I was already collecting a bunch of snippets (bash, kubectl, helm, etc...) for different projects, I decided to build a dev workbench of sorts. A solution that helps me explore ideas by having a suite of tools I regularly use already integrated with each other. And easy to start/stop, reset, and expand as needed. The project is the public version of those efforts. 
 
 
 
@@ -140,8 +145,8 @@ Before you start, ensure your host system (MacOS) has the following software ins
 1. **Clone the Repository**
    
    ```bash
-   git clone https://github.com/msantana09/data_platform.git
-   cd data_platform
+   git clone https://github.com/msantana09/data-engineering-toolkit.git
+   cd data-engineering-toolkit
    ```
    - IMPORTANT - due to relative file references in cluster/kind/kind-config.yaml for mounted directories, you must be  within the project's root directory to execute the platform.sh script
 
@@ -171,7 +176,7 @@ Before you start, ensure your host system (MacOS) has the following software ins
 
    Use the `-h` flag to see all options:
    ````bash
-   (.venv) ➜  data_platform git:(main) ✗ ./platform.sh -h
+   (.venv) ➜  data-engineering-toolkit git:(main) ✗ ./platform.sh -h
    Usage: ./platform.sh <action> [-c|--cluster <cluster_name>] [-d|--delete-data] [sub_scripts...]
 
    Options:
