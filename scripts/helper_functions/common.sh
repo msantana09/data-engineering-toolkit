@@ -285,7 +285,7 @@ get_apps(){
         local file_name=$(basename "$file" | sed 's/\.[^.]*$//')
         # Add the file name to the array
         apps+=("$file_name")
-    done < <(find "$directory" -maxdepth 1 -type f)
+    done < <(find "$directory" -maxdepth 1 -type f -name "*.sh")
 
 
     echo "${apps[@]}"
