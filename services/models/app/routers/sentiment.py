@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import TextData, SentimentResponse
 import torch
-from dependencies import get_sentiment_model
+from dependencies import get_classification_model
 
+MODEL = "nlptown/bert-base-multilingual-uncased-sentiment"
+tokenizer, model = None, None
 router = APIRouter()
 
 def sentiment_score_to_summary(score):
@@ -18,8 +20,10 @@ def sentiment_score_to_summary(score):
 
 
 @router.post("/sentiment")
-async def analyze_sentiment(data: TextData, model_deps = Depends(get_sentiment_model)):
-    tokenizer, model = model_deps
+async def analyze_sentiment(data: TextData ):
+    global tokenizer, model
+    if not tokenizer or not model:
+        tokenizer, model = get_classification_model(MODEL)
 
     try:
         tokens = tokenizer.encode(data.text, return_tensors="pt", truncation=True, padding=True)

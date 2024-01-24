@@ -14,11 +14,11 @@ API_PREFIX="/api/v1/models"
 
 if __name__ == "__main__":
     import uvicorn
+
     app =  FastAPI()
     app.include_router(sentiment_router, prefix=API_PREFIX)
     app.include_router(column_description_router, prefix=API_PREFIX)
     app.include_router(dq_router, prefix=API_PREFIX)
-
 
     uvicorn.run(app, host="0.0.0.0", port=8000 )
 
