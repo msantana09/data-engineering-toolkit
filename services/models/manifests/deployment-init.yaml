@@ -12,6 +12,9 @@ spec:
           image: kind-registry:5000/model-api:latest
           imagePullPolicy: IfNotPresent
           command: ["python3", "download_models.py"]
+          envFrom:
+          - secretRef:
+              name: env-secrets
           resources:
             limits:
               cpu: "500m"

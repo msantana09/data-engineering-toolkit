@@ -1,16 +1,15 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException, Request
 from dependencies import get_openai_client
-from utilities.openai import num_tokens_from_string
 import prompts
 import json
 
 router = APIRouter()
- 
+MODEL = os.getenv("OPENAI_MODEL")
+
 
 @router.post("/dq_check")
 async def  dq_check(request: Request, openai_client = Depends(get_openai_client)): 
-
-    model = "gpt-3.5-turbo-16k"
     data =  await request.json() 
 
     try:
@@ -25,7 +24,7 @@ async def  dq_check(request: Request, openai_client = Depends(get_openai_client)
             }
         ]
         response = openai_client.chat.completions.create(
-            model=model,
+            model=MODEL,
             messages=messages,
             temperature=1,
             max_tokens=4096
