@@ -24,7 +24,7 @@ start() {
         exit 1
     fi
     # Wait for container startup
-    wait_for_container_startup "$SERVICE" trino component=coordinator
+    wait_for_container_startup "$SERVICE" trino app.kubernetes.io/component=coordinator
 
     # Create service to expose trino on port 8081 of host
     if ! kubectl apply -f  "$CHARTS_DIR/service.yaml"  ; then

@@ -12,6 +12,9 @@ CHARTS_DIR="$SERVICE_DIR/charts"
 STORAGE_DIR="$BASE_DIR/services/storage"
 DOCKER_COMPOSE_FILE="$STORAGE_DIR/docker-compose-$SERVICE.yaml"
 
+dependencies=("kafka")
+
+
 
 create_postgresql_secrets() {
     local env_file="$SERVICE_DIR/.env"
@@ -21,6 +24,12 @@ create_postgresql_secrets() {
 }
 
 start() {
+
+    for service in "${dependencies[@]}"; do
+        script=("$BASE_DIR/scripts/$service.sh")
+        run_script "$script" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
+    done
+
     create_namespace "$SERVICE"
     create_postgresql_secrets 
 
@@ -47,6 +56,11 @@ shutdown() {
     delete_namespace "$SERVICE"
 
     shutdown_docker_compose_stack "$SERVICE" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
+
+    for service in "${dependencies[@]}"; do
+        script=("$BASE_DIR/scripts/$service.sh")
+        run_script "$script" "$ACTION" -b "$BASE_DIR" -c "$CLUSTER" "$delete_data_option"
+    done
 }
 
 init(){
