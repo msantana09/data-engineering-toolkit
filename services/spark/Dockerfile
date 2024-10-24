@@ -1,4 +1,4 @@
-FROM apache/spark:3.5.0-python3
+FROM apache/spark:3.5.3-python3
 
 USER root
 # Install tools required by the OS
