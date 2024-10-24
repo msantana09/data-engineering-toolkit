@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   datahub-postgres:
     container_name: datahub-postgres

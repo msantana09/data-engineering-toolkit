@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   hive-metastore-postgres:
     container_name: hive-metastore-postgres

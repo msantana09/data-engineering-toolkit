@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   airflow-postgres:
     container_name: airflow-postgres
