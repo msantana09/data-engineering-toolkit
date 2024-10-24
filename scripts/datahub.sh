@@ -33,7 +33,7 @@ start() {
     create_namespace "$SERVICE"
     create_postgresql_secrets 
 
-    if ! docker-compose --env-file "$STORAGE_DIR/.env.datahub"  \
+    if ! docker compose --env-file "$STORAGE_DIR/.env.datahub"  \
         -f "$DOCKER_COMPOSE_FILE" up \
         -d datahub-postgres datahub-elasticsearch-01  &> /dev/null ; then
         echo "Failed to start Datahub's Postgres Database with docker-compose"

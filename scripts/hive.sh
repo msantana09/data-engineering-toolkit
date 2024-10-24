@@ -27,7 +27,7 @@ start() {
         exit 1
     fi
 
-    if ! docker-compose -f "$DOCKER_COMPOSE_FILE" up -d &> /dev/null ; then
+    if ! docker compose -f "$DOCKER_COMPOSE_FILE" up -d &> /dev/null ; then
         echo "Failed to start Hive's Postgres Database with docker-compose"
         exit 1
     fi 
