@@ -7,7 +7,7 @@ source "$SCRIPT_DIR/helper_functions/entry.sh" "$@"
 source "$SCRIPT_DIR/helper_functions/common.sh"
 
 SERVICE="airflow"
-AIRFLOW_VERSION="2.7.3"
+AIRFLOW_VERSION="2.8.4"
 IMAGE_REPO="custom-airflow"
 IMAGE_TAG="latest"
 SERVICE_DIR="$BASE_DIR/services/$SERVICE"
@@ -62,7 +62,7 @@ start() {
     fi
     
 
-    if ! docker-compose -f "$DOCKER_COMPOSE_FILE" up -d &> /dev/null ; then
+    if ! docker compose -f "$DOCKER_COMPOSE_FILE" up -d &> /dev/null ; then
         echo "Failed to start Airflow Postgres with docker-compose"
         exit 1
     fi 

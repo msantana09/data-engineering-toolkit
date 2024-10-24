@@ -1,13 +1,13 @@
-FROM apache/airflow:2.7.3 as airflow_base
+FROM apache/airflow:2.8.4-python3.11 AS airflow_base
 USER root
 
-# Install OpenJDK-11
+# Install OpenJDK-17
 RUN apt-get update && \
     apt-get install -y \
         unzip \
         procps \
         rsync \
-        openjdk-11-jdk \
+        openjdk-17-jdk \
         ant \
         build-essential \
         software-properties-common \
@@ -15,18 +15,15 @@ RUN apt-get update && \
         groff \
         mandoc &&\
     apt-get clean;
-# Set JAVA_HOME (*arm64 or *amd64)
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-arm64 
-RUN export JAVA_HOME
 
-FROM airflow_base as airflow_spark
+FROM airflow_base AS airflow_spark
 ########################
 # Install Spark
 ########################
 
-ENV SPARK_HOME=${SPARK_HOME:-"/opt/spark"}
+ENV SPARK_HOME="/opt/spark"
 RUN mkdir -p ${SPARK_HOME}
-ENV SPARK_VERSION="3.5.0"
+ENV SPARK_VERSION="3.5.3"
 
 # Download and install Spark
 RUN curl https://dlcdn.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz -o spark-${SPARK_VERSION}-bin-hadoop3.tgz \
@@ -59,7 +56,7 @@ RUN curl https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.5
 RUN curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar\
  -Lo ${SPARK_HOME}/jars/hadoop-aws-3.3.4.jar
 
-FROM airflow_spark as airflow_requirements
+FROM airflow_spark AS airflow_requirements
 
 # dependencies needed for kafka integration https://stackoverflow.com/questions/72163907/unable-to-install-confluent-kafka-fatal-error-librdkafka-rdkafka-h-no-such-f
 # must be executed as root
@@ -69,7 +66,7 @@ USER airflow
 COPY requirements.txt .
 RUN pip install -r requirements.txt --no-cache-dir
 
-FROM airflow_requirements as airflow_dags
+FROM airflow_requirements AS airflow_dags
 
 COPY dags /opt/airflow/dags
 COPY include /opt/airflow/include
@@ -77,4 +74,4 @@ COPY plugin[s] /opt/airflow/plugins
 COPY spark_scripts /opt/airflow/spark_scripts
 COPY lib /opt/airflow/lib
 
-ENV PYTHONPATH="${PYTHONPATH}:/opt/airflow/include"
+ENV PYTHONPATH="${PYTHONPATH}:${AIRFLOW_HOME}/include"
