@@ -8,16 +8,16 @@ We'll ingest a dataset from Kaggle and process it with our platform:
 2) Run Spark jobs to clean and transform columns
 3) Write output using the Apache Iceberg table format, with updated metadat written to Hive metastore
 4) Since the Kaggle data set did not come with column descriptions, we'll share some details about the data set with GPT 3.5 and ask it to generate initial column descriptions.
-5) Run a Datahub CLI pipeline task to profile our tables utilizing Trino, and publish results to a Kafka topic.
+5) Run a Datahub CLI pipeline task to profile our tables through Trino, and publish results to a Kafka topic.
 - After ~5mins, Datahub's metadata service will consume messages from the Kafka topic and present the profiling results in the Datahub UI.
 
 ### Resource Requirements
-- It's recommended to allocate (at least) **4 cores and 16GB memory** to Docker in order for all services in the use case to run successfully.
+- It's recommended to allocate (at least) **4 cores, 16GB memory, and 20 GB disk space** to Docker in order for all services in the use case to build and run successfully.
 - To run with lower specs (min 8GB memory needed), follow these two steps:
     1. Run `./platform.sh start core models` 
         - Run the Airflow DAG (see steps 3 & 4 in next section). It will complete successfully with just the `core` and `models` services running. And since Kafka utilizes a persistent volume, messages will be available for Datahub to consume once it is started. 
     2. Run `./platform.sh shutdown core models && ./platform.sh start kafka datahub`
-        - This will shutdown services required to run the DAG, and leave only Kafka and Datahub running. (see step 5 in next section) 
+        - This will shutdown services required to run the Airflow DAG, and leave only Kafka and Datahub running. (see step 5 in next section) 
 
 
 ## Steps
