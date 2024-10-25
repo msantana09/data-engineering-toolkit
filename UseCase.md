@@ -3,13 +3,14 @@
 ## Overview
 ![Airflow graph](images/kaggle_overview.png)
 
-We'll ingest a dataset from Kaggle and process it with our platform:
-1) Use custom Airflow operators and hooks to ingest CSVs to a raw bucket in Minio.
-2) Run Spark jobs to clean and transform columns
-3) Write output using the Apache Iceberg table format, with updated metadat written to Hive metastore
-4) Since the Kaggle data set did not come with column descriptions, we'll share some details about the data set with GPT 3.5 and ask it to generate initial column descriptions.
-5) Run a Datahub CLI pipeline task to profile our tables through Trino, and publish results to a Kafka topic.
-- After ~5mins, Datahub's metadata service will consume messages from the Kafka topic and present the profiling results in the Datahub UI.
+This use case demonstrates how to ingest a dataset from Kaggle and process it using our platform. The steps involved are:
+
+1. **Ingest Data**: Use custom Airflow operators and hooks to ingest CSV files into a raw bucket in Minio.
+2. **Transform Data**: Run Spark jobs to clean and transform the columns.
+3. **Store Data**: Write the output using the Apache Iceberg table format, with updated metadata written to the Hive metastore.
+4. **Generate Column Descriptions**: Since the Kaggle dataset lacks column descriptions, we'll use GPT 3.5 to generate initial descriptions.
+5. **Profile Data**: Run a Datahub CLI pipeline task to profile our tables through Trino and publish the results to a Kafka topic. After approximately 5 minutes, Datahub's metadata service will consume messages from the Kafka topic and present the profiling results in the Datahub UI.
+
 
 ### Resource Requirements
 - It's recommended to allocate (at least) **4 cores, 16GB memory, and 20 GB disk space** to Docker in order for all services in the use case to build and run successfully.
