@@ -1,7 +1,7 @@
-# Kaggle Ingestion Use Case
+# Kaggle ETL Use Case
 
 ## Overview
-![Airflow graph](images/kaggle_overview.png)
+
 
 This use case demonstrates how to ingest a dataset from Kaggle and process it using our platform. The steps involved are:
 
@@ -10,15 +10,27 @@ This use case demonstrates how to ingest a dataset from Kaggle and process it us
 3. **Store Data**: Write the output using the Apache Iceberg table format, with updated metadata written to the Hive metastore.
 4. **Generate Column Descriptions**: Since the Kaggle dataset lacks column descriptions, we'll use GPT 3.5 to generate initial descriptions.
 5. **Profile Data**: Run a Datahub CLI pipeline task to profile our tables through Trino and publish the results to a Kafka topic. After approximately 5 minutes, Datahub's metadata service will consume messages from the Kafka topic and present the profiling results in the Datahub UI.
-
+![Airflow graph](images/kaggle_overview.png)
 
 ### Resource Requirements
-- It's recommended to allocate (at least) **4 cores, 16GB memory, and 20 GB disk space** to Docker in order for all services in the use case to build and run successfully.
-- To run with lower specs (min 8GB memory needed), follow these two steps:
-    1. Run `./platform.sh start core models` 
-        - Run the Airflow DAG (see steps 3 & 4 in next section). It will complete successfully with just the `core` and `models` services running. And since Kafka utilizes a persistent volume, messages will be available for Datahub to consume once it is started. 
-    2. Run `./platform.sh shutdown core models && ./platform.sh start kafka datahub`
-        - This will shutdown services required to run the Airflow DAG, and leave only Kafka and Datahub running. (see step 5 in next section) 
+To ensure all services in the use case build and run successfully, allocate the following resources to Docker:
+- **CPU**: At least 4 cores
+- **Memory**: 16GB
+- **Disk Space**: 20GB
+
+For lower specifications (minimum 8GB memory needed), follow these steps:
+
+1. **Start Core Services**:
+    ```sh
+    ./platform.sh start core models
+    ```
+    - Run the Airflow DAG (see steps 3 & 4 in the next section). It will complete successfully with just the `core` and `models` services running. Kafka utilizes a persistent volume, so messages will be available for Datahub to consume once it is started.
+
+2. **Switch to Kafka and Datahub**:
+    ```sh
+    ./platform.sh shutdown core models && ./platform.sh start kafka datahub
+    ```
+    - This will shut down the services required to run the Airflow DAG and leave only Kafka and Datahub running (see step 5 in the next section).
 
 
 ## Steps
