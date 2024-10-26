@@ -7,7 +7,7 @@ source "$SCRIPT_DIR/helper_functions/entry.sh" "$@"
 source "$SCRIPT_DIR/helper_functions/common.sh"
 
 SERVICE="airflow"
-AIRFLOW_VERSION="2.8.4"
+AIRFLOW_VERSION="2.10.2"
 IMAGE_REPO="custom-airflow"
 IMAGE_TAG="latest"
 SERVICE_DIR="$BASE_DIR/services/$SERVICE"

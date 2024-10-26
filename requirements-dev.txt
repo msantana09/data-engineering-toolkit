@@ -1,9 +1,9 @@
 # packages for local development
-apache-airflow==2.8.0
+apache-airflow==2.10.2
 kaggle==1.5.16
 fastapi==0.104.1
 uvicorn==0.24.0.post1
-transformers==4.36.0
+transformers==4.38.0
 torch==2.2.0
 acryl-datahub[datahub-kafka]==0.14.1.3
 
