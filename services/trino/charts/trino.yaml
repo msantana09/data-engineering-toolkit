@@ -97,15 +97,15 @@ accessControl: {}
   #       ]
   #     }
 
-additionalNodeProperties: {}
+additionalNodeProperties: []
 
-additionalConfigProperties: {}
+additionalConfigProperties: []
 
-additionalLogProperties: {}
+additionalLogProperties: []
 
-additionalExchangeManagerProperties: {}
+additionalExchangeManagerProperties: []
 
-eventListenerProperties: {}
+eventListenerProperties: []
 
 additionalCatalogs:
   lakehouse: |-
@@ -190,7 +190,7 @@ coordinator:
     query:
       maxMemoryPerNode: "1GB"
 
-  additionalJVMConfig: {}
+  additionalJVMConfig: []
 
   additionalExposedPorts: {}
     #- name: "http-30081"
@@ -254,7 +254,7 @@ worker:
     query:
       maxMemoryPerNode: "1GB"
 
-  additionalJVMConfig: {}
+  additionalJVMConfig: []
 
   additionalExposedPorts: {}
 
