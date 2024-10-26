@@ -14,6 +14,6 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: trino
-    release: trino
-    component: coordinator
+    app.kubernetes.io/component: coordinator
+    app.kubernetes.io/instance: trino
+    app.kubernetes.io/name: trino
