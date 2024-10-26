@@ -6,7 +6,7 @@ Welcome to the Data Engineering Toolkit! This project provides a complete local 
 
 Setting up a development environment with multiple tools can be complex and time-consuming, especially if you're unfamiliar with the ecosystem. After encountering this challenge on several side projects, I decided to gather all my setup scripts and solutions into this toolkit to streamline the process.
 
-The primary goal of this project is to bootstrap innovation by offering a ready-to-use suite of tools that work seamlessly out of the box (OOTB). Additionally, it features an end-to-end use case that showcases a typical data product lifecycle.
+The primary goal of this project is to bootstrap innovation by offering a ready-to-use suite of tools that work seamlessly out of the box (OOTB). Additionally, it features an end-to-end [use case](/UseCase.md) that showcases a typical data product lifecycle.
 
 Also included are a collection of [Jupyter notebooks](/services/jupyter/notebooks/airbnb/) to help you explore ingested data interactively and run APIs, such as sentiment analysis, available in the toolkit.
 
