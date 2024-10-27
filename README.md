@@ -35,7 +35,7 @@ The platform is built using a mostly open-source stack, integrating several powe
 | [Apache Hive](https://cwiki.apache.org/confluence/display/hive/design) | Metadata store for our data lake, relied on by Spark and Trino. | |
 | [Apache Iceberg](https://iceberg.apache.org/) | Table format used by Spark jobs, enabling data querying via Trino or SparkSQL. | |
 | [Apache Spark](https://spark.apache.org/) | Distributed processing engine used for data transformation and analysis. | |
-| [OpenAI GPT-3.5](https://openai.com/) | Used for generating column descriptions, though OSS models like Mistral can be swapped in with proper hardware. | |
+| [OpenAI GPT-4o-mini](https://openai.com/) | Used for generating column descriptions, though OSS models like Mistral can be swapped in with proper hardware. | |
 | [Python](https://www.python.org/) | Primary programming language for the data pipelines. | |
 
 ## Prerequisites
