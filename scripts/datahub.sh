@@ -40,6 +40,8 @@ start() {
         exit 1
     fi 
 
+    helm repo add datahub https://helm.datahubproject.io/
+
     helm upgrade --install prerequisites datahub/datahub-prerequisites \
         --values "$CHARTS_DIR/prerequisites-values.yaml" --namespace $SERVICE
 

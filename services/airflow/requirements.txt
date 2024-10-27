@@ -9,5 +9,5 @@ apache-airflow-providers-trino==5.8.1
 kaggle==1.6.17
 
 # DataHub Packages
-acryl-datahub[datahub-kafka]==0.14.1.3
-acryl-datahub[trino]==0.14.1.3
+acryl-datahub[datahub-kafka]==0.14.0.2
+acryl-datahub[trino]==0.14.0.2
