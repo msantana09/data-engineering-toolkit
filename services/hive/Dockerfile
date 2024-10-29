@@ -2,12 +2,9 @@ FROM apache/hive:4.0.0-beta-1
 
 USER root
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      gettext-base \
-      curl &&\
-    apt-get clean  
+    apt-get install -y --no-install-recommends gettext-base curl && \
+    rm -rf /var/lib/apt/lists/*
 
-#COPY conf/hive-site.xml /opt/hive/conf/hive-site.xml
 RUN chown hive:hive /opt/hive/conf/hive-site.xml && \
     chmod 664 /opt/hive/conf/hive-site.xml
 
