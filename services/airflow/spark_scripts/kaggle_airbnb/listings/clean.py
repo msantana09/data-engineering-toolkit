@@ -9,23 +9,28 @@ def drop_unneeded_columns(df: DataFrame, words: list) -> DataFrame:
     return df.drop(*columns_to_drop)
 
 def transform_columns(df):
-    # Convert boolean columns
-    boolean_cols = [col_name for col_name in df.columns
-                        if df.select(col_name).filter(df[col_name].isin(['t', 'f'])).count()
-                        == df.select(col_name).filter(f'NOT {col_name} IS NULL').count()]
-    
-    for bc in boolean_cols:
-        df = df.withColumn(bc, F.when(F.col(bc) == 't', True).otherwise(False))
+    # Identify boolean columns
+    boolean_cols = [
+        col_name for col_name in df.columns 
+        if df.filter(~(F.col(col_name).isin('t', 'f') | F.col(col_name).isNull())).count() == 0
+    ]
 
-    # Standardize price fields
-    # Find columns with non-null values all starting in $ 
-    # and emove non-numeric characters from price (e.g., '$', ',')
-    price_cols = [col_name for col_name in df.columns
-                  if df.filter((~F.col(col_name).rlike('^\\$')) & (~F.isnull(F.col(col_name)))).count() == 0]
-    for pc in price_cols:
-        df = df.withColumn(pc, F.regexp_replace(F.col(pc), "[$,]", "").cast(DoubleType()))  
+    # Identify price columns 
+    price_cols = [
+        col_name for col_name in df.columns 
+        if df.filter(~F.col(col_name).rlike('^\\$')).filter(F.col(col_name).isNotNull()).count() == 0
+    ]     
 
-    return df
+    # Transform columns 
+    transformed_cols = [
+        F.when(F.col(col_name) == 't', True).otherwise(False).alias(col_name) if col_name in boolean_cols else
+        F.regexp_replace(F.col(col_name), "[$,]", "").cast(DoubleType()).alias(col_name) if col_name in price_cols else
+        F.col(col_name)  # Default to original column
+        for col_name in df.columns
+    ]
+
+    # Return transformed DataFrame
+    return df.select(*transformed_cols)
     
 def run(source, type,  s3_source_path: str, s3_target_path: str, column_keywords_to_exclude: list):
     spark = SparkSession.builder.appName(f"{source}_{type}_clean").getOrCreate()
