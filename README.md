@@ -37,7 +37,7 @@ The platform is built using a mostly open-source stack, integrating several powe
 | [Apache Spark](https://spark.apache.org/) | Distributed processing engine used for data transformation and analysis. | |
 | [OpenAI GPT-4o-mini](https://openai.com/) | Used for generating column descriptions, though OSS models like Mistral can be swapped in with proper hardware. | |
 | [Python](https://www.python.org/) | Primary programming language for the data pipelines. | |
-
+| [K8s Dashboard](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) | UI to visualize and manage the kubernetes cluster. | [see instructions](services/kubernetes-dashboard/README.md)|
 ## Prerequisites
 
 Before you start, ensure your host system (MacOS) has the following software installed:
