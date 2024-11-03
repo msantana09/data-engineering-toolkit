@@ -1,6 +1,7 @@
 import os
 import logging
 import json
+from datetime import timedelta
 from airflow.models.baseoperator import chain
 from airflow.decorators import task, task_group
 from pendulum import datetime
@@ -65,20 +66,19 @@ with DAG(
         path=f"raw/{SOURCE}",
         aws_conn_id=AWS_CONN_ID,
         on_failure_callback=helper_functions.handle_failure,
+        retries = 3,
+        retry_delay = timedelta(seconds=30),
     )
-
-    @task
-    def run_datahub_pipeline(recipe_path):
-        helper_functions.run_datahub_pipeline(recipe_path)
-
 
     @task_group()
     def listings():
         TYPE = "listings"
         S3_RAW_PATH = f"s3://{S3_BUCKET}/raw/{SOURCE}"
         S3_STAGING_PATH = f"s3://{S3_BUCKET}/staging/{SOURCE}/{TYPE}"
-        TABLE_NAME = "listings"
+        # Columns to exclude from cleaning. (defined here for now, but should be moved to AWS Secrets Manager or similar to avoid hardcoding)
+        EXCLUDED_KEYWORDS= ["url", "scrape", "license"] 
 
+        logger.info(f"Starting data cleaning for {TYPE} at {S3_RAW_PATH}")
 
         clean_listings = SparkSubmitOperator(
             application=f"{os.environ['AIRFLOW_HOME']}/spark_scripts/{SOURCE}/{TYPE}/clean.py",
@@ -91,9 +91,12 @@ with DAG(
                 TYPE,
                 S3_RAW_PATH,
                 S3_STAGING_PATH,
-                ";".join(["url", "scrape", "license"]),
+                ";".join(EXCLUDED_KEYWORDS),
             ], 
             on_failure_callback=helper_functions.handle_failure,
+            retries=3,  
+            retry_delay=timedelta(minutes=1),
+            execution_timeout=timedelta(minutes=10)
         )
 
         load_listings = SparkSubmitOperator(
@@ -104,6 +107,9 @@ with DAG(
             conf=spark_config,
             application_args=[SOURCE, TYPE, S3_STAGING_PATH],
             on_failure_callback=helper_functions.handle_failure,
+            retries=3,  
+            retry_delay=timedelta(minutes=1),
+            execution_timeout=timedelta(minutes=10)
         )
 
         clean_listings >> load_listings
@@ -113,6 +119,8 @@ with DAG(
         TYPE = "reviews"
         S3_RAW_PATH = f"s3://{S3_BUCKET}/raw/{SOURCE}"
         S3_STAGING_PATH = f"s3://{S3_BUCKET}/staging/{SOURCE}/{TYPE}"
+        
+        logger.info(f"Starting data cleaning for {TYPE} at {S3_RAW_PATH}")
 
         clean_reviews = SparkSubmitOperator(
             application=f"{os.environ['AIRFLOW_HOME']}/spark_scripts/{SOURCE}/{TYPE}/clean.py",
@@ -127,6 +135,9 @@ with DAG(
                 S3_STAGING_PATH 
             ],
             on_failure_callback=helper_functions.handle_failure,
+            retries=3,  
+            retry_delay=timedelta(minutes=1),
+            execution_timeout=timedelta(minutes=10)
         )
  
         load_reviews = SparkSubmitOperator(
@@ -137,6 +148,9 @@ with DAG(
             conf=spark_config,
             application_args=[SOURCE, TYPE, S3_STAGING_PATH],
             on_failure_callback=helper_functions.handle_failure,
+            retries=3,  
+            retry_delay=timedelta(minutes=1),
+            execution_timeout=timedelta(minutes=10)
         )
 
         clean_reviews >> load_reviews 
@@ -144,7 +158,7 @@ with DAG(
     @task_group()
     def generate_column_descriptions(tables:list):
 
-        @task
+        @task(retries=3, retry_delay=timedelta(minutes=1), execution_timeout=timedelta(minutes=15))
         def query_llm_for_descriptions(table:str):
             def _get_columns_missing_descriptions(table):
                 hook = TrinoHook(trino_conn_id=TRINO_CONN_ID)
@@ -160,56 +174,72 @@ with DAG(
                     dataset_context="AirBnB", table=table, columns=columns
                 )
 
-                logger.info("Sending payload to API")
+                logger.info(f"Sending payload to API for table: {table}")
                 response = post_json_request(f"{MODEL_SERVICE_BASE_URL}/describe_columns", payload)
 
                 if response.status_code != 200:
+                    logger.error(f"API error for table {table}: {response.text}")
                     raise Exception(f"Error from Models service API: {response.text}")
 
                 content = response.json()["content"]
                 usage = response.json()["usage"]
-                logger.info(f"Usage: {usage}")
+                logger.info(f"Received response for table {table}. Usage: {usage}")
                 return helper_functions.csv_to_list_of_dicts(content)
             
             def _upload_description_data_to_staging(table, columns):
                 output = f"staging/{SOURCE}/{table}_column_descriptions.json"
-                logger.info(f"Uploading column descriptions to {output}")
-                hook = S3Hook(aws_conn_id=AWS_CONN_ID)
-                hook.load_string(
-                    string_data=json.dumps(columns),
-                    key=output,
-                    bucket_name=S3_BUCKET,
-                    replace=True,
-                )
+                logger.info(f"Uploading column descriptions for {table} to S3 path: {output}")
+                try:
+                    hook = S3Hook(aws_conn_id=AWS_CONN_ID)
+                    hook.load_string(
+                        string_data=json.dumps(columns),
+                        key=output,
+                        bucket_name=S3_BUCKET,
+                        replace=True,
+                    )
+                    logger.info(f"Successfully uploaded column descriptions to {output} in bucket {S3_BUCKET}")
+                except Exception as e:
+                    logger.error(f"Failed to upload column descriptions for {table}: {str(e)}")
+                    raise
             
+            logger.info(f"Retrieving columns for description generation for table: {table}")
             column_batches = _get_columns_missing_descriptions(table=table)
 
             if not column_batches or len(column_batches) == 0:
+                logger.info(f"No columns found for description generation in table: {table}")
                 raise AirflowSkipException("No columns to describe")
             
+            logger.info(f"Generating descriptions for {len(column_batches)} column batches for table: {table}")
             responses = []
             for columns in column_batches:
                 responses.extend(_generate_descriptions(table, columns) )
+            logger.info(f"Completed description generation for table: {table}")
 
             # write column_json to s3
             _upload_description_data_to_staging(table, responses)
+            logger.info(f"Uploaded column descriptions to S3 for table: {table}")
 
-        @task
+
+        @task(retries=3, retry_delay=timedelta(minutes=1), execution_timeout=timedelta(minutes=15))
         def apply_column_descriptions(table, **kwargs):
             def _download_description_data(table):
-                hook = S3Hook(aws_conn_id=AWS_CONN_ID)
+                try:
+                    hook = S3Hook(aws_conn_id=AWS_CONN_ID)
 
-                column_responses_path = hook.download_file(
-                    key=f"staging/{SOURCE}/{table}_column_descriptions.json",
-                    bucket_name=S3_BUCKET,
-                    local_path=f"/tmp/{table}_column_descriptions.json",
-                    preserve_file_name=True,
-                )
+                    column_responses_path = hook.download_file(
+                        key=f"staging/{SOURCE}/{table}_column_descriptions.json",
+                        bucket_name=S3_BUCKET,
+                        local_path=f"/tmp/{table}_column_descriptions.json",
+                        preserve_file_name=True,
+                    )
 
-                with open(column_responses_path, "r") as f:
-                    column_responses_json = f.read()
-                return json.loads(column_responses_json)
-            
+                    with open(column_responses_path, "r") as f:
+                        column_responses_json = f.read()
+                    return json.loads(column_responses_json)
+                except Exception as e:
+                    logger.error(f"Failed to download column descriptions for {table}: {str(e)}")
+                    raise
+                
             column_descriptions = _download_description_data(table)
 
             TrinoHook(trino_conn_id=TRINO_CONN_ID).run(
@@ -223,6 +253,11 @@ with DAG(
             query_llm_for_descriptions.partial().expand(table=tables)
             >> apply_column_descriptions.partial().expand(table=tables)
         )
+
+
+    @task(retries=3, retry_delay=timedelta(minutes=1), execution_timeout=timedelta(minutes=15))
+    def run_datahub_pipeline(recipe_path):
+        helper_functions.run_datahub_pipeline(recipe_path)
 
 
     chain(

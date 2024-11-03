@@ -81,4 +81,4 @@ COPY plugin[s] /opt/airflow/plugins
 COPY spark_scripts /opt/airflow/spark_scripts
 COPY lib /opt/airflow/lib
 
-ENV PYTHONPATH="${AIRFLOW_HOME}/include"
+ENV PYTHONPATH="${PYTHONPATH}:${AIRFLOW_HOME}/include"
