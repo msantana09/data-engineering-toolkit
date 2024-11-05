@@ -1,5 +1,8 @@
 import os
+import logging
+import json
 from fastapi import APIRouter, Depends, HTTPException
+from openai import OpenAI
 from models import DescribeColumnsRequest, DescribeColumnsResponse, DescribeColumnsTokensResponse
 from dependencies import get_openai_client, num_tokens_from_string
 import prompts
@@ -9,8 +12,11 @@ router = APIRouter()
 MODEL = os.getenv("OPENAI_MODEL")
 TOKENIZER = os.getenv("OPENAI_TOKENIZER")
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 @router.post("/describe_columns")
-async def describe_columns(data: DescribeColumnsRequest, openai_client = Depends(get_openai_client)):
+async def describe_columns(data: DescribeColumnsRequest, openai_client:OpenAI = Depends(get_openai_client)):
     """ Describe columns of a table
 
     Args:
@@ -33,7 +39,7 @@ async def describe_columns(data: DescribeColumnsRequest, openai_client = Depends
     try:
         messages = [
             {
-                "content": prompts.describe_columns_csv,
+                "content": prompts.describe_columns,
                 "role": "system"
             },
             {
@@ -47,7 +53,10 @@ async def describe_columns(data: DescribeColumnsRequest, openai_client = Depends
             temperature=1,
             max_tokens=4096
         )
-        return DescribeColumnsResponse(content=response.choices[0].message.content, usage=response.usage)
+
+        return DescribeColumnsResponse(
+            content=json.loads(response.choices[0].message.content), 
+            usage=response.usage)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

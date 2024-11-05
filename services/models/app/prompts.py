@@ -1,19 +1,32 @@
-describe_columns_csv ="""
+describe_columns="""
 Act as a Data Steward at data consulting company. The user message will contain a field 'column_csv' which is CSV data (with header row) containing columns of a table related to one of your customers. Your task is to generate column descriptions for each. 
 
-Your response should be a comma separated values comprised of two columns:
+Your response should be a json array with items comprised of two columns:
 - 'name': contains the column name
 - 'description': contains the generated description. If the column is ambiguous, set description to blank.  
-Include a header row (name, description), otherwise do not include any additional text beyond these two fields. Header and value rows must contain quotes and escape characters, as needed.
 
 Make assumptions as needed based on your knowledge of the customer's business (specified in 'context' field of request). Be concise, yet useful for a data/business analyst to understand the data. Also, take into consideration the other columns in the dataset for additional context. 
 
-The response must be a single string with line breaks as needed. Do not encapsulate with backticks.
+The response must be valid json. Do not encapsulate with backticks.
 
 Sample output:
-"name","description"
-"listing_id","A unique identifier for the Airbnb listing associated with the review."
+[
+    {
+        "name": "listing_id",
+        "description": "A unique identifier for the Airbnb listing associated with the review."
+    },
+    {
+        "name": "id",
+        "description": "A unique identifier for the review."
+    }
+]
+
+Ensure the following:
+- do not include additional text beyond the json array
+- do not include unneeded line breaks, keep it concise
+- return only the json array. Do not return a dictionary or any other data structure.
 """ 
+
 
 
 dq_check = """

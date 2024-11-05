@@ -181,10 +181,11 @@ with DAG(
                     logger.error(f"API error for table {table}: {response.text}")
                     raise Exception(f"Error from Models service API: {response.text}")
 
-                content = response.json()["content"]
-                usage = response.json()["usage"]
+                response_dict = response.json()
+                content = response_dict["content"]
+                usage = response_dict["usage"]
                 logger.info(f"Received response for table {table}. Usage: {usage}")
-                return helper_functions.csv_to_list_of_dicts(content)
+                return content
             
             def _upload_description_data_to_staging(table, columns):
                 output = f"staging/{SOURCE}/{table}_column_descriptions.json"

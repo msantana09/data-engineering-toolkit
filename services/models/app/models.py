@@ -8,6 +8,10 @@ class TextData(BaseModel):
 class Table(BaseModel):
     column_csv: str
     name: str
+    
+class ColumnDescription(BaseModel):
+    name: str
+    description: str
 
 class DescribeColumnsRequest(BaseModel):
     tables: List[Table]
@@ -15,7 +19,7 @@ class DescribeColumnsRequest(BaseModel):
 
 
 class DescribeColumnsResponse(BaseModel):
-    content: str
+    content: List[ColumnDescription]
     usage: CompletionUsage 
 
 class DescribeColumnsTokensResponse(BaseModel):
