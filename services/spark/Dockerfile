@@ -1,6 +1,7 @@
 FROM apache/spark:3.5.3-python3
 
 USER root
+
 # Install tools required by the OS
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -13,7 +14,6 @@ RUN apt-get update && \
       ssh  \
       groff \
       mandoc && \
-    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 
@@ -27,35 +27,32 @@ RUN curl https://awscli.amazonaws.com/awscli-exe-linux-aarch64-2.13.33.zip -o "a
  && rm awscliv2.zip \
  && rm -rf aws/
 
+# Set up home directory for spark user
 RUN mkdir -p /home/spark
 
+# Set Spark UID and change ownership of the home directory
 ARG spark_uid=185
 RUN chown -R "${spark_uid}:0" /home/spark
+
 USER ${spark_uid}
-# Copy jars needed for pipelines (e.g. Spark, Iceberg, etc.)
-# Download iceberg spark runtime
-RUN curl https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.5_2.12/1.4.2/iceberg-spark-runtime-3.5_2.12-1.4.2.jar \
- -Lo ${SPARK_HOME}/jars/iceberg-spark-runtime-3.5_2.12-1.4.2.jar
 
-# Download Java AWS SDK
-RUN curl https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.17.257/bundle-2.17.257.jar \
-  -Lo ${SPARK_HOME}/jars/bundle-2.17.257.jar
+# Download necessary JARs in a single layer 
+ARG MAVEN_REPO="https://repo1.maven.org/maven2"
+ENV JARS_PATH="${SPARK_HOME}/jars"
+ARG ICEBERG_VERSION="1.4.3"
+ARG SPARK_SCALA_VERSION="3.5_2.12"
+ARG AWS_SDK_VERSION="2.17.257"
+ARG AWS_3RD_PARTY_BUNDLE_VERSION="1.12.777"
+ARG HADOOP_VERSION="3.3.4"
+RUN curl -Lo ${JARS_PATH}/iceberg-spark-runtime-${SPARK_SCALA_VERSION}-${ICEBERG_VERSION}.jar \
+        ${MAVEN_REPO}/org/apache/iceberg/iceberg-spark-runtime-${SPARK_SCALA_VERSION}/${ICEBERG_VERSION}/iceberg-spark-runtime-${SPARK_SCALA_VERSION}-${ICEBERG_VERSION}.jar && \
+    curl -Lo ${JARS_PATH}/bundle-${AWS_SDK_VERSION}.jar \
+        ${MAVEN_REPO}/software/amazon/awssdk/bundle/${AWS_SDK_VERSION}/bundle-${AWS_SDK_VERSION}.jar && \
+    curl -Lo ${JARS_PATH}/aws-java-sdk-bundle-${AWS_3RD_PARTY_BUNDLE_VERSION}.jar \
+        ${MAVEN_REPO}/com/amazonaws/aws-java-sdk-bundle/${AWS_3RD_PARTY_BUNDLE_VERSION}/aws-java-sdk-bundle-${AWS_3RD_PARTY_BUNDLE_VERSION}.jar && \
+    curl -Lo ${JARS_PATH}/hadoop-aws-${HADOOP_VERSION}.jar \
+        ${MAVEN_REPO}/org/apache/hadoop/hadoop-aws/${HADOOP_VERSION}/hadoop-aws-${HADOOP_VERSION}.jar
 
-# Download URL connection client required for S3FileIO
-RUN curl https://repo1.maven.org/maven2/software/amazon/awssdk/url-connection-client/2.17.257/url-connection-client-2.17.257.jar\
- -Lo ${SPARK_HOME}/jars/url-connection-client-2.17.257.jar
-
-# Download AWS third party bundle
-RUN curl https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.587/aws-java-sdk-bundle-1.12.587.jar\
- -Lo ${SPARK_HOME}/jars/aws-java-sdk-bundle-1.12.587.jar
-
-# Download AWS hadoop integration dependency
-RUN curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar\
- -Lo ${SPARK_HOME}/jars/hadoop-aws-3.3.4.jar
-
-
-# Copy the default configurations into $SPARK_HOME/conf
-COPY  conf/spark-defaults.conf  "$SPARK_HOME/conf/spark-defaults.conf"
-COPY  conf/log4j.properties  "$SPARK_HOME/conf/log4j.properties"
-
-
+# Copy configuration files into $SPARK_HOME/conf
+COPY conf/spark-defaults.conf "$SPARK_HOME/conf/spark-defaults.conf"
+COPY conf/log4j.properties "$SPARK_HOME/conf/log4j.properties"

@@ -14,16 +14,20 @@ RUN curl https://jdbc.postgresql.org/download/postgresql-42.7.0.jar\
 
 USER hive
 
-# Download AWS third party bundle
-RUN curl https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.587/aws-java-sdk-bundle-1.12.587.jar\
- -Lo /opt/hadoop/share/hadoop/common/aws-java-sdk-bundle-1.12.587.jar
- 
-# Download AWS hadoop integration dependency
-# hive 4.0.0-alpha-2 uses hadoop 3.3.1
-RUN curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.1/hadoop-aws-3.3.1.jar\
- -Lo /opt/hadoop/share/hadoop/common/hadoop-aws-3.3.1.jar
- 
-# using a custom entrypoint script to add the replace env variables in hive-site.xml
+# Download AWS dependencies for Hadoop
+ARG MAVEN_REPO="https://repo1.maven.org/maven2"
+ARG HADOOP_HOME="/opt/hadoop"
+ARG AWS_3RD_PARTY_BUNDLE_VERSION="1.12.777"
+ARG HADOOP_VERSION="3.3.1"
+
+# Download AWS third party bundle (req for hadoop-aws)
+RUN curl ${MAVEN_REPO}/com/amazonaws/aws-java-sdk-bundle/${AWS_3RD_PARTY_BUNDLE_VERSION}/aws-java-sdk-bundle-${AWS_3RD_PARTY_BUNDLE_VERSION}.jar \
+        -Lo ${HADOOP_HOME}/share/hadoop/common/aws-java-sdk-bundle-${AWS_3RD_PARTY_BUNDLE_VERSION}.jar  && \
+    curl ${MAVEN_REPO}/org/apache/hadoop/hadoop-aws/${HADOOP_VERSION}/hadoop-aws-${HADOOP_VERSION}.jar \
+        -Lo ${HADOOP_HOME}/share/hadoop/common/hadoop-aws-${HADOOP_VERSION}.jar
+
+# Copy entrypoint script with environment variable replacements for hive-site.xml
 COPY entrypoint.sh /opt/hive/entrypoint.sh
+RUN chmod +x /opt/hive/entrypoint.sh
 
 ENTRYPOINT ["/opt/hive/entrypoint.sh"]

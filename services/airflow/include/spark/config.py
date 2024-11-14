@@ -1,12 +1,7 @@
 import os
 
 SPARK_JAR_PATH = f"{os.environ['SPARK_HOME']}/jars/"
-
-SPARK_JARS = [
-    "iceberg-spark-runtime-3.5_2.12-1.4.2.jar",
-    "aws-java-sdk-bundle-1.12.587.jar",
-    "bundle-2.17.257.jar"
-]
+SPARK_JARS = []
 
 
 config = {

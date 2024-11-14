@@ -15,65 +15,47 @@ RUN apt-get update && \
         groff \
         gcc libssl-dev librdkafka-dev \
         mandoc &&\
-    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-    # gcc libssl-dev librdkafka-dev - dependencies needed for kafka integration https://stackoverflow.com/questions/72163907/unable-to-install-confluent-kafka-fatal-error-librdkafka-rdkafka-h-no-such-f
-
-
-FROM airflow_base AS airflow_spark
-########################
-# Install Spark
-########################
-
-ENV SPARK_HOME="/opt/spark"
-RUN mkdir -p ${SPARK_HOME}
-# Define version ARGs
-ARG SPARK_VERSION="3.5.3"
-ARG ICEBERG_VERSION="1.4.2"
-ARG AWS_SDK_VERSION="2.17.257"
-
-
-# Download and install Spark
-RUN curl https://dlcdn.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz -o spark-${SPARK_VERSION}-bin-hadoop3.tgz \
- && tar xvzf spark-${SPARK_VERSION}-bin-hadoop3.tgz --directory /opt/spark --strip-components 1 \
- && rm -rf spark-${SPARK_VERSION}-bin-hadoop3.tgz
-
-# Setup Spark related environment variables
-ENV PATH="/opt/spark/sbin:/opt/spark/bin:${PATH}"
-RUN chmod u+x /opt/spark/sbin/* && \
-    chmod u+x /opt/spark/bin/*
-
-
-# Download iceberg spark runtime
-RUN curl https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.5_2.12/${ICEBERG_VERSION}/iceberg-spark-runtime-3.5_2.12-${ICEBERG_VERSION}.jar \
- -Lo ${SPARK_HOME}/jars/iceberg-spark-runtime-3.5_2.12-${ICEBERG_VERSION}.jar
-
-# Download Java AWS SDK
-RUN curl https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/${AWS_SDK_VERSION}/bundle-${AWS_SDK_VERSION}.jar \
--Lo ${SPARK_HOME}/jars/bundle-${AWS_SDK_VERSION}.jar
-
-# Download URL connection client required for S3FileIO
-RUN curl https://repo1.maven.org/maven2/software/amazon/awssdk/url-connection-client/${AWS_SDK_VERSION}/url-connection-client-${AWS_SDK_VERSION}.jar\
- -Lo ${SPARK_HOME}/jars/url-connection-client-${AWS_SDK_VERSION}.jar
-
-# Download AWS third party bundle
-RUN curl https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.587/aws-java-sdk-bundle-1.12.587.jar\
- -Lo ${SPARK_HOME}/jars/aws-java-sdk-bundle-1.12.587.jar
-
-# Download AWS hadoop integration dependency
-RUN curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar\
- -Lo ${SPARK_HOME}/jars/hadoop-aws-3.3.4.jar
-
-FROM airflow_spark AS airflow_requirements
-
+    # gcc libssl-dev librdkafka-dev - dependencies needed for kafka integration 
+    # https://stackoverflow.com/questions/72163907/unable-to-install-confluent-kafka-fatal-error-librdkafka-rdkafka-h-no-such-f
 
 USER airflow
 
+# Install Python dependencies
+FROM airflow_base AS dependencies
 COPY requirements.txt .
 RUN pip install -r requirements.txt --no-cache-dir
 
-FROM airflow_requirements AS airflow_dags
+# Download additional JARs
+ENV SPARK_HOME="/home/airflow/.local/lib/python3.11/site-packages/pyspark"
+ENV SPARK_JARS_PATH="${SPARK_HOME}/jars"
+ARG MAVEN_REPO="https://repo1.maven.org/maven2"
+
+# Download iceberg spark runtime
+ARG ICEBERG_VERSION="1.4.3"
+ARG SPARK_SCALA_VERSION="3.5_2.12"
+RUN curl ${MAVEN_REPO}/org/apache/iceberg/iceberg-spark-runtime-${SPARK_SCALA_VERSION}/${ICEBERG_VERSION}/iceberg-spark-runtime-3.5_2.12-${ICEBERG_VERSION}.jar \
+ -Lo ${SPARK_JARS_PATH}/iceberg-spark-runtime-${SPARK_SCALA_VERSION}-${ICEBERG_VERSION}.jar
+
+# Download Java AWS SDK
+ARG AWS_SDK_VERSION="2.17.257"
+RUN curl ${MAVEN_REPO}/software/amazon/awssdk/bundle/${AWS_SDK_VERSION}/bundle-${AWS_SDK_VERSION}.jar \
+ -Lo ${SPARK_JARS_PATH}/bundle-${AWS_SDK_VERSION}.jar
+
+# Download AWS third party bundle (req for hadoop-aws)
+ARG AWS_3RD_PARTY_BUNDLE_VERSION="1.12.777"
+RUN curl ${MAVEN_REPO}/com/amazonaws/aws-java-sdk-bundle/${AWS_3RD_PARTY_BUNDLE_VERSION}/aws-java-sdk-bundle-${AWS_3RD_PARTY_BUNDLE_VERSION}.jar\
+ -Lo ${SPARK_JARS_PATH}/aws-java-sdk-bundle-${AWS_3RD_PARTY_BUNDLE_VERSION}.jar
+
+# Download AWS hadoop integration dependency 
+# use 3.3.4, which is compatible with pyspark airflow provider
+ARG HADOOP_VERSION="3.3.4"
+RUN curl ${MAVEN_REPO}/org/apache/hadoop/hadoop-aws/${HADOOP_VERSION}/hadoop-aws-${HADOOP_VERSION}.jar\
+ -Lo ${SPARK_JARS_PATH}/hadoop-aws-${HADOOP_VERSION}.jar
+
+# Copy DAGs and other Airflow resources
+FROM dependencies AS airflow_dags
 
 COPY dags /opt/airflow/dags
 COPY include /opt/airflow/include
