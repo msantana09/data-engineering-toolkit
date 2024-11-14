@@ -28,6 +28,5 @@ RUN curl ${MAVEN_REPO}/com/amazonaws/aws-java-sdk-bundle/${AWS_3RD_PARTY_BUNDLE_
 
 # Copy entrypoint script with environment variable replacements for hive-site.xml
 COPY entrypoint.sh /opt/hive/entrypoint.sh
-RUN chmod +x /opt/hive/entrypoint.sh
 
 ENTRYPOINT ["/opt/hive/entrypoint.sh"]
