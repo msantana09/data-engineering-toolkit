@@ -16,7 +16,7 @@ spec:
       containers:
       - name: hive-metastore
         image: kind-registry:5000/custom-apache-hive:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 9083
         env:

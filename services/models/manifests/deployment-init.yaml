@@ -10,7 +10,7 @@ spec:
       containers:
         - name: model-init
           image: kind-registry:5000/model-api:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           command: ["python3", "download_models.py"]
           envFrom:
           - secretRef:
