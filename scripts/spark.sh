@@ -27,8 +27,8 @@ start() {
     kubectl apply -f "$MANIFESTS_DIR/roles.yaml" 
 }
 
-# shutdown function
-shutdown() {
+# stop function
+stop() {
     delete_namespace "$SERVICE"
 }
 

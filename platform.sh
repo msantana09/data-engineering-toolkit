@@ -31,7 +31,7 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: $0 <action> [-c|--cluster <cluster_name>] [-d|--delete-data] [sub_scripts...]"
             echo ""
             echo "Options:"
-            echo "  <action>                      The action to perform (init|start|shutdown|recreate)"
+            echo "  <action>                      The action to perform (init|start|stop|recreate)"
             echo "  -c, --cluster <cluster_name>  Set the cluster name (default: platform)"
             echo "  -d, --delete-data             Delete data flag (default: false)"
             echo "  -h, --help                    Display this help message"
@@ -124,8 +124,8 @@ start(){
     done
 }
 
-# Shutdown function
-shutdown(){
+# Stop function
+stop(){
     local delete_data_option=""    
     if [[ "$DELETE_DATA" == true ]]; then
         delete_data_option="--delete-data"
@@ -151,11 +151,11 @@ shutdown(){
         # shut down local registry
         stop_local_registry "$DELETE_DATA"
 
-        # Shutdown all storage services outside cluster (docker compose)
-        shutdown_running_storage_containers "$STORAGE_DIR" "$DELETE_DATA"
+        # stop all storage services outside cluster (docker compose)
+        stop_running_storage_containers "$STORAGE_DIR" "$DELETE_DATA"
     else
-        # Shutdown only the specified services
-        echo "Shutting down ${SUB_SCRIPTS[@]}..."
+        # stop only the specified services
+        echo "Stopping down ${SUB_SCRIPTS[@]}..."
         for SUB_SCRIPT in "${SUB_SCRIPTS[@]}"
         do
             run_app_subscript "$SUB_SCRIPT" "$delete_data_option"
@@ -165,7 +165,7 @@ shutdown(){
 
 # Recreate the platform
 recreate(){
-    shutdown
+    stop
     start
 }
 
@@ -182,7 +182,7 @@ init(){
 }
 
 case $ACTION in
-    init|start|shutdown|recreate)
+    init|start|stop|recreate)
         $ACTION
         ;;
     *)

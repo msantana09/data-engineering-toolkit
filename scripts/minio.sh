@@ -29,7 +29,7 @@ start() {
     kubectl apply -f "$MANIFESTS_DIR/minio-server.yaml" 
 }
 
-shutdown() { 
+stop() { 
     delete_namespace "$SERVICE"
 
     # delete data directory

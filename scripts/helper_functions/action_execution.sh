@@ -1,7 +1,7 @@
 # Main execution
 execute_action() {
     case $1 in
-        init|start|shutdown)
+        init|start|stop)
             $1
             ;;
         *)

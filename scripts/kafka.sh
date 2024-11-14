@@ -27,7 +27,7 @@ start() {
         -f "$CHARTS_DIR/.env.ui.values.yaml"
 }
 
-shutdown() {
+stop() {
     delete_namespace "$SERVICE"
 
     # removing persistent volumes

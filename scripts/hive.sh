@@ -49,13 +49,13 @@ start() {
     fi
 }
 
-# shutdown function
-shutdown() {
+# stop function
+stop() {
 
     local env_file="$STORAGE_DIR/.env.$SERVICE"
     delete_namespace "$SERVICE"
 
-    shutdown_docker_compose_stack "$SERVICE" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
+    stop_docker_compose_stack "$SERVICE" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
 }
 
 init(){

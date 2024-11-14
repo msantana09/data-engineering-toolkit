@@ -8,7 +8,7 @@ For example, if we wanted to add a new application like [Apache Nifi](https://ni
 1. Create a file named `nifi.sh`
 2. Add the expected logic to `nifi.sh`, specifically:
     - Source the helper functions
-    - Define the 3 core functions: start, shutdown, init
+    - Define the 3 core functions: start, stop, init
     - Source the execution function
     
     Here's an example:
@@ -35,7 +35,7 @@ For example, if we wanted to add a new application like [Apache Nifi](https://ni
 
 
     ####################################################
-    # Include the 3 core functions: start, shutdown, init
+    # Include the 3 core functions: start, stop, init
     ####################################################
     start() {
         echo "Starting $SERVICE..."
@@ -43,8 +43,8 @@ For example, if we wanted to add a new application like [Apache Nifi](https://ni
         # include deployment logic, such as installing a helm chart
     }
 
-    shutdown() {
-        # Include shutdown logic.  Normally this is simply deleting the namespace,
+    stop() {
+        # Include stop logic.  Normally this is simply deleting the namespace,
         # but could also include deleting persistent volumes, databases, etc...
         delete_namespace "$SERVICE" 
     }

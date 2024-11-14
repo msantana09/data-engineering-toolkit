@@ -51,13 +51,13 @@ start() {
 
 }
 
-# shutdown function
-shutdown() {
+# stop function
+stop() {
     env_file="$STORAGE_DIR/.env.$SERVICE"
 
     delete_namespace "$SERVICE"
 
-    shutdown_docker_compose_stack "$SERVICE" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
+    stop_docker_compose_stack "$SERVICE" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
 
     for service in "${dependencies[@]}"; do
         script=("$BASE_DIR/scripts/$service.sh")

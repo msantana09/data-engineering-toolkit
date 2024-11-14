@@ -18,8 +18,8 @@ start() {
     -f "$MANIFESTS_DIR/rbac.yaml"  
 }
 
-# shutdown function
-shutdown() {
+# stop function
+stop() {
     delete_namespace "$NAMESPACE"
 }
 

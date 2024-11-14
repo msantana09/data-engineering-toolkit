@@ -138,11 +138,11 @@ Follow these steps to get up and running quickly:
    # Start the core services and additional models:
    ./platform.sh start core models datahub
 
-   # Shutdown MinIO and delete persisted data:
-   ./platform.sh shutdown minio -d
+   # Stop MinIO and delete persisted data:
+   ./platform.sh stop minio -d
 
-   # Shutdown the entire cluster:
-   ./platform.sh shutdown
+   # Stop the entire cluster:
+   ./platform.sh stop
    ```
 6. **Monitor Services**:
    Once services are running, you can use `kubectl` to monitor activity:

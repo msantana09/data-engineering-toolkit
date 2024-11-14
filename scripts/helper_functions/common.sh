@@ -204,7 +204,7 @@ create_kubernetes_secret() {
     fi
 }
 
-shutdown_docker_compose_stack() {
+stop_docker_compose_stack() {
     local app=$1
     local env_file=$2
     local delete_data=$3
@@ -231,7 +231,7 @@ shutdown_docker_compose_stack() {
 
 }
 
-shutdown_running_storage_containers(){
+stop_running_storage_containers(){
     local storage_dir=$1
     local delete_data=$2
     local apps=()
@@ -250,7 +250,7 @@ shutdown_running_storage_containers(){
     for app in "${apps[@]}"
     do 
         echo "Shutting down storage services: $app"
-        shutdown_docker_compose_stack "$app" "$storage_dir/.env.$app" "$delete_data" "$storage_dir/docker-compose-$app.yaml"
+        stop_docker_compose_stack "$app" "$storage_dir/.env.$app" "$delete_data" "$storage_dir/docker-compose-$app.yaml"
     done
 }
 

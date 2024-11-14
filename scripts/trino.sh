@@ -34,8 +34,8 @@ start() {
 
 }
 
-# shutdown function
-shutdown() {
+# stop function
+stop() {
     delete_namespace "$SERVICE"
 }
 

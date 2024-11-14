@@ -10,7 +10,7 @@ source "$SCRIPT_DIR/helper_functions/common.sh"
 services=("minio" "hive" "trino" "airflow" "spark" "kubernetes-dashboard" "kafka")
 delete_data_option=""
 
-if [[ "$ACTION" == "shutdown" ]] && [[ "$DELETE_DATA" == true ]]; then
+if [[ "$ACTION" == "stop" ]] && [[ "$DELETE_DATA" == true ]]; then
     delete_data_option="--delete-data"
 fi
 

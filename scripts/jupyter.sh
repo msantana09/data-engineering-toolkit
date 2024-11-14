@@ -34,8 +34,8 @@ start() {
     wait_for_container_startup "$SERVICE" jupyter app=jupyter
 }
 
-# shutdown function
-shutdown() {
+# stop function
+stop() {
     delete_namespace "$SERVICE"
 
     delete_pvs "app=jupyter" 

@@ -85,8 +85,8 @@ start() {
     wait_for_container_startup "$SERVICE" airflow-web component=web
 }
 
-# shutdown function
-shutdown() {
+# stop function
+stop() {
     local env_file="$STORAGE_DIR/.env.$SERVICE"
 
     # check if namespace exists, and if it does, delete it
@@ -95,7 +95,7 @@ shutdown() {
     fi
 
     # Check if .env file exists 
-    shutdown_docker_compose_stack "$SERVICE" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
+    stop_docker_compose_stack "$SERVICE" "$env_file" "$DELETE_DATA" "$DOCKER_COMPOSE_FILE"
 
     delete_pvs "app=airflow" 
 }
